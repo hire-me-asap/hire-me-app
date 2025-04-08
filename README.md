@@ -2,9 +2,9 @@
 
 ### Todos
 
-- [ ] 벡터스토어 검증
-  - [ ] `fluffy-oreo`
-  - [ ] `crunchy-ball`
+- [x] 벡터스토어 검증
+  - [x] ~~`fluffy-oreo`~~
+  - [x] `crunchy-ball` ✅
 - [ ] 챗봇 관련
   - [ ] Azure 엔드포인트에 요청 보내는 로직
   - [ ] 시스템 프롬프트를 변경하는 로직
