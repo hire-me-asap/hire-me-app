@@ -18,7 +18,11 @@
 
 ### memo
 
-`pyproject.toml` >>> `requirements.txt`
 ```
+uv init -p 3.12.9
+uv add <dependency>
+
+uv sync
+
 uv export -o requirements.txt --no-hashes
 ```
