@@ -175,7 +175,3 @@ cython_debug/
 
 # vscode
 .vscode/
-
-# uv 가상환경
-.python-version
-pyproject.toml
