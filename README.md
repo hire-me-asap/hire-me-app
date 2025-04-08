@@ -20,6 +20,7 @@
 
 ```
 uv init -p 3.12.9
+uv sync
 uv add <dependency>
 
 uv sync
