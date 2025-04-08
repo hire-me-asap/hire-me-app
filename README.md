@@ -15,3 +15,10 @@
   - [ ] 로그인 요청 보내는 로직
   - [ ] 로그인을 유지하는 로직
 - [ ] Azure OpenAI -> Azuer AI Foundry
+
+### memo
+
+`pyproject.toml` >>> `requirements.txt`
+```
+uv export -o requirements.txt --no-hashes
+```
