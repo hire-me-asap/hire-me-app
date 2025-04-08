@@ -26,3 +26,5 @@ uv sync
 
 uv export -o requirements.txt --no-hashes
 ```
+
+## 알았어요
