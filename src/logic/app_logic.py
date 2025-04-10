@@ -54,11 +54,12 @@ class AppLogic:
         self.user_vector_store = get_vector_store(self.username)
         return True
 
-    def upload_to_user_vector_store(self, file: str, files: str) -> bool:
+    def upload_to_user_vector_store(self, file: str, *files: str) -> bool:
         """파일을 사용자 전용 벡터 스토어에 업로드합니다. 성공하면 True, 아니면 False를 반환합니다.
 
         Args:
             file (str): 사용자가 업로드한 파일 경로
+            *files (str): 추가 파일들
 
         Returns:
             bool: 업로드 성공 여부
