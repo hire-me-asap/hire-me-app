@@ -1,4 +1,5 @@
 import os
+# from distutils.util import strtobool
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -7,13 +8,15 @@ class Config:
     DEBUG = False
     TESTING = False
     
-    VERSION_NUMBER = "1.0"
+    VERSION_NUMBER = "1.1"
     
     SQLALCHEMY_ECHO = False
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     SQLALCHEMY_DB_DRIVER = os.environ.get('SQLALCHEMY_DB_DRIVER') or 'mysql+pymysql'
-    SQLALCHEMY_USE_SSL = bool(os.environ.get('SQLALCHEMY_USE_SSL', 'False'))
+    # SQLALCHEMY_USE_SSL = bool(os.environ.get('SQLALCHEMY_USE_SSL', 'False'))
+    # SQLALCHEMY_USE_SSL = strtobool(os.environ.get('SQLALCHEMY_USE_SSL', 'False'))
+    SQLALCHEMY_USE_SSL = True if os.environ.get('SQLALCHEMY_USE_SSL', 'False') == 'True' else False
     SQLALCHEMY_DB_CERT = os.environ.get('SQLALCHEMY_DB_CERT')
     SQLALCHEMY_DB_USER = os.environ.get('SQLALCHEMY_DB_USER', 'user')
     SQLALCHEMY_DB_PASS = os.environ.get('SQLALCHEMY_DB_PASS', 'pass')
