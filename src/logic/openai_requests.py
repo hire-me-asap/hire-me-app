@@ -10,9 +10,7 @@ import requests
 from requests import Response
 from openai import AzureOpenAI
 from openai.types import VectorStore, FileObject
-from src.models.recruitment import get_user_by_id, update_user
-from sqlalchemy.orm import Session
-from src.models.recruitment import User
+
 
 AZURE_OPENAI_CLIENT: AzureOpenAI = AzureOpenAI(
     api_key=os.getenv("AZURE_OPENAI_API_KEY"),
@@ -21,23 +19,22 @@ AZURE_OPENAI_CLIENT: AzureOpenAI = AzureOpenAI(
 )
 
 
-def get_or_create_user_vector_store(db: Session, user_id: str):
-    """DB에서 사용자 ID 가져와서, 그 ID의 vectore_store_id가 없으면 새로 생성하고 업데이트"""
-    user = get_user_by_id(db, user_id)
+def get_vector_store(vector_store_name: str) -> str:
+    """이름으로 기존 벡터 스토어를 찾아 ID를 반환합니다.
+    존재하지 않는 경우, 새로 생성하여 ID를 반환합니다.
 
-    if not user:
-        raise ValueError(f"User with id {user_id} not found")
+    Args:
+        vector_store_name (str): 벡터 스토어 이름 (보통 user_id)
 
-    if user.vector_store_id:
-        return AZURE_OPENAI_CLIENT.vector_stores.get(user.vector_store_id)
+    Returns:
+        str: 벡터 스토어의 ID
+    """
+    for vector_store in AZURE_OPENAI_CLIENT.vector_stores.list():
+        if vector_store.name == vector_store_name:
+            return vector_store.id
 
-    # 새 벡터 스토어 생성
-    new_vector_store_id = AZURE_OPENAI_CLIENT.vector_stores.create(name=f"{user_id}")
-
-    # DB에 vector_store_id 업데이트
-    update_user(db=db, user_id=user_id, vector_store_id=new_vector_store_id.id)
-
-    return new_vector_store_id
+    new_vector_store = AZURE_OPENAI_CLIENT.vector_stores.create(name=vector_store_name)
+    return new_vector_store.id
 
 
 def get_vector_store_files_list(vector_store_id: str) -> list[FileObject]:
@@ -75,11 +72,13 @@ def delete_vector_store_files(vector_store_id: str, file_ids: tuple[str]):
         file_ids (tuple[str]): 삭제할 파일 아이디들이 담긴 튜플
     """
     for file_id in file_ids:
-        AZURE_OPENAI_CLIENT.vector_stores.files.delete(vector_store_id=vector_store_id, file_id=file_id)
+        AZURE_OPENAI_CLIENT.vector_stores.files.delete(
+            vector_store_id=vector_store_id, file_id=file_id
+        )
 
 
 # 0) 사용자 개인 thread 생성
-def _create_new_thread(azure_openai_endpoint, azure_openai_api_key):
+def create_new_thread(azure_openai_endpoint, azure_openai_api_key):
     PERSONAL_THREAD_ENDPOINT = (
         f"https://{azure_openai_endpoint}/openai/threads?api-version=2024-05-01-preview"
     )

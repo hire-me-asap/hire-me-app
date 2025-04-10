@@ -1,7 +1,24 @@
 from typing import Optional, TypedDict
 
 from openai.types import VectorStore
-from src.logic.openai_requests import upload_vector_store_files, get_vector_store_files_list, delete_vector_store_files
+from src.logic.openai_requests import (
+    upload_vector_store_files,
+    get_vector_store_files_list,
+    delete_vector_store_files,
+    get_vector_store,
+    create_new_thread,
+)
+from src.models.recruitment import get_user_by_id, update_user, create_user, delete_user
+from sqlalchemy.orm import Session
+from src.models.recruitment import User
+from src.logic.generate_id_card import generate_avatar_id_card
+
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+AZURE_OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT")
+AZURE_OPENAI_API_KEY = os.getenv("AZURE_OPENAI_API_KEY")
 
 
 class FileInfo(TypedDict):
@@ -11,6 +28,7 @@ class FileInfo(TypedDict):
         file_id: 벡터 스토어에 파일을 업로드할 때 지정되는 고유 식별자
         file_name: 원본 파일의 이름
     """
+
     file_id: str
     file_name: str
 
@@ -22,7 +40,7 @@ class AppLogic:
     Attributes:
         signed_in (str): 사용자가 로그인을 했다면 True, 아니라면 False입니다.
         _user_id (Optional[str]): 사용자가 로그인을 했다면 사용자의 ID가 저장됩니다.
-        _vector_store_id (Optional[str]): 사용자가 로그인을 했다면 사용자 전용 벡터 스토어의 ID가 저장됩니다.        
+        _vector_store_id (Optional[str]): 사용자가 로그인을 했다면 사용자 전용 벡터 스토어의 ID가 저장됩니다.
     """
 
     def __init__(self):
@@ -38,7 +56,7 @@ class AppLogic:
             *files (str): 업로드할 파일의 경로
         """
         if not self.signed_in:
-            raise RuntimeError('로그인 정보가 없습니다.')
+            raise RuntimeError("로그인 정보가 없습니다.")
         upload_vector_store_files(self._vector_store_id, files)
 
     def list_user_files(self) -> list[FileInfo]:
@@ -48,7 +66,7 @@ class AppLogic:
             list[FileInfo]: 파일 정보가 담긴 리스트입니다.
         """
         if not self.signed_in:
-            raise RuntimeError('로그인 정보가 없습니다.')
+            raise RuntimeError("로그인 정보가 없습니다.")
 
         files = get_vector_store_files_list(self._vector_store_id)
         files = [FileInfo(file_id=file.id, file_name=file.filename) for file in files]
@@ -58,15 +76,17 @@ class AppLogic:
         """파일을 사용자 전용 벡터 스토어에서 삭제합니다.
 
         Args:
-            *files_ids (str): 삭제할 파일의 ID 
+            *files_ids (str): 삭제할 파일의 ID
         """
         if not self.signed_in:
-            raise RuntimeError('로그인 정보가 없습니다.')
+            raise RuntimeError("로그인 정보가 없습니다.")
 
-        delete_vector_store_files(vector_store_id=self._vector_store_id, file_ids=file_ids)
-    
+        delete_vector_store_files(
+            vector_store_id=self._vector_store_id, file_ids=file_ids
+        )
+
     def sign_in(self, db: Session, user_id: str, password: str) -> bool:
-       # User 테이블에서 user_id 로 사용자 조회
+        # User 테이블에서 user_id 로 사용자 조회
         user = db.query(User).filter(User.id == user_id).first()
 
         if user is None:
@@ -79,13 +99,77 @@ class AppLogic:
         self.username = user.id
         return True
 
-    # 회원가입 함수
-    from src.models.recruitment import create_user
-
-    def sign_up(db: Session, user_id: str, password: str): # hashing은 create에서 됨
+    def sign_up(
+        self, db: Session, user_id: str, password: str
+    ):  # hashing은 create에서 됨
         existing_useruser = db.query(User).filter(User.id == user_id).first()
         if existing_useruser:
             return "이미 존재하는 아이디입니다."
         else:
             create_user(db, user_id=user_id, password=password)
+            update_vector_store(db, user_id=user_id)
+            update_thread_id(db, user_id=user_id)
+            update_user_img(db, user_id=user_id)
             return True
+
+    def update_vector_store(self, db: Session, user_id: str) -> str:
+        """DB에서 사용자 가져오고, 벡터 스토어가 없으면 새로 생성해서 DB에 업데이트
+
+        Args:
+            db (Session): DB 세션
+            user_id (str): 사용자 ID
+
+        Returns:
+            str: 벡터 스토어 ID
+        """
+        user = get_user_by_id(db, user_id)
+
+        if not user:
+            raise ValueError(f"User with id {user_id} not found")
+
+        if user.vector_store_id:
+            pass
+            return user.vector_store_id
+        else:
+            # Azure에서 ID 가져오기
+            vector_store_id = get_vector_store(vector_store_name=user_id)
+
+            # DB에 업데이트
+            update_user(db=db, user_id=user_id, vector_store_id=vector_store_id)
+        return vector_store_id
+
+    # thread_id 생성 후, DB 업데이트
+    def update_thread_id(self, db: Session, user_id: str) -> None:
+        job, recruit, roadmap, resume = [
+            create_new_thread(AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_API_KEY)
+            for _ in range(4)
+        ]
+
+        update_user(
+            db=db,
+            user_id=user_id,
+            thread_id_job_recommend=job,
+            thread_id_recruit_recommend=recruit,
+            thread_id_roadmap=roadmap,
+            thread_id_resume_review=resume,
+        )
+
+    # 사용자 정보 카드 이미지 제작 후 경로 DB에 저장
+    def update_user_img(self, db: Session, user_id: str, wanted_position: str) -> None:
+        job = wanted_position if wanted_position else "미정"
+        update_user(
+            db=db,
+            user_id=user_id,
+            user_img=generate_avatar_id_card(seed=user_id, job=job),
+        )
+
+    # 희망직무 업데이트 되었을 때 DB에 업데이트 및 이미지 주소 재설정
+    def update_wanted_position(
+        self, db: Session, user_id: str, wanted_position: str
+    ) -> None:
+        update_user(
+            db=db,
+            user_id=user_id,
+            wanted_position=wanted_position,
+            user_img=generate_avatar_id_card(seed=user_id, job=wanted_position),
+        )
