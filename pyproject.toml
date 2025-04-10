@@ -8,6 +8,7 @@ dependencies = [
     "alembic>=1.15.2",
     "gradio>=5.23.3",
     "graphviz>=0.20.3",
+    "openai>=1.72.0",
     "pillow>=11.1.0",
     "pymysql>=1.1.1",
     "python-dotenv>=1.1.0",
