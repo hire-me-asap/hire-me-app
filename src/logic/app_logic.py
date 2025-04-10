@@ -1,10 +1,10 @@
 from typing import Optional, TypedDict
 
 from openai.types import VectorStore
-from src.logic.openai_requests import get_vector_store
+from src.logic.openai_requests import upload_vector_store_files, get_vector_store_files_list, delete_vector_store_files
 
 
-class VectorStoreFile(TypedDict):
+class FileInfo(TypedDict):
     """벡터 스토어에 업로드된 파일의 정보를 담는 타입입니다.
 
     Args:
@@ -16,89 +16,56 @@ class VectorStoreFile(TypedDict):
 
 
 class AppLogic:
+    """사용자 세션 정보를 관리하고 요청을 처리해주는 클래스입니다.
+    한 인스턴스가 한 사용자 세션을 담당합니다.
+
+    Attributes:
+        signed_in (str): 사용자가 로그인을 했다면 True, 아니라면 False입니다.
+        _user_id (Optional[str]): 사용자가 로그인을 했다면 사용자의 ID가 저장됩니다.
+        _vector_store_id (Optional[str]): 사용자가 로그인을 했다면 사용자 전용 벡터 스토어의 ID가 저장됩니다.        
+    """
+
     def __init__(self):
-        self.username: Optional[str] = None
-        self.user_vector_store: Optional[VectorStore] = None
+        self.signed_in: bool = False
 
-    def login(self, username: str, password: str) -> bool:
-        """로그인을 시도합니다. 성공하면 True, 아니면 False를 반환합니다.
+        self._user_id: Optional[str] = None
+        self._vector_store_id: Optional[str] = None
 
-        Args:
-            username (str): 사용자 이름(ID)
-            password (str): 암호(비밀번호)
-
-        Returns:
-            bool: 로그인 성공 여부
-        """
-        # TODO: 별도의 사용자 정보 관리 로직으로 변경
-        return username.startswith('tester') and password == 'admin'
-
-    def set_username(self, username: str) -> None:
-        """사용자 이름을 지정합니다.
+    def upload_user_files(self, *files: str):
+        """파일을 사용자 전용 벡터 스토어에 업로드합니다.
 
         Args:
-            username (str): 사용자 이름
+            *files (str): 업로드할 파일의 경로
         """
-        self.username = username
+        if not self.signed_in:
+            raise RuntimeError('로그인 정보가 없습니다.')
+        upload_vector_store_files(self._vector_store_id, files)
 
-    def load_user_vector_store(self) -> bool:
-        """사용자 전용 벡터 스토어를 불러옵니다. 성공하면 True, 아니면 False를 반환합니다.
-        사용자 전용 벡터 스토어가 아직 없다면 조용히 새 벡터 스토어를 생성합니다.
-
-        Returns:
-            bool: 벡터 스토어 불러오기 성공 여부
-        """
-        if self.username is None:
-            return False
-
-        self.user_vector_store = get_vector_store(self.username)
-        return True
-
-    def upload_to_user_vector_store(self, file: str, *files: str) -> bool:
-        """파일을 사용자 전용 벡터 스토어에 업로드합니다. 성공하면 True, 아니면 False를 반환합니다.
-
-        Args:
-            file (str): 사용자가 업로드한 파일 경로
-            *files (str): 추가 파일들
-
-        Returns:
-            bool: 업로드 성공 여부
-        """
-        if self.user_vector_store is None:
-            return False
-
-        # IMPL: 업로드 함수가 완성되면 구현
-        return True
-
-    def list_user_vector_store(self) -> list[VectorStoreFile]:
+    def list_user_files(self) -> list[FileInfo]:
         """사용자 전용 벡터 스토어에 업로드된 모든 파일의 ID 리스트를 반환합니다.
 
         Returns:
-            list[VectorStoreFile]: 파일 정보가 담긴 리스트입니다.
+            list[FileInfo]: 파일 정보가 담긴 리스트입니다.
         """
-        if self.user_vector_store is None:
-            raise AttributeError('사용자 전용 벡터 스토어가 없습니다.')
+        if not self.signed_in:
+            raise RuntimeError('로그인 정보가 없습니다.')
 
-        # IMPL: 조회 함수가 완성되면 구현
-        return []
+        files = get_vector_store_files_list(self._vector_store_id)
+        files = [FileInfo(file_id=file.id, file_name=file.filename) for file in files]
+        return files
 
-    def remove_from_user_vector_store(self, file_id: str, *file_ids: str) -> bool:
-        """파일을 사용자 전용 벡터 스토어에서 삭제합니다. 성공하면 True, 아니면 False를 반환합니다.
+    def remove_user_files(self, *file_ids: str) -> bool:
+        """파일을 사용자 전용 벡터 스토어에서 삭제합니다.
 
         Args:
-            file_id (str): 삭제할 파일의 ID
-            *files_ids (str): 추가로 삭제할 파일의 ID 
-
-        Returns:
-            bool: _description_
+            *files_ids (str): 삭제할 파일의 ID 
         """
-        if self.user_vector_store is None:
-            return False
+        if not self.signed_in:
+            raise RuntimeError('로그인 정보가 없습니다.')
 
-        # IMPL: 파일 삭제 기능이 완성되면 구현
-        return True
+        delete_vector_store_files(vector_store_id=self._vector_store_id, file_ids=file_ids)
     
-    def login(self, db: Session, user_id: str, password: str) -> bool:
+    def sign_in(self, db: Session, user_id: str, password: str) -> bool:
        # User 테이블에서 user_id 로 사용자 조회
         user = db.query(User).filter(User.id == user_id).first()
 
@@ -111,7 +78,6 @@ class AppLogic:
         # 로그인 성공
         self.username = user.id
         return True
-    
 
     # 회원가입 함수
     from src.models.recruitment import create_user
