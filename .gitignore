@@ -178,3 +178,6 @@ cython_debug/
 
 # public ssl certificate for database
 certs/
+
+# test 파일추가
+test.py
