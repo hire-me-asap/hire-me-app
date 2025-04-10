@@ -58,10 +58,10 @@ class User(Base):
     wanted_position = Column(String(255), nullable=True)
 
     def verify_password(self, plain_password):
-        return pwd_context.verify(plain_password, self.hashed_pw)
+        return pwd_context.verify(plain_password, self.hashed_password)
 
     def set_password(self, plain_password):
-        self.hashed_pw = pwd_context.hash(plain_password)
+        self.hashed_password = pwd_context.hash(plain_password)
 
     def __repr__(self):
         return f"<User(id={self.id}, wanted_position={self.wanted_position})>"
