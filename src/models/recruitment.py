@@ -51,6 +51,8 @@ class User(Base):
     vector_store_id = Column(String(64), nullable=True)
     user_img = Column(Text, nullable=True)
     wanted_position = Column(String(255), nullable=True)
+    study_thread_id = Column(String(64), nullable=True)
+
 
     def verify_password(self, plain_password):
         return pwd_context.verify(plain_password, self.hashed_pw)
@@ -60,3 +62,6 @@ class User(Base):
 
     def __repr__(self):
         return f"<User(id={self.id}, thread_id={self.thread_id})>"
+    
+
+    

@@ -7,7 +7,7 @@ class Config:
     DEBUG = False
     TESTING = False
     
-    VERSION_NUMBER = "1.0"
+    VERSION_NUMBER = "1.1"
     
     SQLALCHEMY_ECHO = False
     SQLALCHEMY_TRACK_MODIFICATIONS = False
