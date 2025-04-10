@@ -2,7 +2,8 @@ from typing import Optional, TypedDict
 
 from openai.types import VectorStore
 from src.logic.openai_requests import get_vector_store
-
+from sqlalchemy.orm import Session
+from src.models.recruitment import User
 
 class VectorStoreFile(TypedDict):
     """벡터 스토어에 업로드된 파일의 정보를 담는 타입입니다.
@@ -31,6 +32,7 @@ class AppLogic:
             bool: 로그인 성공 여부
         """
         # TODO: 별도의 사용자 정보 관리 로직으로 변경
+
         return username.startswith('tester') and password == 'admin'
 
     def set_username(self, username: str) -> None:
@@ -96,3 +98,25 @@ class AppLogic:
 
         # IMPL: 파일 삭제 기능이 완성되면 구현
         return True
+    
+
+
+
+
+
+    
+    def login(self, db: Session, user_id: str, password: str) -> bool:
+       # User 테이블에서 user_id 로 사용자 조회
+        user = db.query(User).filter(User.id == user_id).first()
+
+        if user is None:
+            return False  # 사용자 없음 → 로그인 실패
+
+        if not user.verify_password(password):
+            return False  # 비밀번호 불일치 → 로그인 실패
+
+        # 로그인 성공
+        self.username = user.id
+        return True
+
+       
