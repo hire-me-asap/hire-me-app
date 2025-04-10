@@ -69,7 +69,7 @@ def get_db():
     #     db.close()
 
     # finally 안에서 db.close() 외에 다른 작업이 필요하면 위의 코드를 사용하는게 맞음.
-    with Session() as db: # 컨텍스트 매니저 사용. 자동으로 db.close() 호출해줌
+    with Session() as db: # 컨텍스트 매니저 사용. 자동으로 db.close() 호출해 줌
         # MySQL 버전 조회
         result = db.execute(text("SELECT VERSION()"))
         version = result.scalar()
