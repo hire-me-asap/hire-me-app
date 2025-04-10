@@ -1,49 +1,33 @@
-
 import enum
-from sqlalchemy import Boolean, Column, DateTime, Enum, ForeignKey, Integer, String, text, Text
+from sqlalchemy import (
+    Boolean,
+    Column,
+    DateTime,
+    Enum,
+    ForeignKey,
+    Integer,
+    String,
+    text,
+    Text,
+)
 from sqlalchemy.orm import declarative_base
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
+from typing import Optional
 
 Base = declarative_base()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# class WebSite(enum.Enum):
-#     WANTED = 1      # 원티드
-#     SARAMIN = 2     # 사람인
-#     JOBKOREA = 3    # 잡코리아
-#     JOBPLANET = 4   # 잡플래닛
-#     INCRUIT = 5     # 인쿠르트
-#     LINKEDIN = 6    # 링크드인
-
-# class RecruitSite(Base):
-#     '''recruit_site 테이블에 대한 모델'''
-#     __tablename__ = 'recruit_site'
-#     __table_args__ = {
-#         'schema': 'recruitment',
-#         'mysql_engine': 'InnoDB',
-#         'mysql_charset': 'utf8',
-#         'mysql_collate': 'utf8_general_ci',
-#     }
-    
-#     site_id = Column(Integer, primary_key=True, autoincrement=False)
-#     site_name = Column(String(40), nullable=False)
-#     active = Column(Boolean, nullable=False, server_default=text('true'))
-#     created_date = Column(DateTime, nullable=False, server_default=text('CURRENT_TIMESTAMP'))
-#     updated_date = Column(DateTime, nullable=True, server_onupdate=text('CURRENT_TIMESTAMP'))
-    
-#     def __repr__(self):
-#         return f"<Site(site_id={self.site_id}, site_name={self.site_name})>"
-
 
 class User(Base):
     """User 테이블에 대한 모델"""
-    __tablename__ = 'users'
+
+    __tablename__ = "users"
     __table_args__ = {
-        'schema': 'recruitment',
-        'mysql_engine': 'InnoDB',
-        'mysql_charset': 'utf8mb4',
-        'mysql_collate': 'utf8mb4_general_ci',
+        "schema": "recruitment",
+        "mysql_engine": "InnoDB",
+        "mysql_charset": "utf8mb4",
+        "mysql_collate": "utf8mb4_general_ci",
     }
 
     id = Column(String(50), primary_key=True, index=True)
@@ -66,35 +50,55 @@ class User(Base):
     def __repr__(self):
         return f"<User(id={self.id}, wanted_position={self.wanted_position})>"
 
-def create_user(db: Session, user_id: str, password: str,
-                thread_id_job_recommend: str = None, thread_id_recruit_recommend: str = None, thread_id_roadmap: str = None, thread_id_resume_review: str = None, thread_id_find_study: str = None, vector_store_id: str = None,
-                user_img: str = None, wanted_position: str = None):
+
+def create_user(
+    db: Session,
+    user_id: str,
+    password: str,
+    thread_id_job_recommend: str = None,
+    thread_id_recruit_recommend: str = None,
+    thread_id_roadmap: str = None,
+    thread_id_resume_review: str = None,
+    thread_id_find_study: str = None,
+    vector_store_id: str = None,
+    user_img: str = None,
+    wanted_position: str = None,
+):
     user = User(
-    id=user_id,
-    thread_id_job_recommend=thread_id_job_recommend,
-    thread_id_recruit_recommend=thread_id_recruit_recommend,
-    thread_id_roadmap=thread_id_roadmap,
-    thread_id_resume_review=thread_id_resume_review,
-    thread_id_find_study=thread_id_find_study,
-    vector_store_id=vector_store_id,
-    user_img=user_img,
-    wanted_position=wanted_position,
-)
+        id=user_id,
+        thread_id_job_recommend=thread_id_job_recommend,
+        thread_id_recruit_recommend=thread_id_recruit_recommend,
+        thread_id_roadmap=thread_id_roadmap,
+        thread_id_resume_review=thread_id_resume_review,
+        thread_id_find_study=thread_id_find_study,
+        vector_store_id=vector_store_id,
+        user_img=user_img,
+        wanted_position=wanted_position,
+    )
     user.set_password(password)
     db.add(user)
     db.commit()
     db.refresh(user)
-    return user 
+    return user
+
 
 def get_user_by_id(db: Session, user_id: str):
     return db.query(User).filter(User.id == user_id).first()
 
-from sqlalchemy.orm import Session
-from typing import Optional
 
-def update_user(db: Session, user_id: str, password: Optional[str] = None,
-    thread_id_job_recommend: Optional[str] = None, thread_id_recruit_recommend: Optional[str] = None, thread_id_roadmap: Optional[str] = None, thread_id_resume_review: Optional[str] = None, thread_id_find_study: Optional[str] = None,
-    vector_store_id: Optional[str] = None, user_img: Optional[str] = None, wanted_position: Optional[str] = None):
+def update_user(
+    db: Session,
+    user_id: str,
+    password: Optional[str] = None,
+    thread_id_job_recommend: Optional[str] = None,
+    thread_id_recruit_recommend: Optional[str] = None,
+    thread_id_roadmap: Optional[str] = None,
+    thread_id_resume_review: Optional[str] = None,
+    thread_id_find_study: Optional[str] = None,
+    vector_store_id: Optional[str] = None,
+    user_img: Optional[str] = None,
+    wanted_position: Optional[str] = None,
+):
 
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
@@ -122,6 +126,7 @@ def update_user(db: Session, user_id: str, password: Optional[str] = None,
     db.refresh(user)
     return user
 
+
 def delete_user(db: Session, user_id: str):
     user = db.query(User).filter(User.id == user_id).first()
     if user:
@@ -131,7 +136,7 @@ def delete_user(db: Session, user_id: str):
     return False
 
 
-# # 2. 전체 유저 조회 
+# # 2. 전체 유저 조회
 # def get_users(db: Session, skip: int = 0, limit: int = 100):
 #     return db.query(User).offset(skip).limit(limit).all()
 
@@ -153,4 +158,4 @@ def delete_user(db: Session, user_id: str):
 
 # # 7. user_img 로 조회 (이미지 있는 유저 찾기)
 # def get_users_by_user_img(db: Session, user_img: bytes):
-#     return db.query(User).filter(User.user_img == user_img).all()     
+#     return db.query(User).filter(User.user_img == user_img).all()
