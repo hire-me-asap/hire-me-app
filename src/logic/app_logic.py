@@ -111,3 +111,15 @@ class AppLogic:
         # 로그인 성공
         self.username = user.id
         return True
+    
+
+    # 회원가입 함수
+    from src.models.recruitment import create_user
+
+    def sign_up(db: Session, user_id: str, password: str): # hashing은 create에서 됨
+        existing_useruser = db.query(User).filter(User.id == user_id).first()
+        if existing_useruser:
+            return "이미 존재하는 아이디입니다."
+        else:
+            create_user(db, user_id=user_id, password=password)
+            return True
