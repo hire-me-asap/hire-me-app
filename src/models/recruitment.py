@@ -86,4 +86,30 @@ def create_user(db: Session, user_id: str, password: str,
     db.refresh(user)
     return user 
 
-    
+# 1. user_id 로 조회
+def get_user_by_id(db: Session, user_id: str):
+    return db.query(User).filter(User.id == user_id).first()
+
+# # 2. 전체 유저 조회 
+# def get_users(db: Session, skip: int = 0, limit: int = 100):
+#     return db.query(User).offset(skip).limit(limit).all()
+
+# # 3. thread_id 로 조회
+# def get_user_by_thread_id(db: Session, thread_id: str):
+#     return db.query(User).filter(User.thread_id == thread_id).first()
+
+# # 4. vector_store_id 로 조회
+# def get_user_by_vector_store_id(db: Session, vector_store_id: str):
+#     return db.query(User).filter(User.vector_store_id == vector_store_id).first()
+
+# # 5. wanted_position 으로 조회 (여러 명 나올 수 있어서 .all())
+# def get_users_by_wanted_position(db: Session, wanted_position: str):
+#     return db.query(User).filter(User.wanted_position == wanted_position).all()
+
+# # 6. study_thread_id 로 조회
+# def get_users_by_study_thread_id(db: Session, study_thread_id: str):
+#     return db.query(User).filter(User.study_thread_id == study_thread_id).all()
+
+# # 7. user_img 로 조회 (이미지 있는 유저 찾기)
+# def get_users_by_user_img(db: Session, user_img: bytes):
+#     return db.query(User).filter(User.user_img == user_img).all()     
