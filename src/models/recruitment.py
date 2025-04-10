@@ -4,7 +4,6 @@ from sqlalchemy import Boolean, Column, DateTime, Enum, ForeignKey, Integer, Str
 from sqlalchemy.orm import declarative_base
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
-from models import User
 
 Base = declarative_base()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -49,12 +48,14 @@ class User(Base):
 
     id = Column(String(50), primary_key=True, index=True)
     hashed_password = Column(String(128), nullable=False)
-    thread_id = Column(String(64), nullable=True)
+    thread_id_job_recommend = Column(String(64), nullable=True)
+    thread_id_recruit_recommend = Column(String(64), nullable=True)
+    thread_id_roadmap = Column(String(64), nullable=True)
+    thread_id_resume_review = Column(String(64), nullable=True)
+    thread_id_find_study = Column(String(64), nullable=True)
     vector_store_id = Column(String(64), nullable=True)
     user_img = Column(Text, nullable=True)
     wanted_position = Column(String(255), nullable=True)
-    study_thread_id = Column(String(64), nullable=True)
-
 
     def verify_password(self, plain_password):
         return pwd_context.verify(plain_password, self.hashed_pw)
@@ -63,16 +64,21 @@ class User(Base):
         self.hashed_pw = pwd_context.hash(plain_password)
 
     def __repr__(self):
-        return f"<User(id={self.id}, thread_id={self.thread_id})>"
+        return f"<User(id={self.id}, wanted_position={self.wanted_position})>"
 
-def create_user(db: Session, user_id: str, password: str, thread_id: str = None, vector_store_id: str = None, user_img: str = None, wanted_position: str = None, study_thread_id: str = None):
+def create_user(db: Session, user_id: str, password: str,
+                thread_id_job_recommend: str = None, thread_id_recruit_recommend: str = None, thread_id_roadmap: str = None, thread_id_resume_review: str = None, thread_id_find_study: str = None, vector_store_id: str = None,
+                user_img: str = None, wanted_position: str = None):
     user = User(
     id=user_id,
-    thread_id=thread_id,
+    thread_id_job_recommend=thread_id_job_recommend,
+    thread_id_recruit_recommend=thread_id_recruit_recommend,
+    thread_id_roadmap=thread_id_roadmap,
+    thread_id_resume_review=thread_id_resume_review,
+    thread_id_find_study=thread_id_find_study,
     vector_store_id=vector_store_id,
     user_img=user_img,
     wanted_position=wanted_position,
-    study_thread_id=study_thread_id
 )
     user.set_password(password)
     db.add(user)
