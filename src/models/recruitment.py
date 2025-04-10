@@ -3,6 +3,8 @@ import enum
 from sqlalchemy import Boolean, Column, DateTime, Enum, ForeignKey, Integer, String, text, Text
 from sqlalchemy.orm import declarative_base
 from passlib.context import CryptContext
+from sqlalchemy.orm import Session
+from models import User
 
 Base = declarative_base()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -62,6 +64,20 @@ class User(Base):
 
     def __repr__(self):
         return f"<User(id={self.id}, thread_id={self.thread_id})>"
-    
+
+def create_user(db: Session, user_id: str, password: str, thread_id: str = None, vector_store_id: str = None, user_img: str = None, wanted_position: str = None, study_thread_id: str = None):
+    user = User(
+    id=user_id,
+    thread_id=thread_id,
+    vector_store_id=vector_store_id,
+    user_img=user_img,
+    wanted_position=wanted_position,
+    study_thread_id=study_thread_id
+)
+    user.set_password(password)
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return user 
 
     
