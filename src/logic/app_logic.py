@@ -1,6 +1,10 @@
-from typing import Optional, TypedDict
+import os
 
+from dotenv import load_dotenv
+from typing import Optional, TypedDict
 from openai.types import VectorStore
+from sqlalchemy.orm import Session
+
 from src.logic.openai_requests import (
     upload_vector_store_files,
     get_vector_store_files_list,
@@ -9,12 +13,8 @@ from src.logic.openai_requests import (
     create_new_thread,
 )
 from src.models.recruitment import get_user_by_id, update_user, create_user, delete_user
-from sqlalchemy.orm import Session
 from src.models.recruitment import User
 from src.logic.generate_id_card import generate_avatar_id_card
-
-import os
-from dotenv import load_dotenv
 
 load_dotenv()
 AZURE_OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT")
@@ -107,9 +107,9 @@ class AppLogic:
             return "이미 존재하는 아이디입니다."
         else:
             create_user(db, user_id=user_id, password=password)
-            update_vector_store(db, user_id=user_id)
-            update_thread_id(db, user_id=user_id)
-            update_user_img(db, user_id=user_id)
+            self.update_vector_store(db, user_id=user_id)
+            self.update_thread_id(db, user_id=user_id)
+            self.update_user_img(db, user_id=user_id)
             return True
 
     def update_vector_store(self, db: Session, user_id: str) -> str:
