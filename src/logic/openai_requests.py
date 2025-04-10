@@ -36,26 +36,34 @@ def get_vector_store(name: str) -> VectorStore:
 
 
 def get_vector_store_files_list(id: str):
-    """벡터 스토어에서 파일 목록을 가져오는 함수 추가
-    Args:
-        id (str): 벡터 스토어 ID
-    
-    Returns:
-        list: 벡터 스토어의 파일 목록
-    """
+
     return list(AZURE_OPENAI_CLIENT.vector_stores.files.list(id))
 
 
-def upload_vector_store_files(id: str, *files):
-    """벡터 스토어에 파일 업로드하는 함수 추가
-    Args:
-        id (str): 벡터 스토어 ID
-        files (list): 업로드할 파일 목록
-    """
-    AZURE_OPENAI_CLIENT.vector_stores.file_batches.create_and_poll(
-        vector_store_id=id,
-        file_ids=files
+
+def upload_vector_store(name: str, file: str, *files: str) -> None:
+    
+    for vs in AZURE_OPENAI_CLIENT.vector_stores.list():
+        if vs.name == name:
+            vector_store = vs
+            break
+    else:
+        vector_store = AZURE_OPENAI_CLIENT.vector_stores.create(name=name)
+
+    fianl = file + files
+
+    AZURE_OPENAI_CLIENT.vector_stores.file_batches.upload_and_poll(
+        vector_store_id=vector_store.id, files=fianl
     )
+
+
+
+
+
+
+# file_batch = client.beta.vector_stores.file_batches.upload_and_poll(
+#   vector_store_id=vector_store.id, files=file_streams
+# )
 
 
 # 0) 사용자 개인 thread 생성
