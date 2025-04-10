@@ -86,9 +86,50 @@ def create_user(db: Session, user_id: str, password: str,
     db.refresh(user)
     return user 
 
-# 1. user_id 로 조회
 def get_user_by_id(db: Session, user_id: str):
     return db.query(User).filter(User.id == user_id).first()
+
+from sqlalchemy.orm import Session
+from typing import Optional
+
+def update_user(db: Session, user_id: str, password: Optional[str] = None,
+    thread_id_job_recommend: Optional[str] = None, thread_id_recruit_recommend: Optional[str] = None, thread_id_roadmap: Optional[str] = None, thread_id_resume_review: Optional[str] = None, thread_id_find_study: Optional[str] = None,
+    vector_store_id: Optional[str] = None, user_img: Optional[str] = None, wanted_position: Optional[str] = None):
+
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        return None  # 또는 raise 예외 처리
+
+    updates = {
+        "thread_id_job_recommend": thread_id_job_recommend,
+        "thread_id_recruit_recommend": thread_id_recruit_recommend,
+        "thread_id_roadmap": thread_id_roadmap,
+        "thread_id_resume_review": thread_id_resume_review,
+        "thread_id_find_study": thread_id_find_study,
+        "vector_store_id": vector_store_id,
+        "user_img": user_img,
+        "wanted_position": wanted_position,
+    }
+
+    for field, value in updates.items():
+        if value is not None:
+            setattr(user, field, value)
+
+    if password:
+        user.set_password(password)
+
+    db.commit()
+    db.refresh(user)
+    return user
+
+def delete_user(db: Session, user_id: str):
+    user = db.query(User).filter(User.id == user_id).first()
+    if user:
+        db.delete(user)
+        db.commit()
+        return True
+    return False
+
 
 # # 2. 전체 유저 조회 
 # def get_users(db: Session, skip: int = 0, limit: int = 100):
