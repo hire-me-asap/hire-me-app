@@ -67,6 +67,17 @@ def upload_vector_store_files(vector_store_id: str, files: tuple[str]):
     )
 
 
+def delete_vector_store_files(vector_store_id: str, file_ids: tuple[str]):
+    """벡터 스토어에서 파일 삭제
+
+    Args:
+        vector_store_id (str): 벡터 스토어 ID
+        file_ids (tuple[str]): 삭제할 파일 아이디들이 담긴 튜플
+    """
+    for file_id in file_ids:
+        AZURE_OPENAI_CLIENT.vector_stores.files.delete(vector_store_id=vector_store_id, file_id=file_id)
+
+
 # 0) 사용자 개인 thread 생성
 def _create_new_thread(azure_openai_endpoint, azure_openai_api_key):
     PERSONAL_THREAD_ENDPOINT = (
