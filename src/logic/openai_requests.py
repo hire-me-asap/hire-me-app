@@ -8,7 +8,7 @@ import os
 import requests
 from requests import Response
 from openai import AzureOpenAI
-from openai.types import VectorStore
+from openai.types import VectorStore, FileObject
 
 AZURE_OPENAI_CLIENT: AzureOpenAI = AzureOpenAI(
     api_key=os.getenv('AZURE_OPENAI_API_KEY'),
@@ -17,53 +17,48 @@ AZURE_OPENAI_CLIENT: AzureOpenAI = AzureOpenAI(
 )
 
 
-def get_vector_store(name: str) -> VectorStore:
+def get_vector_store(vector_store_name: str) -> VectorStore:
     """이름으로 기존 벡터 스토어를 찾아 반환합니다. 존재하지 않는 이름이라면 새 벡터 스토어를 생성해 반환합니다.
 
     Args:
-        name (str): 필요한 벡터 스토어의 이름
+        vector_store_name (str): 필요한 벡터 스토어의 이름
 
     Returns:
         VectorStore: 해당 이름을 가진 벡터 스토어
     """
     for vs in AZURE_OPENAI_CLIENT.vector_stores.list():
-        if vs.name == name:
+        if vs.name == vector_store_name:
             vector_store = vs
             break
     else:
-        vector_store = AZURE_OPENAI_CLIENT.vector_stores.create(name=name)
+        vector_store = AZURE_OPENAI_CLIENT.vector_stores.create(name=vector_store_name)
     return vector_store
 
 
-def get_vector_store_files_list(id: str):
-
-    return list(AZURE_OPENAI_CLIENT.vector_stores.files.list(id))
-
-
-
-def upload_vector_store(name: str, file: str, *files: str) -> None:
+def get_vector_store_files_list(vector_store_id: str) -> list[FileObject]:
+    """벡터 스토어에서 파일 목록을 가져오는 함수 추가
+    Args:
+        vector_store_id (str): 벡터 스토어 ID
     
-    for vs in AZURE_OPENAI_CLIENT.vector_stores.list():
-        if vs.name == name:
-            vector_store = vs
-            break
-    else:
-        vector_store = AZURE_OPENAI_CLIENT.vector_stores.create(name=name)
+    Returns:
+        list[FileObject]: 벡터 스토어의 파일 목록
+    """
+    vector_store_files = AZURE_OPENAI_CLIENT.vector_stores.files.list(vector_store_id=vector_store_id).data
+    file_ids = [file.id for file in vector_store_files]
+    files = [AZURE_OPENAI_CLIENT.files.retrieve(file_id) for file_id in file_ids]
+    return files
 
-    fianl = file + files
 
-    AZURE_OPENAI_CLIENT.vector_stores.file_batches.upload_and_poll(
-        vector_store_id=vector_store.id, files=fianl
+def upload_vector_store_files(vector_store_id: str, files: tuple[str]):
+    """벡터 스토어에 파일 업로드하는 함수 추가
+    Args:
+        vector_store_id (str): 벡터 스토어 ID
+        files (tuple[str]): 업로드할 파일 경로가 담긴 튜플
+    """
+    AZURE_OPENAI_CLIENT.vector_stores.file_batches.create_and_poll(
+        vector_store_id=vector_store_id,
+        files=[open(file, mode='rb') for file in files]
     )
-
-
-
-
-
-
-# file_batch = client.beta.vector_stores.file_batches.upload_and_poll(
-#   vector_store_id=vector_store.id, files=file_streams
-# )
 
 
 # 0) 사용자 개인 thread 생성
