@@ -107,12 +107,12 @@ class AppLogic:
             return "이미 존재하는 아이디입니다."
         else:
             create_user(db, user_id=user_id, password=password)
-            self.update_vector_store(db, user_id=user_id)
-            self.update_thread_id(db, user_id=user_id)
-            self.update_user_img(db, user_id=user_id)
+            self._update_vector_store(db, user_id=user_id)
+            self._update_thread_id(db, user_id=user_id)
+            self._update_user_img(db, user_id=user_id)
             return True
 
-    def update_vector_store(self, db: Session, user_id: str) -> str:
+    def _update_vector_store(self, db: Session, user_id: str) -> str:
         """DB에서 사용자 가져오고, 벡터 스토어가 없으면 새로 생성해서 DB에 업데이트
 
         Args:
@@ -139,7 +139,7 @@ class AppLogic:
         return vector_store_id
 
     # thread_id 생성 후, DB 업데이트
-    def update_thread_id(self, db: Session, user_id: str) -> None:
+    def _update_thread_id(self, db: Session, user_id: str) -> None:
         job, recruit, roadmap, resume = [
             create_new_thread(AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_API_KEY)
             for _ in range(4)
@@ -155,7 +155,7 @@ class AppLogic:
         )
 
     # 사용자 정보 카드 이미지 제작 후 경로 DB에 저장
-    def update_user_img(self, db: Session, user_id: str, wanted_position: str) -> None:
+    def _update_user_img(self, db: Session, user_id: str, wanted_position: str) -> None:
         job = wanted_position if wanted_position else "미정"
         update_user(
             db=db,
@@ -164,7 +164,7 @@ class AppLogic:
         )
 
     # 희망직무 업데이트 되었을 때 DB에 업데이트 및 이미지 주소 재설정
-    def update_wanted_position(
+    def _update_wanted_position(
         self, db: Session, user_id: str, wanted_position: str
     ) -> None:
         update_user(
