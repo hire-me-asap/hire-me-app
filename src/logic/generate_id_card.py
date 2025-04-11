@@ -2,6 +2,7 @@
 
 import os
 import requests
+from typing import Optional
 from PIL import Image, ImageDraw, ImageFont
 
 
