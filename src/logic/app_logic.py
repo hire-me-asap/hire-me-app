@@ -93,6 +93,19 @@ class AppLogic:
         )
 
     def sign_in(self, db: Session, user_id: str, password: str) -> bool:
+        """
+        사용자 로그인 기능을 수행합니다.
+
+        Parameters:
+            db (Session): SQLAlchemy 세션 객체입니다.
+            user_id (str): 로그인하려는 사용자의 ID입니다.
+            password (str): 로그인하려는 사용자의 비밀번호입니다.
+
+        Returns:
+            bool: 로그인 성공 여부를 반환합니다.
+                - True: 로그인 성공
+                - False: 사용자 존재하지 않거나 비밀번호 불일치
+        """
         # User 테이블에서 user_id 로 사용자 조회
         user = db.query(User).filter(User.id == user_id).first()
 
@@ -108,7 +121,21 @@ class AppLogic:
 
     def sign_up(
         self, db: Session, user_id: str, password: str
-    ):  # hashing은 create에서 됨
+    ):
+        """
+        사용자 회원가입 기능을 수행합니다.
+
+        Parameters:
+            db (Session): SQLAlchemy 세션 객체입니다.
+            user_id (str): 새로 등록할 사용자의 ID입니다.
+            password (str): 새로 등록할 사용자의 비밀번호입니다.
+
+        Returns:
+            Union[bool, str]:
+                - True: 회원가입 성공
+                - str: 이미 존재하는 아이디일 경우 에러 메시지 반환
+        """
+        # hashing은 create에서 됨
         existing_useruser = db.query(User).filter(User.id == user_id).first()
         if existing_useruser:
             return "이미 존재하는 아이디입니다."
@@ -146,24 +173,33 @@ class AppLogic:
                         vector_store_id=vector_store_id)
         return vector_store_id
 
-    # thread_id 생성 후, DB 업데이트
     def _update_thread_id(self, db: Session, user_id: str) -> None:
-        job, recruit, roadmap, resume = [
-            create_new_thread(AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_API_KEY)
-            for _ in range(4)
-        ]
+        """
+        사용자의 thread_id를 생성한 뒤, 이를 DB에 저장합니다.
 
-        update_user(
-            db=db,
-            user_id=user_id,
-            thread_id_job_recommend=job,
-            thread_id_recruit_recommend=recruit,
-            thread_id_roadmap=roadmap,
-            thread_id_resume_review=resume,
-        )
+        Args:
+            db (Session): SQLAlchemy DB 세션
+            user_id (str): 업데이트할 사용자 ID
+        """
+        thread_types = ["job_recommend",
+                        "recruit_recommend", "roadmap", "resume_review", "find_study"]
+        thread_ids = {
+            f"thread_id_{thread_type}": create_new_thread(AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_API_KEY)
+            for thread_type in thread_types
+        }
 
-    # 사용자 정보 카드 이미지 제작 후 경로 DB에 저장
+        update_user(db=db, user_id=user_id, **thread_ids)
+
     def _update_user_img(self, db: Session, user_id: str, wanted_position: str) -> None:
+        """
+        사용자의 직무 정보를 기반으로 아바타 카드 이미지를 생성하고,
+        해당 이미지 경로를 DB에 저장합니다.
+
+        Args:
+            db (Session): SQLAlchemy DB 세션
+            user_id (str): 업데이트할 사용자 ID
+            wanted_position (str): 사용자의 희망 직무 (없을 경우 '미정'으로 처리)
+        """
         job = wanted_position if wanted_position else "미정"
         update_user(
             db=db,
@@ -171,10 +207,18 @@ class AppLogic:
             user_img=generate_avatar_id_card(seed=user_id, job=job),
         )
 
-    # 희망직무 업데이트 되었을 때 DB에 업데이트 및 이미지 주소 재설정
     def _update_wanted_position(
         self, db: Session, user_id: str, wanted_position: str
     ) -> None:
+        """
+        사용자의 희망 직무를 DB에 반영하고,
+        변경된 직무에 맞춰 아바타 카드 이미지를 새로 생성해 저장합니다.
+
+        Args:
+            db (Session): SQLAlchemy DB 세션
+            user_id (str): 업데이트할 사용자 ID
+            wanted_position (str): 새로 설정할 희망 직무
+        """
         update_user(
             db=db,
             user_id=user_id,
@@ -183,8 +227,18 @@ class AppLogic:
                 seed=user_id, job=wanted_position),
         )
 
-    def assistant_logic(assistant_id, message, thread_id):
-        # 1. 사용자 메시지 thread에 추가
+    def _request_assistant_response(self, assistant_id: str, message: str, thread_id: str) -> str:
+        """사용자 질문을 스레드에 추가하고, AI 도우미의 응답을 받아옵니다.
+
+        Args:
+            assistant_id (str): 응답을 요청할 도우미의 ID
+            message (str): 사용자의 질문 메시지
+            thread_id (str): 사용자의 스레드 ID
+
+        Returns:
+            str: 도우미의 응답 메시지 내용
+        """
+        # 1. 사용자 메시지를 스레드에 추가
         response = add_user_question_to_thread(
             personal_thread_id=thread_id,
             user_question=message
@@ -193,7 +247,7 @@ class AppLogic:
             raise Exception(
                 f"Failed to add user question to thread: {response.text}")
 
-        # 2. run 실행
+        # 2. 메시지를 기반으로 도우미 실행(run)
         run_id = run_message_to_thread(
             thread_id=thread_id,
             assistant_id=assistant_id,
@@ -202,9 +256,9 @@ class AppLogic:
         if not run_id:
             raise Exception("Failed to start run for the thread.")
 
+        # 3. 도우미가 응답을 완료할 때까지 대기 (최대 30초)
         polling_interval = 1
         max_wait_time = 30
-        # 3. 폴링하면서 run 완료될 때까지 대기
         elapsed_time = 0
         while not is_run_done(thread_id, run_id):
             if elapsed_time >= max_wait_time:
@@ -213,27 +267,42 @@ class AppLogic:
             time.sleep(polling_interval)
             elapsed_time += polling_interval
 
-        # 4. assistant 응답 가져오기
+        # 4. 도우미의 최종 응답 메시지 반환
         response_message = get_last_assistant_message(thread_id)
-        return {"status": "completed", "response": response_message}
+        return response_message
 
-    
-    def get_user_response(user_id, assistant_type, user_question):
+    def get_response_from_assistant(
+        self, db: Session, user_id: str, assistant_type: str, user_question: str
+    ) -> dict:
+        """유저 질문을 기반으로 특정 Assistant 타입에 맞는 응답을 반환합니다.
+
+        Args:
+            db (Session): DB 세션
+            user_id (str): 유저의 ID
+            assistant_type (str): 사용할 도우미 유형 (예: 'a', 'b' 등 이후 수정예정)
+            user_question (str): 유저의 질문 메시지
+
+        Returns:
+            dict: 도우미의 응답 메시지를 포함한 딕셔너리
         """
-        유저 반응 가져오기(assistant_logic 이전)
-        """
-        # "assistant_type(서비스 5개 중 선택)" : ["assistant_id1", "thread_id"] 
-        assistant_mapping = {"a":["assistant_id1", "thread_id_job_recommend"], "b":["assistant_id2", "thread_id_recruit_recommend"], "c":["assistant_id3", "thread_id_roadmap"], "d":["assistant_id4", "thread_id_resume_review"], "e":["assistant_id5", "thread_id_find_study"]}
-        
+        assistant_mapping = {
+            "a": ["assistant_id1", "thread_id_job_recommend"],
+            "b": ["assistant_id2", "thread_id_recruit_recommend"],
+            "c": ["assistant_id3", "thread_id_roadmap"],
+            "d": ["assistant_id4", "thread_id_resume_review"],
+            "e": ["assistant_id5", "thread_id_find_study"],
+        }
+
         assistant_info = assistant_mapping[assistant_type]
-        assistant_id = assistant_info[0]
-        thread_column_name = assistant_info[1]
+        assistant_id, thread_column_name = assistant_info
 
-        # 유저 가져오기 (로그인 후 실행되는 코드)
+        # 사용자 정보 조회
         user = db.query(User).filter(User.id == user_id).first()
-
-        # 해당 assistant에 맞는 thread_id 필드 가져오기
         personal_thread_id = getattr(user, thread_column_name)
 
-        # 실제 도우미 응답 함수 호출
-        return assistant_logic(assistant_id, user_question, personal_thread_id)   
+        # 도우미 응답 요청
+        return self._request_assistant_response(
+            assistant_id=assistant_id,
+            message=user_question,
+            thread_id=personal_thread_id,
+        )
