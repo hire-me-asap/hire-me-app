@@ -279,18 +279,19 @@ class AppLogic:
         Args:
             db (Session): DB 세션
             user_id (str): 유저의 ID
-            assistant_type (str): 사용할 도우미 유형 (예: 'a', 'b' 등 이후 수정예정)
+            assistant_type (str): 사용할 도우미 유형 (현재는 DB에서 사용하고 있는 변수명 활용)
             user_question (str): 유저의 질문 메시지
 
         Returns:
             dict: 도우미의 응답 메시지를 포함한 딕셔너리
         """
+        # TODO assistant_id 생성시 수정필요
         assistant_mapping = {
-            "a": ["assistant_id1", "thread_id_job_recommend"],
-            "b": ["assistant_id2", "thread_id_recruit_recommend"],
-            "c": ["assistant_id3", "thread_id_roadmap"],
-            "d": ["assistant_id4", "thread_id_resume_review"],
-            "e": ["assistant_id5", "thread_id_find_study"],
+            "job_recommend": ["assistant_id1", "thread_id_job_recommend"],
+            "recruit_recommend": ["assistant_id2", "thread_id_recruit_recommend"],
+            "roadmap": ["assistant_id3", "thread_id_roadmap"],
+            "resume_review": ["assistant_id4", "thread_id_resume_review"],
+            "find_study": ["assistant_id5", "thread_id_find_study"],
         }
 
         assistant_info = assistant_mapping[assistant_type]
