@@ -6,7 +6,7 @@
     font-size: 16px !important;
 }
 
-/* 공통 버튼 */
+/* 공통 custom 버튼 */
 .custom-button {
     margin: 10px;
     padding: 5px 5px;
@@ -18,10 +18,7 @@
     color: #878f99
 }
 
-/* 관련 강의 추천 체크박스 텍스트 색상 */
-.custom-checkbox label {
-    color: #878f99 !important;
-}
+/* ---- 메인페이지 - chatbot 화면 ---- */
 
 /* 상단 로고 이미지 */
 #logo-container img {
@@ -32,24 +29,6 @@
     margin: 25;
 }
 
-/* 로그인 버튼 */
-.login-group{
-    flex-wrap: none;    
-}
- 
-.login-button {    
-    margin: 5px;
-    padding: 5px 5px;
-    height: 40px;    
-    min-width: min(75px, 100%);
-}
- 
-.login-button:hover {
-    background-color: #f3f4f6;
-    transform: translateY(-3px);
-    cursor: pointer;
-}
- 
 /* input 영역 */
 .custom-input {
     align-items: top;
@@ -58,13 +37,25 @@
 /* 체크박스 스타일 */
 .block.custom-checkbox{
     margin-left : 40px;
-
 }
 
+/* 체크박스와 채팅창 간격 */ 
 .column.svelte-vt1mxs.gap{
     gap: 10px;    
 }
 
+/* Row 내부 체크박스 간격 줄이기 */
+.checkbox-row {
+    gap: 10px !important;
+    align-items: center;
+}
+
+/* 관련 강의 추천 체크박스 텍스트 색상 */
+.custom-checkbox label {
+    color: #878f99 !important;
+}
+
+/* 체크박스 모양 */
 input[type="checkbox"] {
     width: 18px;
     height: 18px;
@@ -83,30 +74,6 @@ input[type="checkbox"]:checked::before {
     left: 2px;
     font-size: 16px;
     color: #878f99;
-}
-
-/* Row 내부 체크박스 간격 줄이기 */
-.checkbox-row {
-    gap: 10px !important;
-    align-items: center;
-}
-
-/* 예시 버튼 배치 - 중앙 정렬 */
-.example-row {
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: center;
-    gap: 30px;
-    width: 100%;
-    max-width: 800px;
-    margin-top: 30px;
-    margin-bottom: 40px;
-    padding: 15px;
-    z-index: 2;
 }
 
 /* 예시 영역 전체를 감싸는 박스 */
@@ -146,23 +113,9 @@ input[type="checkbox"]:checked::before {
     cursor: pointer;
 }
 
-/* 아바타 이미지 크기 조절 */
-.gr-avatar {
-    width: 40px !important;
-    height: 40px !important;
-    border-radius: 50%;
-}
-
 /* 기본 푸터 감추기 */
 footer {
     visibility: hidden;
-}
-
-/* 사이드바 푸터용 flex 컨테이너 */
-.sidebar-container {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
 }
 
 /* 고권아 추가!!! */
@@ -198,6 +151,53 @@ footer {
     margin-bottom: 5px;
 }
 
+
+
+/* ---- 사이드바 ---- */
+
+/* 로그인 버튼 */
+.login-group{
+    flex-wrap: none; 
+    margin-top : 20px;   
+}
+ 
+.login-button {    
+    margin: 5px;
+    padding: 5px 5px;
+    height: 40px;    
+    min-width: min(75px, 100%);
+}
+ 
+.login-button:hover {
+    background-color: #f3f4f6;
+    transform: translateY(-3px);
+    cursor: pointer;
+}
+ 
+/* 아바타 이미지 크기 조절 */
+.gr-avatar {
+    width: 40px !important;
+    height: 40px !important;
+    border-radius: 50%;
+}
+
+
+/* 사이드바 푸터용 flex 컨테이너 */
+.sidebar-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+/* 사이드바 여백 등 조정 */ 
+.sidebar-content{
+    height : 100vh;
+    display: flex;
+    flex-direction: column;
+}
+.sidebar-column{
+    height : 100vh;
+}
 .sidebar-footer {
     margin-top: auto;
 }
@@ -206,13 +206,13 @@ footer {
     margin-bottom: 30px;
 }
 
-.spacer {
-    flex: 1; /* 빈 공간을 차지함 */
+.about-us{
+    margin-top: auto;
+    margin-bottom : 20px;    
 }
 
-.about_us img {    
-
-    max-width: 100%;       /* 전체 너비의 90%로 제한 */
+.about-us img {
+    max-width: 100%;       
     height: auto;
     display: block;
     margin: 0 auto;
