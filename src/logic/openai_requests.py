@@ -93,14 +93,16 @@ def create_new_thread(azure_openai_endpoint, azure_openai_api_key):
 
 
 # 1) thread에 신규 질문 발송
-def _add_user_question_to_thread(
-    azure_openai_endpoint, azure_openai_api_key, personal_thread_id, user_question
+def add_user_question_to_thread(
+    personal_thread_id, user_question
 ) -> Response:
-    USER_QUESTION_ENDPOINT = f"https://{azure_openai_endpoint}/openai/threads/{personal_thread_id}/messages?api-version=2024-05-01-preview"
+    ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT")
+    API_KEY = os.getenv("AZURE_OPENAI_API_KEY")
+    USER_QUESTION_ENDPOINT = f"https://{ENDPOINT}/openai/threads/{personal_thread_id}/messages?api-version=2024-05-01-preview"
 
     result = requests.post(
         USER_QUESTION_ENDPOINT,
-        headers={"api-key": azure_openai_api_key, "Content-Type": "application/json"},
+        headers={"api-key": API_KEY, "Content-Type": "application/json"},
         json={"role": "user", "content": user_question},
     )
     return result
@@ -123,6 +125,16 @@ def _run_thread(
     RUN_ID = result.json()["id"]
     return RUN_ID
 
+def run_message_to_thread(thread_id: str, assistant_id: str, message: str) -> any:
+    ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT")
+    API_KEY = os.getenv("AZURE_OPENAI_API_KEY")
+
+    result = _add_user_question_to_thread(ENDPOINT, API_KEY, thread_id, message)
+    if result.status_code != 200:
+        return
+
+    run_id = _run_thread(ENDPOINT, API_KEY, thread_id, assistant_id)
+    return run_id
 
 # 2-2) thread 모니터링 및 응답 대기
 def _get_status_of_run(
@@ -138,6 +150,14 @@ def _get_status_of_run(
     )
 
     return result.json()["status"]
+
+def is_run_done(thread_id: str, run_id: str) -> bool:
+    return "completed" == _get_status_of_run(
+        os.getenv("AZURE_OPENAI_ENDPOINT"),
+        os.getenv("AZURE_OPENAI_API_KEY"),
+        thread_id,
+        run_id,
+    )
 
 
 # 3) 응답 수신 및 출력 # 마지막 text value로 가져오기
@@ -161,29 +181,12 @@ def _get_assistant_response(
         if message["role"] == "assistant":
             return message["content"][0]["text"]["value"]
 
-
-def send_message_to_thread(thread_id: str, assistant_id: str, message: str) -> any:
-    ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT")
-    API_KEY = os.getenv("AZURE_OPENAI_API_KEY")
-
-    result = _add_user_question_to_thread(ENDPOINT, API_KEY, thread_id, message)
-    if result.status_code != 200:
-        return
-
-    run_id = _run_thread(ENDPOINT, API_KEY, thread_id, assistant_id)
-    return run_id
-
-
-def is_run_done(thread_id: str, run_id: str) -> bool:
-    return "completed" == _get_status_of_run(
-        os.getenv("AZURE_OPENAI_ENDPOINT"),
-        os.getenv("AZURE_OPENAI_API_KEY"),
-        thread_id,
-        run_id,
-    )
-
-
 def get_last_assistant_message(thread_id: str) -> str | None:
     return _get_assistant_response(
         os.getenv("AZURE_OPENAI_ENDPOINT"), os.getenv("AZURE_OPENAI_API_KEY"), thread_id
     )
+
+
+
+
+

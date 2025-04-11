@@ -11,7 +11,12 @@ from src.logic.openai_requests import (
     delete_vector_store_files,
     get_vector_store,
     create_new_thread,
+    add_user_question_to_thread,
+    run_message_to_thread,
+    is_run_done,
+    get_last_assistant_message,
 )
+
 from src.models.recruitment import get_user_by_id, update_user, create_user, delete_user
 from src.models.recruitment import User
 from src.logic.generate_id_card import generate_avatar_id_card
@@ -173,3 +178,11 @@ class AppLogic:
             wanted_position=wanted_position,
             user_img=generate_avatar_id_card(seed=user_id, job=wanted_position),
         )
+
+    # add_user_question_to_thread 함수를 불러와서,
+    # text는 front에서 받아오니까, 
+    # def assistant_logic():
+        # add_user_question_to_thread
+        # run_message_to_thread
+        # is_run_done
+        # get_last_assistant_message
