@@ -1,4 +1,5 @@
 import os
+import time
 
 from dotenv import load_dotenv
 from typing import Optional, TypedDict
@@ -74,7 +75,8 @@ class AppLogic:
             raise RuntimeError("로그인 정보가 없습니다.")
 
         files = get_vector_store_files_list(self._vector_store_id)
-        files = [FileInfo(file_id=file.id, file_name=file.filename) for file in files]
+        files = [FileInfo(file_id=file.id, file_name=file.filename)
+                 for file in files]
         return files
 
     def remove_user_files(self, *file_ids: str) -> bool:
@@ -140,7 +142,8 @@ class AppLogic:
             vector_store_id = get_vector_store(vector_store_name=user_id)
 
             # DB에 업데이트
-            update_user(db=db, user_id=user_id, vector_store_id=vector_store_id)
+            update_user(db=db, user_id=user_id,
+                        vector_store_id=vector_store_id)
         return vector_store_id
 
     # thread_id 생성 후, DB 업데이트
@@ -176,13 +179,40 @@ class AppLogic:
             db=db,
             user_id=user_id,
             wanted_position=wanted_position,
-            user_img=generate_avatar_id_card(seed=user_id, job=wanted_position),
+            user_img=generate_avatar_id_card(
+                seed=user_id, job=wanted_position),
         )
 
-    # add_user_question_to_thread 함수를 불러와서,
-    # text는 front에서 받아오니까, 
-    # def assistant_logic():
-        # add_user_question_to_thread
-        # run_message_to_thread
-        # is_run_done
-        # get_last_assistant_message
+    def assistant_logic(assistant_id, message, thread_id):
+        # 1. 사용자 메시지 thread에 추가
+        response = add_user_question_to_thread(
+            personal_thread_id=thread_id,
+            user_question=message
+        )
+        if response.status_code != 200:
+            raise Exception(
+                f"Failed to add user question to thread: {response.text}")
+
+        # 2. run 실행
+        run_id = run_message_to_thread(
+            thread_id=thread_id,
+            assistant_id=assistant_id,
+            message=message
+        )
+        if not run_id:
+            raise Exception("Failed to start run for the thread.")
+
+        polling_interval = 1
+        max_wait_time = 30
+        # 3. 폴링하면서 run 완료될 때까지 대기
+        elapsed_time = 0
+        while not is_run_done(thread_id, run_id):
+            if elapsed_time >= max_wait_time:
+                raise TimeoutError(
+                    "Run did not complete within the maximum wait time.")
+            time.sleep(polling_interval)
+            elapsed_time += polling_interval
+
+        # 4. assistant 응답 가져오기
+        response_message = get_last_assistant_message(thread_id)
+        return {"status": "completed", "response": response_message}
