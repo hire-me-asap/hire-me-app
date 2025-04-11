@@ -216,3 +216,24 @@ class AppLogic:
         # 4. assistant 응답 가져오기
         response_message = get_last_assistant_message(thread_id)
         return {"status": "completed", "response": response_message}
+
+    
+    def get_user_response(user_id, assistant_type, user_question):
+        """
+        유저 반응 가져오기(assistant_logic 이전)
+        """
+        # "assistant_type(서비스 5개 중 선택)" : ["assistant_id1", "thread_id"] 
+        assistant_mapping = {"a":["assistant_id1", "thread_id_job_recommend"], "b":["assistant_id2", "thread_id_recruit_recommend"], "c":["assistant_id3", "thread_id_roadmap"], "d":["assistant_id4", "thread_id_resume_review"], "e":["assistant_id5", "thread_id_find_study"]}
+        
+        assistant_info = assistant_mapping[assistant_type]
+        assistant_id = assistant_info[0]
+        thread_column_name = assistant_info[1]
+
+        # 유저 가져오기 (로그인 후 실행되는 코드)
+        user = db.query(User).filter(User.id == user_id).first()
+
+        # 해당 assistant에 맞는 thread_id 필드 가져오기
+        personal_thread_id = getattr(user, thread_column_name)
+
+        # 실제 도우미 응답 함수 호출
+        return assistant_logic(assistant_id, user_question, personal_thread_id)   
