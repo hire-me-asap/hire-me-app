@@ -184,3 +184,6 @@ test.py
 
 # gradio 환경 추가 
 .gradio/
+
+# 
+.cspell/
