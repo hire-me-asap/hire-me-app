@@ -9,11 +9,12 @@ from sqlalchemy import (
     String,
     text,
     Text,
+    JSON
 )
 from sqlalchemy.orm import declarative_base
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
-from typing import Optional
+from typing import Optional, List
 
 Base = declarative_base()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -40,6 +41,7 @@ class User(Base):
     vector_store_id = Column(String(64), nullable=True)
     user_img = Column(Text, nullable=True)
     wanted_position = Column(String(255), nullable=True)
+    skill_stack = Column(JSON, nullable=True)
 
     def verify_password(self, plain_password):
         return pwd_context.verify(plain_password, self.hashed_password)
@@ -63,6 +65,7 @@ def create_user(
     vector_store_id: str = None,
     user_img: str = None,
     wanted_position: str = None,
+    skill_stack: str = None,
 ):
     user = User(
         id=user_id,
@@ -74,6 +77,7 @@ def create_user(
         vector_store_id=vector_store_id,
         user_img=user_img,
         wanted_position=wanted_position,
+        skill_stack=skill_stack,
     )
     user.set_password(password)
     db.add(user)
@@ -98,6 +102,7 @@ def update_user(
     vector_store_id: Optional[str] = None,
     user_img: Optional[str] = None,
     wanted_position: Optional[str] = None,
+    skill_stack: Optional[List[str]] = None
 ):
 
     user = db.query(User).filter(User.id == user_id).first()
@@ -113,6 +118,7 @@ def update_user(
         "vector_store_id": vector_store_id,
         "user_img": user_img,
         "wanted_position": wanted_position,
+        "skill_stack": skill_stack,
     }
 
     for field, value in updates.items():
