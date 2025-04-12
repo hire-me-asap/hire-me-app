@@ -12,7 +12,7 @@ footer {
     display: none !important;
 }
 
-div.sidebar div.spacer {
+.sidebar .spacer {
     height: 20px;
 }
 
@@ -27,7 +27,7 @@ div.sidebar div.spacer {
     font-size: 0.8rem;
 }
 
-#logo {
+#sidebar-logo, #topbar-logo {
     margin: 0 auto 0 auto;
 }
 
@@ -35,6 +35,18 @@ div.sidebar div.spacer {
 .sidebar-content > .column {
     flex-grow: 1;
     height: 100%;
+}
+
+.tabs > .tab-wrapper {
+    display: none;
+}
+
+#sidebar-logo img {
+    height: 40px;
+}
+
+#topbar-logo img {
+    height: 30px;
 }
 
 .sidebar-content,
