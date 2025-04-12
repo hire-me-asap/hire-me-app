@@ -95,6 +95,7 @@ with gr.Blocks(css_paths=['src/tmp/ui-test-style.css']) as demo:
                 with gr.Column():
                     profile_image = gr.Image(interactive=False, scale=1)
                     gr.Button('변경사항 저장하기', variant='primary')
+                    gr.Button('엣취로 돌아가기')
 
 
 demo.launch(debug=True)
