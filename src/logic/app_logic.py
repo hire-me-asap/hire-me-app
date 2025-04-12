@@ -1,5 +1,6 @@
 import os
 import time
+import json
 
 from dotenv import load_dotenv
 from typing import Optional, TypedDict
@@ -306,4 +307,51 @@ class AppLogic:
             assistant_id=assistant_id,
             message=user_question,
             thread_id=personal_thread_id,
+        )
+
+    # 스킬 스택 업데이트
+    def update_skill_stack(
+        self,
+        db: Session,
+        user_id: str,
+        skill_stack: str,
+        action: str  # 'add' 또는 'remove'
+    ) -> None:
+        """
+        사용자의 스킬스택을 추가하거나 제거합니다.
+
+        Args:
+            db (Session): SQLAlchemy DB 세션
+            user_id (str): 사용자 ID
+            skill_stack (str): 추가 또는 삭제할 스킬
+            action (str): 'add' 또는 'remove'
+        """
+        # 사용자 조회
+        user = get_user_by_id(db=db, user_id=user_id)
+        if user is None:
+            raise ValueError("해당 사용자가 존재하지 않습니다.")
+
+        # skill_stack 초기화
+        current_stack = user.skill_stack or []
+        if isinstance(current_stack, str):
+            try:
+                current_stack = json.loads(current_stack)
+            except json.JSONDecodeError:
+                current_stack = []
+
+        # 액션 처리
+        if action == "add":
+            if skill_stack not in current_stack:
+                current_stack.append(skill_stack)
+        elif action == "remove":
+            if skill_stack in current_stack:
+                current_stack.remove(skill_stack)
+        else:
+            raise ValueError("action은 'add' 또는 'remove'만 가능합니다.")
+
+        # 업데이트
+        update_user(
+            db=db,
+            user_id=user_id,
+            skill_stack=current_stack
         )
