@@ -1,0 +1,51 @@
+.contain>*:nth-child(1),
+.tabs,
+#chatbot-tab,
+#chatbot-tab>.column,
+#chatbot-tab>.column>.gr-group,
+#chatbot-tab>.column>.gr-group>.styler,
+#chatbot {
+    flex-grow: 1 !important;
+}
+
+footer {
+    display: none !important;
+}
+
+div.sidebar div.spacer {
+    height: 20px;
+}
+
+#chatbot-tab .html-container {
+    background: var(--block-background-fill) !important;
+}
+
+#chatbot-tab .prose {
+    text-align: center;
+    color: var(--body-text-color-subdued);
+    font-weight: var(--weight-bold);
+    font-size: 0.8rem;
+}
+
+#logo {
+    margin: 0 auto 0 auto;
+}
+
+.sidebar-content,
+.sidebar-content > .column {
+    flex-grow: 1;
+    height: 100%;
+}
+
+.sidebar-content,
+.sidebar-content .html-container {
+    background: var(--block-background-fill) !important;
+}
+
+#profile {
+    margin-top: auto;
+}
+
+.gradio-container {
+    min-width: var(--size-full) !important;
+}
