@@ -1,3 +1,12 @@
+:root {
+    --weight-bold: 500;
+    --button-large-text-weight: 500;
+}
+
+* {
+    font-family: 'Neo둥근모 Pro', Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+}
+
 .contain>*:nth-child(1),
 .tabs,
 #chatbot-tab,
@@ -6,6 +15,10 @@
 #chatbot-tab>.column>.gr-group>.styler,
 #chatbot {
     flex-grow: 1 !important;
+}
+
+.contain>*:nth-child(1) {
+    gap: 0;
 }
 
 footer {
