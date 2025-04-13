@@ -1,6 +1,44 @@
 import gradio as gr
 
-with gr.Blocks(css_paths=['src/tmp/ui-test-style.css']) as demo:
+FEATURES = {
+    'general': '무엇이든 물어보세요!',
+    'job': '직무 찾기',
+    'recruit': '채용 공고 찾기',
+    'resume': '이력서 검토하기',
+    'roadmap': '취업 준비 로드맵 작성하기',
+    'course': '강의 찾기'
+}
+
+EXAMPLE_MESSAGES = {
+    'general': [
+        {'role': 'user', 'text': '🐤 신입에게 적합한 직무나 역할이 뭘까?'},
+        {'role': 'user', 'text': '📛 경력이 없어도 도전할 수 있는 직업에는 어떤 것이 있을까?'},
+        {'role': 'user', 'text': '🛠️ 취업 시장에서 인기가 있는 IT 스킬은 뭘까?'},
+        {'role': 'user', 'text': '📝 이력서에 어떤 IT 관련 경험을 추가하면 취업에 유리할까?'},
+    ],
+    'job': [
+        {'role': 'user', 'text': '🐤 신입도 취업할 수 있는 일자리가 있을까?'},
+        {'role': 'user', 'text': '🎨 디자인 관련 지식을 살릴 수 있는 직업에는 뭐가 있을까?'},
+        {'role': 'user', 'text': '💻 프론트엔드에 관한 직업에는 뭐가 있을까?'},
+        {'role': 'user', 'text': '🗄️ 백엔드에 관한 경험이 중요한 직업을 추천해줘'},
+        {'role': 'user', 'text': '🤖 인공지능에 관한 지식을 살릴 수 있는 일자리를 찾아줘'},
+    ]
+}
+
+
+theme = gr.themes.Soft(
+    primary_hue="slate",
+    secondary_hue="stone",
+    neutral_hue="zinc",
+    font='Neo둥근모 Pro',
+    font_mono='Neo둥근모 Code'
+).set(
+    button_large_text_weight=500,
+    block_title_text_weight=500,
+)
+
+
+with gr.Blocks(css_paths=['src/tmp/ui-test-style.css'], theme=theme) as demo:
     """ 앱 """
 
     with gr.Sidebar(position='left') as sidebar:
@@ -17,17 +55,18 @@ with gr.Blocks(css_paths=['src/tmp/ui-test-style.css']) as demo:
             show_fullscreen_button=False,
         )
 
-        general_chat_button = gr.Button('무엇이든 물어보세요!')
-
         profile_button = gr.Button('이력서 입력하러 가기', variant='primary')
+
+        general_chat_button = gr.Button(FEATURES['general'])
 
         with gr.Group(elem_id='custom-group'):
             gr.HTML('📊 맞춤 직무 설계')
-            job_chat_button = gr.Button('직무 찾기')
-            recruit_chat_button = gr.Button('채용 공고 찾기')
-            resume_chat_button = gr.Button('이력서 검토하기')
-            roadmap_chat_button = gr.Button('취업 준비 로드맵 작성하기')
-        
+            job_chat_button = gr.Button(FEATURES['job'])
+            recruit_chat_button = gr.Button(FEATURES['recruit'])
+            resume_chat_button = gr.Button(FEATURES['resume'])
+            roadmap_chat_button = gr.Button(FEATURES['roadmap'])
+            course_chat_button = gr.Button(FEATURES['course'])
+
         sidebar_logo_image = gr.Image(
             './resources/about.png',
             show_label=False,
@@ -47,7 +86,6 @@ with gr.Blocks(css_paths=['src/tmp/ui-test-style.css']) as demo:
             show_fullscreen_button=False,
         )
 
-    
     """ 상단 바 """
     with gr.Row(elem_id='topbar-section', visible=False) as topbar:
         topbar_logo_image = gr.Image(
@@ -60,7 +98,6 @@ with gr.Blocks(css_paths=['src/tmp/ui-test-style.css']) as demo:
             show_fullscreen_button=False,
         )
 
-
     with gr.Tabs() as tab_host:
         """ 탭 호스트 """
 
@@ -71,16 +108,16 @@ with gr.Blocks(css_paths=['src/tmp/ui-test-style.css']) as demo:
                 main_chatbot = gr.Chatbot(
                     [],
                     elem_id="chatbot",
+                    label=FEATURES['general'],
                     type='messages',
-                    examples=[
-                        {'role': 'assistant', 'text': '예시 1'},
-                        {'role': 'assistant', 'text': '예시 2'},
-                        {'role': 'assistant', 'text': '예시 3'},
-                        {'role': 'assistant', 'text': '예시 4'},
-                    ],
+                    examples=EXAMPLE_MESSAGES['general'],
+                )
+                gr.CheckboxGroup(
+                    ['📜 이력서 포함시키기', '이런 식으로 체크박스', '여러 개 넣을 수 있어요'],
                     show_label=False
                 )
                 gr.TextArea(
+                    placeholder='❔ 엣취에게 물어보세요',
                     lines=1,
                     max_lines=5,
                     submit_btn=True,
@@ -96,9 +133,14 @@ with gr.Blocks(css_paths=['src/tmp/ui-test-style.css']) as demo:
             with gr.Row():
                 with gr.Column(scale=4):
                     username_text = gr.Text(
-                        label='사용자 이름', placeholder='사용자 ID가 표시됩니다', interactive=False)
+                        label='사용자 이름', 
+                        placeholder='사용자 ID가 표시됩니다', 
+                        interactive=False
+                    )
                     preferred_job = gr.Text(
-                        label='희망 직무', placeholder='희망하는 직무를 입력해보세요')
+                        label='희망 직무', 
+                        placeholder='희망하는 직무를 입력해보세요'
+                    )
 
                 with gr.Column():
                     profile_image = gr.Image(interactive=False, scale=1)
@@ -113,7 +155,10 @@ with gr.Blocks(css_paths=['src/tmp/ui-test-style.css']) as demo:
                 )
                 with gr.Row():
                     education_level_dropdown = gr.Dropdown(
-                        ['중학교 졸업', '고등학교 졸업', '대학교 학사 학위'],
+                        [
+                            '초등학교 졸업', '중학교 졸업', '고등학교 졸업',
+                            '검정고시 합격', '학사 학위', '석사 학위', '박사 학위'
+                        ],
                         label='최종 학력',
                         multiselect=False,
                         interactive=True
@@ -141,7 +186,6 @@ with gr.Blocks(css_paths=['src/tmp/ui-test-style.css']) as demo:
                 clear_history_button = gr.Button(
                     '모든 사용 기록 지우기', variant='stop')
 
-
     """ 이벤트 """
 
     def set_topbar_visibility(is_visible):
@@ -150,23 +194,35 @@ with gr.Blocks(css_paths=['src/tmp/ui-test-style.css']) as demo:
     sidebar.expand(lambda: set_topbar_visibility(False), outputs=[topbar])
     sidebar.collapse(lambda: set_topbar_visibility(True), outputs=[topbar])
 
-
     def select_profile_tab():
         return gr.update(selected=1)
 
     profile_button.click(lambda: select_profile_tab(), outputs=[tab_host])
 
+    def select_chat_tab(mode):
+        if mode == 'general':
+            pass
+        elif mode == 'job':
+            pass
+        elif mode == 'recruit':
+            pass
+        elif mode == 'resume':
+            pass
+        elif mode == 'roadmap':
+            pass
+        elif mode == 'course':
+            pass
+        else:
+            return gr.update(), gr.update()
 
-    def select_chat_tab(mode=None):
-        # IMPL: 사용자가 선택한 모드에 따라 적절한 기능 구현
+        return gr.update(selected=0), gr.update(label=FEATURES[mode], examples=EXAMPLE_MESSAGES[mode])
 
-        return gr.update(selected=0)
-
-    general_chat_button.click(lambda: select_chat_tab(), outputs=[tab_host])
-    job_chat_button.click(lambda: select_chat_tab(), outputs=[tab_host])
-    recruit_chat_button.click(lambda: select_chat_tab(), outputs=[tab_host])
-    resume_chat_button.click(lambda: select_chat_tab(), outputs=[tab_host])
-    roadmap_chat_button.click(lambda: select_chat_tab(), outputs=[tab_host])
+    general_chat_button.click(lambda: select_chat_tab('general'), outputs=[tab_host, main_chatbot])
+    job_chat_button.click(lambda: select_chat_tab('job'), outputs=[tab_host, main_chatbot])
+    recruit_chat_button.click(lambda: select_chat_tab('recruit'), outputs=[tab_host, main_chatbot])
+    resume_chat_button.click(lambda: select_chat_tab('resume'), outputs=[tab_host, main_chatbot])
+    roadmap_chat_button.click(lambda: select_chat_tab('roadmap'), outputs=[tab_host, main_chatbot])
+    course_chat_button.click(lambda: select_chat_tab('course'), outputs=[tab_host, main_chatbot])
 
 
 demo.launch(debug=True)
