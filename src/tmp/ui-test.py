@@ -20,21 +20,45 @@ EXAMPLE_MESSAGES = {
         {'role': 'user', 'text': '🐤 신입도 취업할 수 있는 일자리가 있을까?'},
         {'role': 'user', 'text': '🎨 디자인 관련 지식을 살릴 수 있는 직업에는 뭐가 있을까?'},
         {'role': 'user', 'text': '💻 프론트엔드에 관한 직업에는 뭐가 있을까?'},
-        {'role': 'user', 'text': '🗄️ 백엔드에 관한 경험이 중요한 직업을 추천해줘'},
-        {'role': 'user', 'text': '🤖 인공지능에 관한 지식을 살릴 수 있는 일자리를 찾아줘'},
+        {'role': 'user', 'text': '🗄️ 백엔드에 관한 경험이 중요한 직업을 추천해줘.'},
+        {'role': 'user', 'text': '🤖 인공지능에 관한 지식을 살릴 수 있는 일자리를 찾아줘.'},
+    ],
+    'recruit': [
+        {'role': 'user', 'text': '📢 지금 지원할 수 있는 신입 개발자 채용 공고를 찾아줘.'},
+        {'role': 'user', 'text': '📍 서울 지역에서 프론트엔드 개발자를 뽑는 공고가 있을까?'},
+        {'role': 'user', 'text': '🏢 백엔드 관련 채용 공고를 알려줘.'},
+        {'role': 'user', 'text': '🐍 Python 기술 스택을 주로 사용하는 회사의 공고를 추천해줘.'},
+    ],
+    'resume': [
+        {'role': 'user', 'text': '📄 내 이력서에서 개선할 점이 있을까?'},
+        {'role': 'user', 'text': '🤔 프로젝트 경험을 이력서에 어떻게 녹여내는 것이 좋을까?'},
+        {'role': 'user', 'text': '✨ 신입 개발자로서 이력서에 어떤 내용을 강조해야 할까?'},
+    ],
+    'roadmap': [
+        {'role': 'user', 'text': '🗺️ 백엔드 개발자가 되기 위한 학습 로드맵을 짜줘.'},
+        {'role': 'user', 'text': '📅 6개월 안에 웹 개발자로 취업하기 위한 계획을 세워줘.'},
+        {'role': 'user', 'text': '📚 비전공자인데 데이터 분석가로 취업하려면 어떤 순서로 공부해야 할까?'},
+    ],
+    'course': [
+        {'role': 'user', 'text': '🎓 파이썬 기초를 배울 수 있는 온라인 강의를 추천해줘.'},
+        {'role': 'user', 'text': '💻 React 프레임워크 관련해서 평이 좋은 강의가 있을까?'},
+        {'role': 'user', 'text': '💰 무료로 들을 수 있는 데이터베이스 관련 강의를 찾아줘.'},
     ]
 }
 
 
 theme = gr.themes.Soft(
     primary_hue="slate",
-    secondary_hue="stone",
+    secondary_hue="rose",
     neutral_hue="zinc",
     font='Neo둥근모 Pro',
     font_mono='Neo둥근모 Code'
 ).set(
     button_large_text_weight=500,
-    block_title_text_weight=500,
+    button_cancel_background_fill='*secondary_200',
+    button_cancel_background_fill_hover='*secondary_400',
+    button_cancel_background_fill_dark='*secondary_600',
+    button_cancel_background_fill_hover_dark='*secondary_900',
 )
 
 
@@ -145,6 +169,9 @@ with gr.Blocks(css_paths=['src/tmp/ui-test-style.css'], theme=theme) as demo:
                 with gr.Column():
                     profile_image = gr.Image(interactive=False, scale=1)
 
+            gr.Button('변경사항 저장하기', variant='primary')
+            
+            gr.Markdown()
             gr.Markdown('### 이력서 관리')
 
             with gr.Group():
@@ -179,12 +206,19 @@ with gr.Blocks(css_paths=['src/tmp/ui-test-style.css'], theme=theme) as demo:
                     label='이력서',
                     placeholder='직무 관련 경험을 입력해주세요'
                 )
-
+                
             gr.Button('변경사항 저장하기', variant='primary')
-
+            gr.Markdown()
+            
             with gr.Accordion('⚠️ 위험한 기능', open=False):
-                clear_history_button = gr.Button(
-                    '모든 사용 기록 지우기', variant='stop')
+                gr.Markdown()
+                
+                gr.Markdown('프로필 페이지에 입력된 이력서를 모두 빈칸으로 되돌립니다. 이 작업은 되돌릴 수 없습니다.')                
+                clear_resume_button = gr.Button('이력서 지우기', variant='stop')
+                gr.Markdown()
+
+                gr.Markdown('사용자의 모든 대화 기록을 지웁니다. 이 작업은 되돌릴 수 없습니다.')
+                clear_history_button = gr.Button('대화 기록 지우기', variant='stop')
 
     """ 이벤트 """
 
