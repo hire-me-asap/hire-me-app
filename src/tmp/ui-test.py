@@ -47,14 +47,17 @@ EXAMPLE_MESSAGES = {
 }
 
 
-theme = gr.themes.Soft(
+theme = gr.themes.Citrus(
     primary_hue="slate",
     secondary_hue="rose",
-    neutral_hue="zinc",
     font='Neo둥근모 Pro',
     font_mono='Neo둥근모 Code'
 ).set(
     button_large_text_weight=500,
+    button_secondary_background_fill='*neutral_200',
+    button_secondary_background_fill_hover='*neutral_400',
+    button_secondary_background_fill_dark='*neutral_600',
+    button_secondary_background_fill_hover_dark='*neutral_900',
     button_cancel_background_fill='*secondary_200',
     button_cancel_background_fill_hover='*secondary_400',
     button_cancel_background_fill_dark='*secondary_600',
@@ -152,7 +155,7 @@ with gr.Blocks(css_paths=['src/tmp/ui-test-style.css'], theme=theme) as demo:
         with gr.Tab('프로필', id=1) as profile_tab:
             """ 프로필 탭 """
 
-            gr.Markdown('### 사용자 정보 관리')
+            gr.Markdown('# 💳 사용자 정보 관리')
 
             with gr.Row():
                 with gr.Column(scale=4):
@@ -165,14 +168,13 @@ with gr.Blocks(css_paths=['src/tmp/ui-test-style.css'], theme=theme) as demo:
                         label='희망 직무', 
                         placeholder='희망하는 직무를 입력해보세요'
                     )
+                    gr.Button('변경사항 저장하기', variant='primary', elem_classes=['profile-save-button'])
 
                 with gr.Column():
                     profile_image = gr.Image(interactive=False, scale=1)
 
-            gr.Button('변경사항 저장하기', variant='primary')
-            
             gr.Markdown()
-            gr.Markdown('### 이력서 관리')
+            gr.Markdown('# 📜 이력서 관리')
 
             with gr.Group():
                 user_skill_dropdown = gr.Dropdown(
@@ -195,19 +197,19 @@ with gr.Blocks(css_paths=['src/tmp/ui-test-style.css'], theme=theme) as demo:
                         placeholder='전공명을 적으세요'
                     )
                 additional_educations_textbox = gr.TextArea(
-                    label='그 밖의 교육',
-                    placeholder='이수했던 교육을 추가로 설명해보세요'
+                    label='교육사항',
+                    placeholder='지원하고자 하는 직무와 관련하여 이수했던 교육들을 나열해주세요'
                 )
                 user_resume_textbox = gr.TextArea(
-                    label='이력서',
-                    placeholder='직무 관련 경험을 입력해주세요'
+                    label='경력사항',
+                    placeholder='지원하고자 하는 직무와 관련된 업무 경험 및 활동 경험들을 나열해주세요'
                 )
                 user_resume_textbox = gr.TextArea(
-                    label='이력서',
-                    placeholder='직무 관련 경험을 입력해주세요'
+                    label='추가적인 정보',
+                    placeholder='엣취가 당신에 대해 이해하기 위해 필요한 추가적인 정보를 자유롭게 적어주세요'
                 )
                 
-            gr.Button('변경사항 저장하기', variant='primary')
+            gr.Button('변경사항 저장하기', variant='primary', elem_classes=['profile-save-button'])
             gr.Markdown()
             
             with gr.Accordion('⚠️ 위험한 기능', open=False):

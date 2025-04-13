@@ -76,3 +76,8 @@ footer {
 .gradio-container {
     min-width: var(--size-full) !important;
 }
+
+.profile-save-button {
+    width: auto;
+    margin-right: auto;
+}
