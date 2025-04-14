@@ -152,7 +152,7 @@ def update_resume(
 
 def delete_resume(db: Session, user_id: str):
     resume = db.query(User).filter(User.id == user_id).first()
-    if user:
+    if resume: 
         db.delete(resume)
         db.commit()
         return True
