@@ -1,4 +1,3 @@
-from src.models.recruitment import Base
 import enum
 from sqlalchemy import (
     Boolean,
