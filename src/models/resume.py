@@ -35,11 +35,11 @@ class Resume(Base):
     }
 
     # User 테이블의 id를 기본 키이자 외래 키로 사용
-    id = Column(String(50), 
-                ForeignKey("recruitment.users.id"), 
+    id = Column(String(50),
+                ForeignKey("recruitment.users.id"),
                 primary_key=True, index=True)
     # 기술스택
-    skill_stack = Column(JSON, nullable=True) # json이니까 유의!
+    skill_stack = Column(JSON, nullable=True)  # json이니까 유의!
     # 경력
     work_experiences = Column(Text, nullable=True)
     # 최종학력
@@ -47,19 +47,20 @@ class Resume(Base):
     # 전공
     major = Column(String(255), nullable=True)
     # 학점
-    gpa = Column(Numeric(3, 2), nullable=True) 
+    gpa = Column(Numeric(3, 2), nullable=True)
     # 교육 및 기타경험
-    education_and_exp= Column(String(255), nullable=True)
+    education_and_exp = Column(String(255), nullable=True)
     # 자격증, 수상내역, 언어, 기타 정보
     certificates = Column(Text, nullable=True)
     awards = Column(Text, nullable=True)
     languages = Column(String(255), nullable=True)
     additional_info = Column(Text, nullable=True)
 
-    #from sqlalchemy.orm import relationship
+    # from sqlalchemy.orm import relationship
     # User와의 관계 설정 - 양방향 참조를 위해 수정
-    #user = relationship("User", back_populates="resume")
-    
+    # user = relationship("User", back_populates="resume")
+
+
 '''
 # gpt가 json을 추천함
 educations = Column(JSON, nullable=True)  # 여러 교육 정보를 구조화하여 저장
@@ -73,17 +74,17 @@ certificates = Column(JSON, nullable=True)  # 자격증 정보를 구조화하�
 def create_resume(
     db: Session,
     user_id: str,
-    skill_stack: str = None, ### json이어야 하나?
+    skill_stack: str = None,  # json이어야 하나?
     work_experiences: str = None,
     final_degree: str = None,
     major: str = None,
-    gpa: float = None, ### 위는 numeric인데 여기는 python이니까 float이 맞겠지?
+    gpa: float = None,  # 위는 numeric인데 여기는 python이니까 float이 맞겠지?
     education_and_exp: str = None,
     certificates: str = None,
     awards: str = None,
     languages: str = None,
     additional_info: str = None,
-    ):
+):
 
     resume = Resume(
         id=user_id,
@@ -106,7 +107,7 @@ def create_resume(
 
 
 def get_resume_by_id(db: Session, user_id: str):
-    return db.query(User).filter(User.id == user_id).first()
+    return db.query(Resume).filter(Resume.id == user_id).first()
 
 
 def update_resume(
@@ -122,9 +123,9 @@ def update_resume(
     awards: Optional[str] = None,
     languages: Optional[str] = None,
     additional_info: Optional[str] = None
-    ):
+):
 
-    resume = db.query(User).filter(User.id == user_id).first()
+    resume = db.query(Resume).filter(Resume.id == user_id).first()
     if not resume:
         return None  # 또는 raise 예외 처리
 
@@ -151,8 +152,8 @@ def update_resume(
 
 
 def delete_resume(db: Session, user_id: str):
-    resume = db.query(User).filter(User.id == user_id).first()
-    if resume: 
+    resume = db.query(Resume).filter(Resume.id == user_id).first()
+    if resume:
         db.delete(resume)
         db.commit()
         return True
