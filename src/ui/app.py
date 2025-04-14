@@ -11,62 +11,87 @@ FEATURES = {
 
 EXAMPLE_MESSAGES = {
     'general': [
-        {'role': 'user', 'text': '🐤 신입에게 적합한 직무나 역할이 뭘까?'},
-        {'role': 'user', 'text': '📛 경력이 없어도 도전할 수 있는 직업에는 어떤 것이 있을까?'},
-        {'role': 'user', 'text': '🛠️ 취업 시장에서 인기가 있는 IT 스킬은 뭘까?'},
-        {'role': 'user', 'text': '📝 이력서에 어떤 IT 관련 경험을 추가하면 취업에 유리할까?'},
+        {'text': '🐤 신입에게 적합한 직무나 역할이 뭘까?'},
+        {'text': '📛 경력이 없어도 도전할 수 있는 직업에는 어떤 것이 있을까?'},
+        {'text': '🛠️ 취업 시장에서 인기가 있는 IT 스킬은 뭘까?'},
+        {'text': '📝 이력서에 어떤 IT 관련 경험을 추가하면 취업에 유리할까?'},
     ],
     'job': [
-        {'role': 'user', 'text': '🐤 신입도 취업할 수 있는 일자리가 있을까?'},
-        {'role': 'user', 'text': '🎨 디자인 관련 지식을 살릴 수 있는 직업에는 뭐가 있을까?'},
-        {'role': 'user', 'text': '💻 프론트엔드에 관한 직업에는 뭐가 있을까?'},
-        {'role': 'user', 'text': '🗄️ 백엔드에 관한 경험이 중요한 직업을 추천해줘.'},
-        {'role': 'user', 'text': '🤖 인공지능에 관한 지식을 살릴 수 있는 일자리를 찾아줘.'},
+        {'text': '🐤 신입도 취업할 수 있는 일자리가 있을까?'},
+        {'text': '🎨 디자인 관련 지식을 살릴 수 있는 직업에는 뭐가 있을까?'},
+        {'text': '💻 프론트엔드에 관한 직업에는 뭐가 있을까?'},
+        {'text': '🗄️ 백엔드에 관한 경험이 중요한 직업을 추천해줘'},
+        {'text': '🤖 인공지능에 관한 지식을 살릴 수 있는 일자리를 찾아줘'},
     ],
     'recruit': [
-        {'role': 'user', 'text': '📢 지금 지원할 수 있는 신입 개발자 채용 공고를 찾아줘.'},
-        {'role': 'user', 'text': '📍 서울 지역에서 프론트엔드 개발자를 뽑는 공고가 있을까?'},
-        {'role': 'user', 'text': '🏢 백엔드 관련 채용 공고를 알려줘.'},
-        {'role': 'user', 'text': '🐍 Python 기술 스택을 주로 사용하는 회사의 공고를 추천해줘.'},
+        {'text': '📢 지금 지원할 수 있는 신입 개발자 채용 공고를 찾아줘.'},
+        {'text': '📍 서울 지역에서 프론트엔드 개발자를 뽑는 공고가 있을까?'},
+        {'text': '🏢 백엔드 관련 채용 공고를 알려줘.'},
+        {'text': '🐍 Python 기술 스택을 주로 사용하는 회사의 공고를 추천해줘.'}, 
     ],
     'resume': [
-        {'role': 'user', 'text': '📄 내 이력서에서 개선할 점이 있을까?'},
-        {'role': 'user', 'text': '🤔 프로젝트 경험을 이력서에 어떻게 녹여내는 것이 좋을까?'},
-        {'role': 'user', 'text': '✨ 신입 개발자로서 이력서에 어떤 내용을 강조해야 할까?'},
+        {'text': '📄 내 이력서에서 개선할 점이 있을까?'},
+        {'text': '🤔 프로젝트 경험을 이력서에 어떻게 녹여내는 것이 좋을까?'},
+        {'text': '✨ 신입 개발자로서 이력서에 어떤 내용을 강조해야 할까?'},
     ],
     'roadmap': [
-        {'role': 'user', 'text': '🗺️ 백엔드 개발자가 되기 위한 학습 로드맵을 짜줘.'},
-        {'role': 'user', 'text': '📅 6개월 안에 웹 개발자로 취업하기 위한 계획을 세워줘.'},
-        {'role': 'user', 'text': '📚 비전공자인데 데이터 분석가로 취업하려면 어떤 순서로 공부해야 할까?'},
+        {'text': '🗺️ 백엔드 개발자가 되기 위한 학습 로드맵을 짜줘.'},
+        {'text': '📅 6개월 안에 웹 개발자로 취업하기 위한 계획을 세워줘.'},
+        {'text': '📚 비전공자인데 데이터 분석가로 취업하려면 어떤 순서로 공부해야 할까?'},
     ],
     'course': [
-        {'role': 'user', 'text': '🎓 파이썬 기초를 배울 수 있는 온라인 강의를 추천해줘.'},
-        {'role': 'user', 'text': '💻 React 프레임워크 관련해서 평이 좋은 강의가 있을까?'},
-        {'role': 'user', 'text': '💰 무료로 들을 수 있는 데이터베이스 관련 강의를 찾아줘.'},
+        {'text': '🎓 파이썬 기초를 배울 수 있는 온라인 강의를 추천해줘.'},
+        {'text': '💻 React 프레임워크 관련해서 평이 좋은 강의가 있을까?'},
+        {'text': '💰 무료로 들을 수 있는 데이터베이스 관련 강의를 찾아줘.'},
     ]
 }
 
 
 theme = gr.themes.Citrus(
-    primary_hue="slate",
-    secondary_hue="rose",
-    font='Neo둥근모 Pro',
-    font_mono='Neo둥근모 Code'
+    primary_hue="gray",
+    secondary_hue="slate",
+    neutral_hue=gr.themes.Color(c100="rgba(245.28242295714108, 245.28242295714108, 246.98289794921874, 1)", c200="rgba(238.76776529924842, 238.76776529924842, 242.56387329101562, 1)", c300="rgba(229.3977127245158, 229.3977127245158, 233.04484863281252, 1)", c400="#bbbbc2", c50="#fafafa", c500="#71717a", c600="#52525b", c700="#3f3f46", c800="#27272a", c900="#18181b", c950="#0f0f11"),
+    spacing_size="md",
 ).set(
-    button_large_text_weight=500,
+    body_background_fill='white',
+    body_text_color='*neutral_700',
+    embed_radius='*radius_md',
+    background_fill_secondary_dark='*neutral_800',
+    background_fill_primary_dark='*neutral_900',
+    border_color_primary='*neutral_50',
+    border_color_primary_dark='*neutral_900',
+    color_accent_soft_dark='*neutral_400',
+    block_border_width='1px',
+    block_background_fill='*neutral_50',
+    block_background_fill_dark='*neutral_800',
+    block_radius='*radius_md',
+    block_title_background_fill='*primary_50',
+    block_title_background_fill_dark='*neutral_800',
+    layout_gap='*spacing_xl',
+    checkbox_background_color='*background_fill_secondary',
+    chatbot_text_size='*text_md',
+    checkbox_label_background_fill='*neutral_300',
+    checkbox_label_background_fill_selected='*secondary_300',
+    checkbox_label_border_color_selected='*primary_400',
+    table_radius='*radius_md',
+    button_medium_text_weight='400',
+    button_primary_background_fill='*secondary_200',
+    button_primary_background_fill_dark='*primary_800',
+    button_primary_text_color='*button_primary_border_color',
+    button_primary_text_color_dark='*neutral_300',
     button_secondary_background_fill='*neutral_200',
-    button_secondary_background_fill_hover='*neutral_400',
-    button_secondary_background_fill_dark='*neutral_600',
-    button_secondary_background_fill_hover_dark='*neutral_900',
-    button_cancel_background_fill='*secondary_200',
-    button_cancel_background_fill_hover='*secondary_400',
-    button_cancel_background_fill_dark='*secondary_600',
-    button_cancel_background_fill_hover_dark='*secondary_900',
+    button_secondary_background_fill_dark='*primary_400',
+    button_secondary_text_color='*primary_500',
+    color_accent_soft='*primary_200'
 )
-
 
 with gr.Blocks(css_paths=['src/ui/style.css'], theme=theme) as demo:
     """ 앱 """
+    
+    history_state = gr.State([])
+    """ State로 history 관리 : 세션 단위의 임시 저장소, 
+    이걸 안하면 화면 새로고침 해도 history가 누적 저장됨
+    chatbot에서 history 관리시 state를 항상 통과하도록 경로 설정 """
 
     with gr.Sidebar(position='left') as sidebar:
         """ 사이드바 """
@@ -86,13 +111,14 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=theme) as demo:
 
         general_chat_button = gr.Button(FEATURES['general'])
 
-        with gr.Group(elem_id='custom-group'):
-            gr.HTML('📊 맞춤 직무 설계')
-            job_chat_button = gr.Button(FEATURES['job'])
-            recruit_chat_button = gr.Button(FEATURES['recruit'])
-            resume_chat_button = gr.Button(FEATURES['resume'])
-            roadmap_chat_button = gr.Button(FEATURES['roadmap'])
-            course_chat_button = gr.Button(FEATURES['course'])
+        
+        gr.Markdown('📊 맞춤 직무 설계', elem_id='small-title')
+        with gr.Group(elem_id='custom-group') :
+            job_chat_button = gr.Button(FEATURES['job'], size="md")
+            recruit_chat_button = gr.Button(FEATURES['recruit'], size="md")
+            resume_chat_button = gr.Button(FEATURES['resume'], size="md")
+            roadmap_chat_button = gr.Button(FEATURES['roadmap'], size="md")
+            course_chat_button = gr.Button(FEATURES['course'], size="md")
 
         sidebar_about_image = gr.Image(
             './resources/about.png',
@@ -130,27 +156,27 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=theme) as demo:
 
         with gr.Tab('엣취', id=0, elem_id='chatbot-tab'):
             """ 엣취 탭 """
-
-            with gr.Group() as chat_tab:
-                main_chatbot = gr.Chatbot(
-                    [],
-                    elem_id="chatbot",
-                    label=FEATURES['general'],
-                    type='messages',
-                    examples=EXAMPLE_MESSAGES['general'],
-                )
-                gr.CheckboxGroup(
-                    ['📜 이력서 포함시키기', '이런 식으로 체크박스', '여러 개 넣을 수 있어요'],
-                    show_label=False
-                )
-                gr.TextArea(
-                    placeholder='❔ 엣취에게 물어보세요',
-                    lines=1,
-                    max_lines=5,
-                    submit_btn=True,
-                    show_label=False
-                )
-                gr.HTML('엣취는 실수를 할 수 있습니다.')
+            
+            main_chatbot = gr.Chatbot(
+                [],
+                elem_id="chatbot",
+                label=FEATURES['general'],
+                type='messages',
+                examples=EXAMPLE_MESSAGES['general'],
+            )
+            user_check = gr.CheckboxGroup(
+                ['📜 이력서 포함시키기', '이런 식으로 체크박스', '여러 개 넣을 수 있어요'],
+                show_label=False,
+                elem_id="custom-checkbox"
+            )
+            user_input = gr.TextArea(
+                placeholder='❔ 엣취에게 물어보세요',
+                lines=1,
+                max_lines=5,
+                submit_btn=True,
+                show_label=False
+            )
+            gr.Markdown('엣취는 실수를 할 수 있습니다.')
 
         with gr.Tab('프로필', id=1) as profile_tab:
             """ 프로필 탭 """
@@ -221,20 +247,33 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=theme) as demo:
 
                 gr.Markdown('사용자의 모든 대화 기록을 지웁니다. 이 작업은 되돌릴 수 없습니다.')
                 clear_history_button = gr.Button('대화 기록 지우기', variant='stop')
+    
+    gr.Markdown("""
+        <div id="site-footer">
+                © 2025 hire me ASAP Inc. ·
+                ✉️ contact@hiremeasap.com ·
+                <a href="https://github.com/hire-me-asap" target="_blank" style="color:#d5d5d5;">github.com/hire-me-asap</a> ·
+                <a href="#" style="color:#d5d5d5;">Privacy Policy</a>
+                </div>
+            """)
+    
 
     """ 이벤트 """
     
+    # 로고 보이기 함수 및 이벤트
     def set_topbar_visibility(is_visible):
         return gr.update(visible=is_visible)
 
     sidebar.expand(lambda: set_topbar_visibility(False), outputs=[topbar])
     sidebar.collapse(lambda: set_topbar_visibility(True), outputs=[topbar])
 
+    # '프로필 입력하러가기' 버튼 클릭 함수 및 이벤트
     def select_profile_tab():
         return gr.update(selected=1)
 
     profile_button.click(lambda: select_profile_tab(), outputs=[tab_host])
 
+    # chatbot tab 함수 및 이벤트
     def select_chat_tab(mode):
         if mode == 'general':
             pass
@@ -260,8 +299,40 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=theme) as demo:
     roadmap_chat_button.click(lambda: select_chat_tab('roadmap'), outputs=[tab_host, main_chatbot])
     course_chat_button.click(lambda: select_chat_tab('course'), outputs=[tab_host, main_chatbot])
 
+    # 로고 이미지 클릭시 메인 챗봇으로 이동 이벤트
     topbar_logo_image.select(lambda: select_chat_tab('general'), outputs=[tab_host, main_chatbot])
     sidebar_logo_image.select(lambda: select_chat_tab('general'), outputs=[tab_host, main_chatbot])
 
+    # chatbot example 함수 및 이벤트   
+    def handle_example_click(evt: gr.SelectData):
+        """ 이 함수에는 evt 외의 추가 인수를 넣을 수 없음 """
+        """ llm 함수 실행(추가 필요) """        
+        selected_message = evt.value['text']    
+        example_history = []
+        example_history.append({"role": "user", "content": selected_message})    
+        result = "좋은 질문이에요! 엣취!🤧 지금 분석 중입니다."  # llm으로부터 답변 획득 
+        example_history.append({"role": "assistant", "content": result})       
+        
+        return example_history, example_history
+    
+    main_chatbot.example_select(handle_example_click, outputs=[main_chatbot, history_state])
 
-demo.launch(debug=True)
+
+    # chatbot 질문 입력 함수 및 이벤트
+    def handle_user_message(user_input, user_check, history_state) :
+        """ user_check 처리 함수 필요 """
+        history_state.append({"role": "user", "content": user_input})
+        bot_response = "좋은 질문이에요! 엣취!🤧 지금 분석 중입니다."
+        history_state.append({"role": "assistant", "content": bot_response})
+        
+        return history_state, history_state  # chatbot과 history_state 각각에 보내서 저장 
+
+
+    # 함수 실행 후 user_input 지우는 함수 
+    def clear_user_input() :
+        return gr.update(value=None)
+
+    user_input.submit(handle_user_message, inputs=[user_input, user_check, history_state], outputs=[main_chatbot, history_state]).then(clear_user_input, None, user_input)
+
+
+demo.launch(share=True)
