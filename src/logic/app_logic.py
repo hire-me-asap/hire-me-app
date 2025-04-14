@@ -19,6 +19,14 @@ from src.logic.openai_requests import (
     get_last_assistant_message,
 )
 
+
+# TODO model.table 이름 수정된다고 하면 다시 수정해야 함.
+from src.models.resume import (
+    get_resume_by_id,
+    create_resume,
+    update_resume
+)
+
 from src.models.recruitment import get_user_by_id, update_user, create_user, delete_user
 from src.logic.generate_id_card import generate_avatar_id_card
 from src.logic.generate_roadmap_img import split_text_and_json
@@ -404,61 +412,31 @@ class AppLogic:
                 "text": response_text
             }
 
-    def upsert_resume_info(
+    def update_resume_info(
         self,
         user_id: str,
-        skill_stack: Optional[List[str]] = None,
-        work_experiences: Optional[str] = None,
-        final_degree: Optional[str] = None,
-        major: Optional[str] = None,
-        gpa: Optional[float] = None,
-        education_and_exp: Optional[str] = None,
-        certificates: Optional[str] = None,
-        awards: Optional[str] = None,
-        languages: Optional[str] = None,
-        additional_info: Optional[str] = None,
+        **resume_fields
     ) -> None:
         """
         사용자의 이력 정보를 Resume 테이블에 생성 또는 업데이트합니다.
+
+        Args:
+            user_id (str): 사용자 ID
+            **resume_fields: 업데이트 또는 생성할 이력 정보 필드들 (None 값은 무시됨)
         """
-        from src.models.resume import (
-            get_resume_by_id,
-            create_resume,
-            update_resume
-        )
 
         existing_resume = get_resume_by_id(self.db, user_id)
 
+        # None인 값은 필터링
+        filtered_data = {k: v for k,
+                         v in resume_fields.items() if v is not None}
+
+        filtered_data["user_id"] = user_id
+
         if existing_resume:
-            update_resume(
-                db=self.db,
-                user_id=user_id,
-                skill_stack=skill_stack,
-                work_experiences=work_experiences,
-                final_degree=final_degree,
-                major=major,
-                gpa=gpa,
-                education_and_exp=education_and_exp,
-                certificates=certificates,
-                awards=awards,
-                languages=languages,
-                additional_info=additional_info,
-            )
+            update_resume(db=self.db, **filtered_data)
         else:
-            create_resume(
-                db=self.db,
-                user_id=user_id,
-                skill_stack=skill_stack,
-                work_experiences=work_experiences,
-                final_degree=final_degree,
-                major=major,
-                gpa=gpa,
-                education_and_exp=education_and_exp,
-                certificates=certificates,
-                awards=awards,
-                languages=languages,
-                additional_info=additional_info,
-            )
+            create_resume(db=self.db, **filtered_data)
 
     # TODO : 사용자페이지에서 입력받은 이력서 PDF로 뽑기 -> 형식 고정되어서 출력해야 하나? 권아님
 
