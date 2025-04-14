@@ -235,8 +235,6 @@ class AppLogic:
         Raises:
             ValueError: 해당 사용자가 존재하지 않을 경우
         """
-        from src.models.recruitment import get_user_by_id
-
         user = get_user_by_id(db=self.db, user_id=user_id)
         if user is None:
             raise ValueError("해당 사용자가 존재하지 않습니다.")
