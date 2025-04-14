@@ -1,4 +1,8 @@
 import gradio as gr
+import re
+
+from ..logic.app_logic import AppLogic
+
 
 FEATURES = {
     'general': '무엇이든 물어보세요!',
@@ -264,4 +268,32 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=theme) as demo:
     sidebar_logo_image.select(lambda: select_chat_tab('general'), outputs=[tab_host, main_chatbot])
 
 
-demo.launch(debug=True)
+app_logic = AppLogic()
+
+account_pattern = re.compile(r'^[A-Za-z\d_]{4,}$')
+
+def sign_in_or_sign_up(user_id: str, password: str) -> bool:
+    if not account_pattern.fullmatch(user_id) or not account_pattern.fullmatch(password):
+        gr.Warning('아이디와 비밀번호로는 길이가 4 이상이고 영문자, 숫자, 언더바(_)로만 구성된 것만 사용할 수 있습니다.')
+        return False
+
+    logged_in, message = app_logic.sign_in(user_id, password)
+    if logged_in:
+        gr.Info('로그인에 성공했습니다.')
+        return True
+    
+    if message == '아이디가 존재하지 않습니다.':
+        app_logic.sign_up(user_id, password)
+        app_logic.sign_in(user_id, password)
+        gr.Info('새 계정을 생성했습니다. 아이디와 비밀번호를 기억하세요!')
+        return True
+    
+    gr.Warning('비밀번호가 잘못되었습니다.')
+    return False
+
+
+AUTH_MESSAGE = (
+    '새 계정으로 가입하거나 기존 계정으로 로그인하세요.\n'
+    '아이디와 비밀번호는 길이가 4 이상이어야 하고 '
+    '영문자, 숫자, 언더바(_)로만 구성되어야 합니다.'
+)

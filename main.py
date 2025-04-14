@@ -1,6 +1,8 @@
-def main():
-    print("Hello from hire-me-app!")
+from src.ui.app import demo, sign_in_or_sign_up, AUTH_MESSAGE
 
 
 if __name__ == "__main__":
-    main()
+    demo.launch(
+        auth=sign_in_or_sign_up,
+        auth_message=AUTH_MESSAGE
+    )
