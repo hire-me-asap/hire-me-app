@@ -21,6 +21,7 @@ from src.logic.openai_requests import (
 
 from src.models.recruitment import get_user_by_id, update_user, create_user, delete_user
 from src.logic.generate_id_card import generate_avatar_id_card
+from src.logic.generate_roadmap_img import split_text_and_json
 from src.db import Session
 
 load_dotenv()
@@ -236,6 +237,51 @@ class AppLogic:
                 seed=user_id, job=wanted_position),
         )
 
+    # 스킬 스택 업데이트
+    def update_skill_stack(
+        self,
+        user_id: str,
+        skill_stack: str,
+        action: str  # 'add' 또는 'remove'
+    ) -> None:
+        """
+        사용자의 스킬스택을 추가하거나 제거합니다.
+
+        Args:
+            user_id (str): 사용자 ID
+            skill_stack (str): 추가 또는 삭제할 스킬
+            action (str): 'add' 또는 'remove'
+        """
+        # 사용자 조회
+        user = get_user_by_id(db=self.db, user_id=user_id)
+        if user is None:
+            raise ValueError("해당 사용자가 존재하지 않습니다.")
+
+        # skill_stack 초기화
+        current_stack = user.skill_stack or []
+        if isinstance(current_stack, str):
+            try:
+                current_stack = json.loads(current_stack)
+            except json.JSONDecodeError:
+                current_stack = []
+
+        # 액션 처리
+        if action == "add":
+            if skill_stack not in current_stack:
+                current_stack.append(skill_stack)
+        elif action == "remove":
+            if skill_stack in current_stack:
+                current_stack.remove(skill_stack)
+        else:
+            raise ValueError("action은 'add' 또는 'remove'만 가능합니다.")
+
+        # 업데이트
+        update_user(
+            db=self.db,
+            user_id=user_id,
+            skill_stack=current_stack
+        )
+
     def _request_assistant_response(self, assistant_id: str, message: str, thread_id: str) -> str:
         """사용자 질문을 스레드에 추가하고, AI 도우미의 응답을 받아옵니다.
 
@@ -283,17 +329,21 @@ class AppLogic:
     def get_response_from_assistant(
         self, user_id: str, assistant_type: str, user_question: str
     ) -> dict:
-        """유저 질문을 기반으로 특정 Assistant 타입에 맞는 응답을 반환합니다.
+        """
+        유저 질문을 기반으로 특정 Assistant 타입에 맞는 응답을 반환합니다.
 
         Args:
             user_id (str): 유저의 ID
-            assistant_type (str): 사용할 도우미 유형 (현재는 DB에서 사용하고 있는 변수명 활용)
+            assistant_type (str): 사용할 도우미 유형
             user_question (str): 유저의 질문 메시지
 
         Returns:
             dict: 도우미의 응답 메시지를 포함한 딕셔너리
+                roadmap일 경우 {"text": str, "image": Image.Image 또는 str}
+                그 외에는 {"text": str}
         """
         from src.models.recruitment import User
+
         assistant_mapping = {
             "job_recommend": [ASSISTANT_ID_JOB_RECOMMEND, "thread_id_job_recommend"],
             "recruit_recommend": [ASSISTANT_ID_RECRUIT_RECOMMEND, "thread_id_recruit_recommend"],
@@ -302,64 +352,38 @@ class AppLogic:
             "find_study": [ASSISTANT_ID_FIND_STUDY, "thread_id_find_study"],
         }
 
-        assistant_info = assistant_mapping[assistant_type]
-        assistant_id, thread_column_name = assistant_info
+        assistant_id, thread_column_name = assistant_mapping[assistant_type]
 
         # 사용자 정보 조회
         user = self.db.query(User).filter(User.id == user_id).first()
         personal_thread_id = getattr(user, thread_column_name)
 
-        # 도우미 응답 요청
-        return self._request_assistant_response(
+        # 도우미 응답 텍스트 받아오기
+        response_text = self._request_assistant_response(
             assistant_id=assistant_id,
             message=user_question,
             thread_id=personal_thread_id,
         )
 
-    # 스킬 스택 업데이트
-    def update_skill_stack(
-        self,
-        user_id: str,
-        skill_stack: str,
-        action: str  # 'add' 또는 'remove'
-    ) -> None:
-        """
-        사용자의 스킬스택을 추가하거나 제거합니다.
-
-        Args:
-            user_id (str): 사용자 ID
-            skill_stack (str): 추가 또는 삭제할 스킬
-            action (str): 'add' 또는 'remove'
-        """
-        # 사용자 조회
-        user = get_user_by_id(db=self.db, user_id=user_id)
-        if user is None:
-            raise ValueError("해당 사용자가 존재하지 않습니다.")
-
-        # skill_stack 초기화
-        current_stack = user.skill_stack or []
-        if isinstance(current_stack, str):
-            try:
-                current_stack = json.loads(current_stack)
-            except json.JSONDecodeError:
-                current_stack = []
-
-        # 액션 처리
-        if action == "add":
-            if skill_stack not in current_stack:
-                current_stack.append(skill_stack)
-        elif action == "remove":
-            if skill_stack in current_stack:
-                current_stack.remove(skill_stack)
+        # 도우미 타입에 따라 처리 방식 다르게
+        if assistant_type == "roadmap":
+            text, image = split_text_and_json(response_text)
+            return {
+                "text": text,
+                "image": image
+            }
         else:
-            raise ValueError("action은 'add' 또는 'remove'만 가능합니다.")
+            return {
+                "text": response_text
+            }
 
-        # 업데이트
-        update_user(
-            db=self.db,
-            user_id=user_id,
-            skill_stack=current_stack
-        )
+    # TODO : 주홍님이 만들 이력서 테이블을 사용자 입력에 따라 업데이트하는 함수 진솔님
+        # 근데 이제 처음에 값이 안 들어있으면 처음에는 행을 추가해야 해요!
+        # 값 들어있으면 업데이트.
+        # create_이력서
+        # update_이력서
+
+    # TODO : 사용자페이지에서 입력받은 이력서 PDF로 뽑기 -> 형식 고정되어서 출력해야 하나? 권아님
 
     def __del__(self):
         # 인스턴스 소멸 시 세션 닫기
