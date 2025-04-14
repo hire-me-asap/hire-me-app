@@ -196,6 +196,9 @@ class AppLogic:
             db (Session): SQLAlchemy DB 세션
             user_id (str): 업데이트할 사용자 ID
         """
+        # TODO : thread_id_assistant column 추가되면 이걸로 다시 수정.
+        # thread_types = ["assistant", "job_recommend",
+        #                 "recruit_recommend", "roadmap", "resume_review", "find_study"]
         thread_types = ["job_recommend",
                         "recruit_recommend", "roadmap", "resume_review", "find_study"]
         thread_ids = {
