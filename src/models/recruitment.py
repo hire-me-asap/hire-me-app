@@ -43,6 +43,9 @@ class User(Base):
     wanted_position = Column(String(255), nullable=True)
     skill_stack = Column(JSON, nullable=True)
 
+    # Resume와의 관계 설정 - 양방향 참조를 위해 추가
+    # resume = relationship("Resume", back_populates="user", uselist=False)
+
     def verify_password(self, plain_password):
         return pwd_context.verify(plain_password, self.hashed_password)
 
