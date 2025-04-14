@@ -181,3 +181,6 @@ certs/
 
 # test 파일추가
 test.py
+
+# gradio 환경 추가 
+.gradio/
