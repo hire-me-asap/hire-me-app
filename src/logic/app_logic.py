@@ -3,7 +3,7 @@ import time
 import json
 
 from dotenv import load_dotenv
-from typing import Optional, TypedDict, Tuple
+from typing import List, Optional, TypedDict, Tuple
 from openai.types import VectorStore
 from sqlalchemy.orm import Session
 
@@ -154,7 +154,7 @@ class AppLogic:
             return False, "이미 존재하는 아이디입니다."
 
         # 회원가입 로직 수행
-        create_user(user_id=user_id, password=password)
+        create_user(self.db, user_id=user_id, password=password)
         self._update_vector_store(user_id=user_id)
         self._update_thread_id(user_id=user_id)
         self._update_user_img(user_id=user_id)
@@ -196,7 +196,7 @@ class AppLogic:
             db (Session): SQLAlchemy DB 세션
             user_id (str): 업데이트할 사용자 ID
         """
-        thread_types = ["assistant", "job_recommend",
+        thread_types = ["job_recommend",
                         "recruit_recommend", "roadmap", "resume_review", "find_study"]
         thread_ids = {
             f"thread_id_{thread_type}": create_new_thread(AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_API_KEY)
@@ -204,7 +204,7 @@ class AppLogic:
         }
         update_user(db=self.db, user_id=user_id, **thread_ids)
 
-    def _update_user_img(self, user_id: str, wanted_position: str) -> None:
+    def _update_user_img(self, user_id: str, wanted_position: str = '미정') -> None:
         """
         사용자의 직무 정보를 기반으로 아바타 카드 이미지를 생성하고,
         해당 이미지 경로를 DB에 저장합니다.
@@ -219,6 +219,7 @@ class AppLogic:
             db=self.db,
             user_id=user_id,
             user_img=generate_avatar_id_card(seed=user_id, job=job),
+            wanted_position=job
         )
 
     def _update_wanted_position(
