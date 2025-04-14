@@ -3,7 +3,7 @@ import time
 import json
 
 from dotenv import load_dotenv
-from typing import Optional, TypedDict
+from typing import Optional, TypedDict, Tuple
 from openai.types import VectorStore
 from sqlalchemy.orm import Session
 
@@ -102,7 +102,7 @@ class AppLogic:
             vector_store_id=self._vector_store_id, file_ids=file_ids
         )
 
-    def sign_in(self, user_id: str, password: str) -> bool:
+    def sign_in(self, user_id: str, password: str) -> Tuple[bool, str]:
         """
         사용자 로그인 기능을 수행합니다.
 
@@ -111,9 +111,10 @@ class AppLogic:
             password (str): 로그인하려는 사용자의 비밀번호입니다.
 
         Returns:
-            bool: 로그인 성공 여부를 반환합니다.
-                - True: 로그인 성공
-                - False: 사용자 존재하지 않거나 비밀번호 불일치
+            Tuple[bool, str]: 로그인 성공 여부와 메시지를 반환합니다.
+                - (True, "로그인 성공") → 로그인 성공
+                - (False, "아이디가 존재하지 않습니다.") → 사용자 없음
+                - (False, "비밀번호가 틀렸습니다.") → 비밀번호 불일치
         """
         from src.models.recruitment import User
 
@@ -121,14 +122,14 @@ class AppLogic:
         user = self.db.query(User).filter(User.id == user_id).first()
 
         if user is None:
-            return False  # 사용자 없음 → 로그인 실패
+            return False, "아이디가 존재하지 않습니다."
 
         if not user.verify_password(password):
-            return False  # 비밀번호 불일치 → 로그인 실패
+            return False, "비밀번호가 틀렸습니다."
 
         # 로그인 성공
         self.username = user.id
-        return True
+        return True, "로그인 성공"
 
     def sign_up(
         self, user_id: str, password: str
