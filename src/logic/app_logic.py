@@ -20,12 +20,18 @@ from src.logic.openai_requests import (
 )
 
 from src.models.recruitment import get_user_by_id, update_user, create_user, delete_user
-from src.models.recruitment import User
 from src.logic.generate_id_card import generate_avatar_id_card
+from src.db import Session
 
 load_dotenv()
 AZURE_OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT")
 AZURE_OPENAI_API_KEY = os.getenv("AZURE_OPENAI_API_KEY")
+
+ASSISTANT_ID_JOB_RECOMMEND = os.getenv("ASSISTANT_ID_JOB_RECOMMEND")
+ASSISTANT_ID_RECRUIT_RECOMMEND = os.getenv("ASSISTANT_ID_RECRUIT_RECOMMEND")
+ASSISTANT_ID_ROADMAP = os.getenv("ASSISTANT_ID_ROADMAP")
+ASSISTANT_ID_RESUME_REVIEW = os.getenv("ASSISTANT_ID_RESUME_REVIEW")
+ASSISTANT_ID_FIND_STUDY = os.getenv("ASSISTANT_ID_FIND_STUDY")
 
 
 class FileInfo(TypedDict):
@@ -55,6 +61,7 @@ class AppLogic:
 
         self._user_id: Optional[str] = None
         self._vector_store_id: Optional[str] = None
+        self.db = Session()
 
     def upload_user_files(self, *files: str):
         """파일을 사용자 전용 벡터 스토어에 업로드합니다.
@@ -93,12 +100,11 @@ class AppLogic:
             vector_store_id=self._vector_store_id, file_ids=file_ids
         )
 
-    def sign_in(self, db: Session, user_id: str, password: str) -> bool:
+    def sign_in(self, user_id: str, password: str) -> bool:
         """
         사용자 로그인 기능을 수행합니다.
 
         Parameters:
-            db (Session): SQLAlchemy 세션 객체입니다.
             user_id (str): 로그인하려는 사용자의 ID입니다.
             password (str): 로그인하려는 사용자의 비밀번호입니다.
 
@@ -107,8 +113,10 @@ class AppLogic:
                 - True: 로그인 성공
                 - False: 사용자 존재하지 않거나 비밀번호 불일치
         """
+        from src.models.recruitment import User
+
         # User 테이블에서 user_id 로 사용자 조회
-        user = db.query(User).filter(User.id == user_id).first()
+        user = self.db.query(User).filter(User.id == user_id).first()
 
         if user is None:
             return False  # 사용자 없음 → 로그인 실패
@@ -121,13 +129,12 @@ class AppLogic:
         return True
 
     def sign_up(
-        self, db: Session, user_id: str, password: str
+        self, user_id: str, password: str
     ):
         """
         사용자 회원가입 기능을 수행합니다.
 
         Parameters:
-            db (Session): SQLAlchemy 세션 객체입니다.
             user_id (str): 새로 등록할 사용자의 ID입니다.
             password (str): 새로 등록할 사용자의 비밀번호입니다.
 
@@ -136,18 +143,21 @@ class AppLogic:
                 - True: 회원가입 성공
                 - str: 이미 존재하는 아이디일 경우 에러 메시지 반환
         """
+        from src.models.recruitment import User
+
         # hashing은 create에서 됨
-        existing_useruser = db.query(User).filter(User.id == user_id).first()
+        existing_useruser = self.db.query(
+            User).filter(User.id == user_id).first()
         if existing_useruser:
             return "이미 존재하는 아이디입니다."
         else:
-            create_user(db, user_id=user_id, password=password)
-            self._update_vector_store(db, user_id=user_id)
-            self._update_thread_id(db, user_id=user_id)
-            self._update_user_img(db, user_id=user_id)
+            create_user(user_id=user_id, password=password)
+            self._update_vector_store(user_id=user_id)
+            self._update_thread_id(user_id=user_id)
+            self._update_user_img(user_id=user_id)
             return True
 
-    def _update_vector_store(self, db: Session, user_id: str) -> str:
+    def _update_vector_store(self, user_id: str) -> str:
         """DB에서 사용자 가져오고, 벡터 스토어가 없으면 새로 생성해서 DB에 업데이트
 
         Args:
@@ -157,7 +167,7 @@ class AppLogic:
         Returns:
             str: 벡터 스토어 ID
         """
-        user = get_user_by_id(db, user_id)
+        user = get_user_by_id(self.db, user_id)
 
         if not user:
             raise ValueError(f"User with id {user_id} not found")
@@ -170,11 +180,11 @@ class AppLogic:
             vector_store_id = get_vector_store(vector_store_name=user_id)
 
             # DB에 업데이트
-            update_user(db=db, user_id=user_id,
+            update_user(db=self.db, user_id=user_id,
                         vector_store_id=vector_store_id)
         return vector_store_id
 
-    def _update_thread_id(self, db: Session, user_id: str) -> None:
+    def _update_thread_id(self, user_id: str) -> None:
         """
         사용자의 thread_id를 생성한 뒤, 이를 DB에 저장합니다.
 
@@ -188,40 +198,38 @@ class AppLogic:
             f"thread_id_{thread_type}": create_new_thread(AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_API_KEY)
             for thread_type in thread_types
         }
+        update_user(db=self.db, user_id=user_id, **thread_ids)
 
-        update_user(db=db, user_id=user_id, **thread_ids)
-
-    def _update_user_img(self, db: Session, user_id: str, wanted_position: str) -> None:
+    def _update_user_img(self, user_id: str, wanted_position: str) -> None:
         """
         사용자의 직무 정보를 기반으로 아바타 카드 이미지를 생성하고,
         해당 이미지 경로를 DB에 저장합니다.
 
         Args:
-            db (Session): SQLAlchemy DB 세션
             user_id (str): 업데이트할 사용자 ID
             wanted_position (str): 사용자의 희망 직무 (없을 경우 '미정'으로 처리)
         """
+
         job = wanted_position if wanted_position else "미정"
         update_user(
-            db=db,
+            db=self.db,
             user_id=user_id,
             user_img=generate_avatar_id_card(seed=user_id, job=job),
         )
 
     def _update_wanted_position(
-        self, db: Session, user_id: str, wanted_position: str
+        self, user_id: str, wanted_position: str
     ) -> None:
         """
         사용자의 희망 직무를 DB에 반영하고,
         변경된 직무에 맞춰 아바타 카드 이미지를 새로 생성해 저장합니다.
 
         Args:
-            db (Session): SQLAlchemy DB 세션
             user_id (str): 업데이트할 사용자 ID
             wanted_position (str): 새로 설정할 희망 직무
         """
         update_user(
-            db=db,
+            db=self.db,
             user_id=user_id,
             wanted_position=wanted_position,
             user_img=generate_avatar_id_card(
@@ -273,12 +281,11 @@ class AppLogic:
         return response_message
 
     def get_response_from_assistant(
-        self, db: Session, user_id: str, assistant_type: str, user_question: str
+        self, user_id: str, assistant_type: str, user_question: str
     ) -> dict:
         """유저 질문을 기반으로 특정 Assistant 타입에 맞는 응답을 반환합니다.
 
         Args:
-            db (Session): DB 세션
             user_id (str): 유저의 ID
             assistant_type (str): 사용할 도우미 유형 (현재는 DB에서 사용하고 있는 변수명 활용)
             user_question (str): 유저의 질문 메시지
@@ -286,20 +293,20 @@ class AppLogic:
         Returns:
             dict: 도우미의 응답 메시지를 포함한 딕셔너리
         """
-        # TODO assistant_id 생성시 수정필요
+        from src.models.recruitment import User
         assistant_mapping = {
-            "job_recommend": ["assistant_id1", "thread_id_job_recommend"],
-            "recruit_recommend": ["assistant_id2", "thread_id_recruit_recommend"],
-            "roadmap": ["assistant_id3", "thread_id_roadmap"],
-            "resume_review": ["assistant_id4", "thread_id_resume_review"],
-            "find_study": ["assistant_id5", "thread_id_find_study"],
+            "job_recommend": [ASSISTANT_ID_JOB_RECOMMEND, "thread_id_job_recommend"],
+            "recruit_recommend": [ASSISTANT_ID_RECRUIT_RECOMMEND, "thread_id_recruit_recommend"],
+            "roadmap": [ASSISTANT_ID_ROADMAP, "thread_id_roadmap"],
+            "resume_review": [ASSISTANT_ID_RESUME_REVIEW, "thread_id_resume_review"],
+            "find_study": [ASSISTANT_ID_FIND_STUDY, "thread_id_find_study"],
         }
 
         assistant_info = assistant_mapping[assistant_type]
         assistant_id, thread_column_name = assistant_info
 
         # 사용자 정보 조회
-        user = db.query(User).filter(User.id == user_id).first()
+        user = self.db.query(User).filter(User.id == user_id).first()
         personal_thread_id = getattr(user, thread_column_name)
 
         # 도우미 응답 요청
@@ -312,7 +319,6 @@ class AppLogic:
     # 스킬 스택 업데이트
     def update_skill_stack(
         self,
-        db: Session,
         user_id: str,
         skill_stack: str,
         action: str  # 'add' 또는 'remove'
@@ -321,13 +327,12 @@ class AppLogic:
         사용자의 스킬스택을 추가하거나 제거합니다.
 
         Args:
-            db (Session): SQLAlchemy DB 세션
             user_id (str): 사용자 ID
             skill_stack (str): 추가 또는 삭제할 스킬
             action (str): 'add' 또는 'remove'
         """
         # 사용자 조회
-        user = get_user_by_id(db=db, user_id=user_id)
+        user = get_user_by_id(db=self.db, user_id=user_id)
         if user is None:
             raise ValueError("해당 사용자가 존재하지 않습니다.")
 
@@ -351,7 +356,12 @@ class AppLogic:
 
         # 업데이트
         update_user(
-            db=db,
+            db=self.db,
             user_id=user_id,
             skill_stack=current_stack
         )
+
+    def __del__(self):
+        # 인스턴스 소멸 시 세션 닫기
+        if hasattr(self, "db"):
+            self.db.close()
