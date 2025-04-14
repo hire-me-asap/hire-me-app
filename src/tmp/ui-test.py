@@ -94,7 +94,7 @@ with gr.Blocks(css_paths=['src/tmp/ui-test-style.css'], theme=theme) as demo:
             roadmap_chat_button = gr.Button(FEATURES['roadmap'])
             course_chat_button = gr.Button(FEATURES['course'])
 
-        sidebar_logo_image = gr.Image(
+        sidebar_about_image = gr.Image(
             './resources/about.png',
             show_label=False,
             container=False,
@@ -223,7 +223,7 @@ with gr.Blocks(css_paths=['src/tmp/ui-test-style.css'], theme=theme) as demo:
                 clear_history_button = gr.Button('대화 기록 지우기', variant='stop')
 
     """ 이벤트 """
-
+    
     def set_topbar_visibility(is_visible):
         return gr.update(visible=is_visible)
 
@@ -259,6 +259,9 @@ with gr.Blocks(css_paths=['src/tmp/ui-test-style.css'], theme=theme) as demo:
     resume_chat_button.click(lambda: select_chat_tab('resume'), outputs=[tab_host, main_chatbot])
     roadmap_chat_button.click(lambda: select_chat_tab('roadmap'), outputs=[tab_host, main_chatbot])
     course_chat_button.click(lambda: select_chat_tab('course'), outputs=[tab_host, main_chatbot])
+
+    topbar_logo_image.select(lambda: select_chat_tab('general'), outputs=[tab_host, main_chatbot])
+    sidebar_logo_image.select(lambda: select_chat_tab('general'), outputs=[tab_host, main_chatbot])
 
 
 demo.launch(debug=True)

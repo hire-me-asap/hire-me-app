@@ -42,33 +42,50 @@ footer {
     margin-left: var(--spacing-xl);
 }
 
+<<<<<<< HEAD
 #sidebar-logo,
 #topbar-logo {
+=======
+#sidebar-logo, #topbar-logo {
+>>>>>>> ff998da (doen 0414 ui update)
     margin: 0 auto 0 auto;
 }
 
 .sidebar-content,
+<<<<<<< HEAD
 .sidebar-content>.column {
+=======
+.sidebar-content > .column {
+>>>>>>> ff998da (doen 0414 ui update)
     flex-grow: 1;
     height: 100%;
 }
 
+<<<<<<< HEAD
 .tabs>.tab-wrapper {
+=======
+.tabs > .tab-wrapper {
+>>>>>>> ff998da (doen 0414 ui update)
     display: none;
 }
 
 #sidebar-logo img {
     height: 40px;
+    cursor: pointer;
 }
 
 #topbar-logo img {
     height: 30px;
+    cursor: pointer;
 }
 
+<<<<<<< HEAD
 .hide-top-corner.icon-button-wrapper {
     display: none;
 }
 
+=======
+>>>>>>> ff998da (doen 0414 ui update)
 .sidebar-content,
 .sidebar-content .html-container {
     background: var(--block-background-fill) !important;
