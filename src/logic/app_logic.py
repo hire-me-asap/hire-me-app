@@ -381,11 +381,61 @@ class AppLogic:
                 "text": response_text
             }
 
-    # TODO : 주홍님이 만들 이력서 테이블을 사용자 입력에 따라 업데이트하는 함수 진솔님
-        # 근데 이제 처음에 값이 안 들어있으면 처음에는 행을 추가해야 해요!
-        # 값 들어있으면 업데이트.
-        # create_이력서
-        # update_이력서
+    def upsert_resume_info(
+        self,
+        user_id: str,
+        skill_stack: Optional[List[str]] = None,
+        work_experiences: Optional[str] = None,
+        final_degree: Optional[str] = None,
+        major: Optional[str] = None,
+        gpa: Optional[float] = None,
+        education_and_exp: Optional[str] = None,
+        certificates: Optional[str] = None,
+        awards: Optional[str] = None,
+        languages: Optional[str] = None,
+        additional_info: Optional[str] = None,
+    ) -> None:
+        """
+        사용자의 이력 정보를 Resume 테이블에 생성 또는 업데이트합니다.
+        """
+        from src.models.resume import (
+            get_resume_by_id,
+            create_resume,
+            update_resume
+        )
+
+        existing_resume = get_resume_by_id(self.db, user_id)
+
+        if existing_resume:
+            update_resume(
+                db=self.db,
+                user_id=user_id,
+                skill_stack=skill_stack,
+                work_experiences=work_experiences,
+                final_degree=final_degree,
+                major=major,
+                gpa=gpa,
+                education_and_exp=education_and_exp,
+                certificates=certificates,
+                awards=awards,
+                languages=languages,
+                additional_info=additional_info,
+            )
+        else:
+            create_resume(
+                db=self.db,
+                user_id=user_id,
+                skill_stack=skill_stack,
+                work_experiences=work_experiences,
+                final_degree=final_degree,
+                major=major,
+                gpa=gpa,
+                education_and_exp=education_and_exp,
+                certificates=certificates,
+                awards=awards,
+                languages=languages,
+                additional_info=additional_info,
+            )
 
     # TODO : 사용자페이지에서 입력받은 이력서 PDF로 뽑기 -> 형식 고정되어서 출력해야 하나? 권아님
 
