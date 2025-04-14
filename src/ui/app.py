@@ -274,26 +274,25 @@ account_pattern = re.compile(r'^[A-Za-z\d_]{4,}$')
 
 def sign_in_or_sign_up(user_id: str, password: str) -> bool:
     if not account_pattern.fullmatch(user_id) or not account_pattern.fullmatch(password):
-        gr.Warning('아이디와 비밀번호로는 길이가 4 이상이고 영문자, 숫자, 언더바(_)로만 구성된 것만 사용할 수 있습니다.')
+        gr.Error('부적절한 아이디 혹은 비밀번호가 입력되었습니다.')
         return False
 
     logged_in, message = app_logic.sign_in(user_id, password)
     if logged_in:
-        gr.Info('로그인에 성공했습니다.')
         return True
     
     if message == '아이디가 존재하지 않습니다.':
         app_logic.sign_up(user_id, password)
         app_logic.sign_in(user_id, password)
-        gr.Info('새 계정을 생성했습니다. 아이디와 비밀번호를 기억하세요!')
         return True
     
-    gr.Warning('비밀번호가 잘못되었습니다.')
+    gr.Error('부적절한 아이디 혹은 비밀번호가 입력되었습니다.')
     return False
 
 
 AUTH_MESSAGE = (
-    '새 계정으로 가입하거나 기존 계정으로 로그인하세요.\n'
-    '아이디와 비밀번호는 길이가 4 이상이어야 하고 '
-    '영문자, 숫자, 언더바(_)로만 구성되어야 합니다.'
+    '<p><b>새 계정</b>으로 가입하거나 <b>기존 계정</b>으로 로그인하세요.</p>'
+    '<p>아이디와 비밀번호는 <b>길이가 4 이상</b>이어야 하고<br/>'
+    '<b>영문자, 숫자, 언더바</b>로만 구성되어야 합니다.</p>'
+    '<p><b>[로그인]</b> 버튼을 클릭하고 잠시 기다려주세요</p>'
 )
