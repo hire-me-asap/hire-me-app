@@ -67,8 +67,7 @@ class AppLogic:
     """
 
     def __init__(self):
-        self.signed_in: bool = False
-
+        self._signed_in: bool = False
         self._user_id: Optional[str] = None
         self._vector_store_id: Optional[str] = None
         self.db = Session()
@@ -79,7 +78,7 @@ class AppLogic:
         Args:
             *files (str): 업로드할 파일의 경로
         """
-        if not self.signed_in:
+        if not self._signed_in:
             raise RuntimeError("로그인 정보가 없습니다.")
         upload_vector_store_files(self._vector_store_id, files)
 
@@ -89,7 +88,7 @@ class AppLogic:
         Returns:
             list[FileInfo]: 파일 정보가 담긴 리스트입니다.
         """
-        if not self.signed_in:
+        if not self._signed_in:
             raise RuntimeError("로그인 정보가 없습니다.")
 
         files = get_vector_store_files_list(self._vector_store_id)
@@ -103,7 +102,7 @@ class AppLogic:
         Args:
             *files_ids (str): 삭제할 파일의 ID
         """
-        if not self.signed_in:
+        if not self._signed_in:
             raise RuntimeError("로그인 정보가 없습니다.")
 
         delete_vector_store_files(
@@ -136,7 +135,8 @@ class AppLogic:
             return False, "비밀번호가 틀렸습니다."
 
         # 로그인 성공
-        self.username = user.id
+        self._signed_in = True
+        self._user_id = user.id
         return True, "로그인 성공"
 
     def sign_up(
@@ -437,6 +437,24 @@ class AppLogic:
             update_resume(db=self.db, **filtered_data)
         else:
             create_resume(db=self.db, **filtered_data)
+
+    def user_id(self):
+        """사용자 아이디를 반환합니다.
+
+        Returns:
+            str: 사용자 아이디
+        """
+        if not self._signed_in:
+            raise RuntimeError('로그인 정보가 없습니다.')
+        return self._user_id
+    
+    def signed_in(self):
+        """로그인 여부를 반환합니다.
+
+        Returns:
+            bool: 로그인 여부
+        """
+        return self._sign_in
 
     # TODO : 사용자페이지에서 입력받은 이력서 PDF로 뽑기 -> 형식 고정되어서 출력해야 하나? 권아님
 

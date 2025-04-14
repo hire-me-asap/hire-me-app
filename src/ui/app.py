@@ -1,8 +1,10 @@
 import gradio as gr
 import re
+from pathlib import Path
 
 from ..logic.app_logic import AppLogic
 
+app_logic = AppLogic()
 
 FEATURES = {
     'general': '무엇이든 물어보세요!',
@@ -50,6 +52,8 @@ EXAMPLE_MESSAGES = {
     ]
 }
 
+PROFILE_IMAGE_PLACEHOLDER = 'resources/profile-placeholder.png'
+
 
 theme = gr.themes.Citrus(
     primary_hue="slate",
@@ -68,6 +72,10 @@ theme = gr.themes.Citrus(
     button_cancel_background_fill_hover_dark='*secondary_900',
 )
 
+gr.set_static_paths(paths=[
+    Path.cwd().absolute()/"resources",
+    Path.cwd().absolute()/"static",
+])
 
 with gr.Blocks(css_paths=['src/ui/style.css'], theme=theme) as demo:
     """ 앱 """
@@ -84,6 +92,7 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=theme) as demo:
             show_download_button=False,
             show_share_button=False,
             show_fullscreen_button=False,
+            interactive=False
         )
 
         profile_button = gr.Button('이력서 입력하러 가기', variant='primary')
@@ -105,17 +114,22 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=theme) as demo:
             show_download_button=False,
             show_share_button=False,
             show_fullscreen_button=False,
+            interactive=False
         )
 
-        gr.Image(
-            './resources/retro_id_card.png',
-            elem_id='profile',
-            show_label=False,
-            container=False,
-            show_download_button=False,
-            show_share_button=False,
-            show_fullscreen_button=False,
-        )
+        # sidebar_profile_image = gr.Image(
+        #     app_logic.get_user_img(app_logic.user_id()) if app_logic._signed_in else PROFILE_IMAGE_PLACEHOLDER,
+        #     elem_id='profile',
+        #     show_label=False,
+        #     container=False,
+        #     show_download_button=False,
+        #     show_share_button=False,
+        #     show_fullscreen_button=False,
+        #     type='filepath',
+        #     interactive=False
+        # )
+        
+        sidebar_profile_image = gr.HTML("<img id='profile' src='/gradio_api/file=resources/profile-placeholder.png'>")
 
     """ 상단 바 """
     with gr.Row(elem_id='topbar-section', visible=False) as topbar:
@@ -126,7 +140,7 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=theme) as demo:
             container=False,
             show_download_button=False,
             show_share_button=False,
-            show_fullscreen_button=False,
+            show_fullscreen_button=False
         )
 
     with gr.Tabs() as tab_host:
@@ -227,6 +241,18 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=theme) as demo:
                 clear_history_button = gr.Button('대화 기록 지우기', variant='stop')
 
     """ 이벤트 """
+
+    def update_sidebar_profile_image(current):
+        print('@', current)
+        print('@', app_logic._signed_in)
+        if current.endswith("profile-placeholder.png'>") and app_logic._signed_in:
+            return gr.HTML(
+                f"<img id='profile' src='/gradio_api/file={app_logic.get_user_img(app_logic.user_id())[1:]}'>"
+            ), gr.update(active=False)
+        return gr.update(), gr.update()
+    
+    timer = gr.Timer(0.01)
+    timer.tick(update_sidebar_profile_image, inputs=[sidebar_profile_image], outputs=[sidebar_profile_image, timer])
     
     def set_topbar_visibility(is_visible):
         return gr.update(visible=is_visible)
@@ -267,8 +293,6 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=theme) as demo:
     topbar_logo_image.select(lambda: select_chat_tab('general'), outputs=[tab_host, main_chatbot])
     sidebar_logo_image.select(lambda: select_chat_tab('general'), outputs=[tab_host, main_chatbot])
 
-
-app_logic = AppLogic()
 
 account_pattern = re.compile(r'^[A-Za-z\d_]{4,}$')
 

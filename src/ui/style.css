@@ -76,8 +76,12 @@ footer {
     background: var(--block-background-fill) !important;
 }
 
-#profile {
+.sidebar-content>.column>*:nth-last-child(1) {
     margin-top: auto;
+}
+
+.sidebar-content>.column>*:nth-last-child(1)>.html-container {
+    padding: 0;
 }
 
 .gradio-container {
