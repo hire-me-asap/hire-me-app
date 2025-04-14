@@ -1,3 +1,4 @@
+from recruitment import Base
 import enum
 from sqlalchemy import (
     Boolean,
@@ -16,6 +17,7 @@ from sqlalchemy import (
 from typing import Optional, List
 from sqlalchemy.orm import Session, relationship
 from .recruitment import Base
+
 
 class Resume(Base):
     """
@@ -38,57 +40,62 @@ class Resume(Base):
     }
 
     # User 테이블의 id를 기본 키이자 외래 키로 사용
-    user_id = Column(String(56), 
-                ForeignKey("recruitment.users.id", ondelete='CASCADE', onupdate='CASCADE'),
-                primary_key=True)
+    user_id = Column(String(56),
+                     ForeignKey("recruitment.users.id",
+                                ondelete='CASCADE', onupdate='CASCADE'),
+                     primary_key=True)
+    # 실명
+    real_name = Column(Text, nullable=True)
+    # 지원자 설명
+    summary = Column(Text, nullable=True)
     # 기술스택
-    skill_stack = Column(JSON, nullable=True)  # json이니까 유의!
+    skill_stack = Column(JSON, nullable=True)
     # 경력
-    work_experiences = Column(Text, nullable=True)
-    # 최종학력
-    final_degree = Column(String(64), nullable=True)
-    # 전공
-    major = Column(String(256), nullable=True)
-    # 학점
-    gpa = Column(Numeric(3, 2), nullable=True)
+    # JSON 구조: position, company, work_date, work_description 포함
+    work_experiences = Column(JSON, nullable=True)
+    # 학위
+    # JSON: school_name, degree_date, final_degree, major, gpa
+    education = Column(JSON, nullable=True)
     # 교육 및 기타경험
-    education_and_exp = Column(String(256), nullable=True)
+    # JSON: edu_exp, edu_exp_date
+    education_and_exp = Column(JSON, nullable=True)
     # 자격증, 수상내역, 언어, 기타 정보
-    certificates = Column(Text, nullable=True)
-    awards = Column(Text, nullable=True)
-    languages = Column(String(256), nullable=True)
-    additional_info = Column(Text, nullable=True)
+    # JSON: certificate, certificate_date
+    certificates = Column(JSON, nullable=True)
+    awards = Column(JSON, nullable=True)  # JSON: award, award _date
+    languages = Column(JSON, nullable=True)  # JSON: languages, language_date
 
-    # 역참조 관계 설정 (필수는 아님)
-    table_users = relationship("User", back_populates="resumes")
+    # from sqlalchemy.orm import relationship
+    # User와의 관계 설정 - 양방향 참조를 위해 수정
+    # user = relationship("User", back_populates="resume")
+    # 양방향 관계 설정 (필수는 아님)
+    table_a = relationship("TableA", back_populates="table_b_items")
+
 
 def create_resume(
     db: Session,
-    user_id: str,
-    skill_stack: str = None,  # json이어야 하나?
-    work_experiences: str = None,
-    final_degree: str = None,
-    major: str = None,
-    gpa: float = None,  # 위는 numeric인데 여기는 python이니까 float이 맞겠지?
-    education_and_exp: str = None,
-    certificates: str = None,
-    awards: str = None,
-    languages: str = None,
-    additional_info: str = None,
+    id: str,
+    real_name: Optional[str] = None,
+    summary: Optional[str] = None,
+    skill_stack: Optional[List[float]] = None,
+    work: Optional[dict] = None,
+    education: Optional[dict] = None,
+    education_and_exp: Optional[dict] = None,
+    certificates: Optional[dict] = None,
+    awards: Optional[dict] = None,
+    languages: Optional[dict] = None
 ):
-
     resume = Resume(
-        user_id=user_id,
+        id=id,
+        real_name=real_name,
+        summary=summary,
         skill_stack=skill_stack,
-        work_experiences=work_experiences,
-        final_degree=final_degree,
-        major=major,
-        gpa=gpa,
+        work=work,
+        education=education,
         education_and_exp=education_and_exp,
         certificates=certificates,
         awards=awards,
-        languages=languages,
-        additional_info=additional_info
+        languages=languages
     )
 
     db.add(resume)
@@ -97,40 +104,37 @@ def create_resume(
     return resume
 
 
-def get_resume_by_id(db: Session, user_id: str):
-    return db.query(Resume).filter(Resume.user_id == user_id).first()
+def get_resume_by_id(db: Session, id: str):
+    return db.query(Resume).filter(Resume.id == id).first()
 
 
 def update_resume(
     db: Session,
-    user_id: str,
+    id: str,
+    real_name: Optional[str] = None,
+    summary: Optional[str] = None,
     skill_stack: Optional[List[float]] = None,
-    work_experiences: Optional[str] = None,
-    final_degree: Optional[str] = None,
-    major: Optional[str] = None,
-    gpa: Optional[str] = None,
-    education_and_exp: Optional[str] = None,
-    certificates: Optional[str] = None,
-    awards: Optional[str] = None,
-    languages: Optional[str] = None,
-    additional_info: Optional[str] = None
+    work: Optional[dict] = None,
+    education: Optional[dict] = None,
+    education_and_exp: Optional[dict] = None,
+    certificates: Optional[dict] = None,
+    awards: Optional[dict] = None,
+    languages: Optional[dict] = None
 ):
-
-    resume = db.query(Resume).filter(Resume.user_id == user_id).first()
+    resume = db.query(Resume).filter(Resume.id == id).first()
     if not resume:
-        return None  # 또는 raise 예외 처리
+        return None
 
     updates = {
+        "real_name": real_name,
+        "summary": summary,
         "skill_stack": skill_stack,
-        "work_experiences": work_experiences,
-        "final_degree": final_degree,
-        "major": major,
-        "gpa": gpa,
+        "work": work,
+        "education": education,
         "education_and_exp": education_and_exp,
         "certificates": certificates,
         "awards": awards,
-        "languages": languages,
-        "additional_info": additional_info
+        "languages": languages
     }
 
     for field, value in updates.items():
@@ -142,8 +146,8 @@ def update_resume(
     return resume
 
 
-def delete_resume(db: Session, user_id: str):
-    resume = db.query(Resume).filter(Resume.user_id == user_id).first()
+def delete_resume(db: Session, id: str):
+    resume = db.query(Resume).filter(Resume.id == id).first()
     if resume:
         db.delete(resume)
         db.commit()

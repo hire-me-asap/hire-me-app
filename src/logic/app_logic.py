@@ -21,15 +21,8 @@ from src.logic.openai_requests import (
     get_all_assistant_response,
 )
 
-
-# TODO model.table 이름 수정된다고 하면 다시 수정해야 함.
-from src.models.resume import (
-    get_resume_by_id,
-    create_resume,
-    update_resume
-)
-
-from src.models.recruitment import get_user_by_id, update_user, create_user, delete_user
+from src.models.user import get_user_by_id, update_user, create_user, delete_user
+from src.models.resume import get_resume_by_id, create_resume, update_resume, delete_resume
 from src.logic.generate_id_card import generate_avatar_id_card
 from src.logic.generate_roadmap_img import split_text_and_json
 from src.db import Session
@@ -215,10 +208,7 @@ class AppLogic:
             db (Session): SQLAlchemy DB 세션
             user_id (str): 업데이트할 사용자 ID
         """
-        # TODO : thread_id_assistant column 추가되면 이걸로 다시 수정.
-        # thread_types = ["assistant", "job_recommend",
-        #                 "recruit_recommend", "roadmap", "resume_review", "find_study"]
-        thread_types = ["job_recommend",
+        thread_types = ["assistant", "job_recommend",
                         "recruit_recommend", "roadmap", "resume_review", "find_study"]
         thread_ids = {
             f"thread_id_{thread_type}": create_new_thread(AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_API_KEY)
@@ -282,50 +272,24 @@ class AppLogic:
                 seed=user_id, job=wanted_position),
         )
 
-    # # 스킬 스택 업데이트
-    # def update_skill_stack(
-    #     self,
-    #     user_id: str,
-    #     skill_stack: str,
-    #     action: str  # 'add' 또는 'remove'
-    # ) -> None:
-    #     """
-    #     사용자의 스킬스택을 추가하거나 제거합니다.
+    def update_resume_file(self, user_id: str, resume_file_url: str) -> None:
+        """
+        유저의 이력서 PDF 파일 URL을 DB에 저장합니다.
 
-    #     Args:
-    #         user_id (str): 사용자 ID
-    #         skill_stack (str): 추가 또는 삭제할 스킬
-    #         action (str): 'add' 또는 'remove'
-    #     """
-    #     # 사용자 조회
-    #     user = get_user_by_id(db=self.db, user_id=user_id)
-    #     if user is None:
-    #         raise ValueError("해당 사용자가 존재하지 않습니다.")
+        Args:
+            db (Session): SQLAlchemy 세션
+            user_id (str): 사용자 ID
+            resume_file_url (str): 업로드된 PDF 파일 경로 또는 URL
 
-    #     # skill_stack 초기화
-    #     current_stack = user.skill_stack or []
-    #     if isinstance(current_stack, str):
-    #         try:
-    #             current_stack = json.loads(current_stack)
-    #         except json.JSONDecodeError:
-    #             current_stack = []
+        Returns:
+            User: 업데이트된 사용자 객체 또는 None (사용자 미존재 시)
+        """
 
-    #     # 액션 처리
-    #     if action == "add":
-    #         if skill_stack not in current_stack:
-    #             current_stack.append(skill_stack)
-    #     elif action == "remove":
-    #         if skill_stack in current_stack:
-    #             current_stack.remove(skill_stack)
-    #     else:
-    #         raise ValueError("action은 'add' 또는 'remove'만 가능합니다.")
-
-    #     # 업데이트
-    #     update_user(
-    #         db=self.db,
-    #         user_id=user_id,
-    #         skill_stack=current_stack
-    #     )
+        update_user(
+            db=self.db,
+            user_id=user_id,
+            resume_file=resume_file_url,
+        )
 
     def _request_assistant_response(self, assistant_id: str, message: str, thread_id: str) -> str:
         """사용자 질문을 스레드에 추가하고, AI 도우미의 응답을 받아옵니다.

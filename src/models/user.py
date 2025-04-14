@@ -20,6 +20,7 @@ from .recruitment import Base
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
+
 class User(Base):
     """User 테이블에 대한 모델"""
 
@@ -33,6 +34,7 @@ class User(Base):
 
     id = Column(String(56), primary_key=True)
     hashed_password = Column(String(128), nullable=False)
+    thread_id_assistant = Column(String(64), nullable=True)
     thread_id_job_recommend = Column(String(64), nullable=True)
     thread_id_recruit_recommend = Column(String(64), nullable=True)
     thread_id_roadmap = Column(String(64), nullable=True)
@@ -41,8 +43,7 @@ class User(Base):
     vector_store_id = Column(String(64), nullable=True)
     user_img = Column(Text, nullable=True)
     wanted_position = Column(String(256), nullable=True)
-    skill_stack = Column(JSON, nullable=True)
-    thread_id_assistant = Column(String(64), nullable=True)
+    resume_file = Column(Text, nullable=True)
 
     # 역참조 관계 설정 (필수는 아님)
     table_resume = relationship("Resume", back_populates="users",
@@ -62,6 +63,7 @@ def create_user(
     db: Session,
     user_id: str,
     password: str,
+    thread_id_assistant: str = None,
     thread_id_job_recommend: str = None,
     thread_id_recruit_recommend: str = None,
     thread_id_roadmap: str = None,
@@ -70,10 +72,11 @@ def create_user(
     vector_store_id: str = None,
     user_img: str = None,
     wanted_position: str = None,
-    skill_stack: str = None,
+    resume_file: str = None,
 ):
     user = User(
         id=user_id,
+        thread_id_assistant=thread_id_assistant,
         thread_id_job_recommend=thread_id_job_recommend,
         thread_id_recruit_recommend=thread_id_recruit_recommend,
         thread_id_roadmap=thread_id_roadmap,
@@ -82,7 +85,7 @@ def create_user(
         vector_store_id=vector_store_id,
         user_img=user_img,
         wanted_position=wanted_position,
-        skill_stack=skill_stack,
+        resume_file=resume_file,
     )
     user.set_password(password)
     db.add(user)
@@ -99,6 +102,7 @@ def update_user(
     db: Session,
     user_id: str,
     password: Optional[str] = None,
+    thread_id_assistant: Optional[str] = None,
     thread_id_job_recommend: Optional[str] = None,
     thread_id_recruit_recommend: Optional[str] = None,
     thread_id_roadmap: Optional[str] = None,
@@ -107,7 +111,7 @@ def update_user(
     vector_store_id: Optional[str] = None,
     user_img: Optional[str] = None,
     wanted_position: Optional[str] = None,
-    skill_stack: Optional[List[str]] = None
+    resume_file: Optional[str] = None,
 ):
 
     user = db.query(User).filter(User.id == user_id).first()
@@ -115,6 +119,7 @@ def update_user(
         return None  # 또는 raise 예외 처리
 
     updates = {
+        "thread_id_assistant": thread_id_assistant,
         "thread_id_job_recommend": thread_id_job_recommend,
         "thread_id_recruit_recommend": thread_id_recruit_recommend,
         "thread_id_roadmap": thread_id_roadmap,
@@ -123,7 +128,7 @@ def update_user(
         "vector_store_id": vector_store_id,
         "user_img": user_img,
         "wanted_position": wanted_position,
-        "skill_stack": skill_stack,
+        "resume_file": resume_file,
     }
 
     for field, value in updates.items():
