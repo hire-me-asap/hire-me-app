@@ -42,17 +42,18 @@ footer {
     margin-left: var(--spacing-xl);
 }
 
-#sidebar-logo, #topbar-logo {
+#sidebar-logo,
+#topbar-logo {
     margin: 0 auto 0 auto;
 }
 
 .sidebar-content,
-.sidebar-content > .column {
+.sidebar-content>.column {
     flex-grow: 1;
     height: 100%;
 }
 
-.tabs > .tab-wrapper {
+.tabs>.tab-wrapper {
     display: none;
 }
 
@@ -62,6 +63,10 @@ footer {
 
 #topbar-logo img {
     height: 30px;
+}
+
+.hide-top-corner.icon-button-wrapper {
+    display: none;
 }
 
 .sidebar-content,
