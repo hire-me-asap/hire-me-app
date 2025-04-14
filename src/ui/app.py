@@ -65,7 +65,7 @@ theme = gr.themes.Citrus(
 )
 
 
-with gr.Blocks(css_paths=['src/tmp/ui-test-style.css'], theme=theme) as demo:
+with gr.Blocks(css_paths=['src/ui/style.css'], theme=theme) as demo:
     """ 앱 """
 
     with gr.Sidebar(position='left') as sidebar:
