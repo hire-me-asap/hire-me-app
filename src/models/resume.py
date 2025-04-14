@@ -128,36 +128,32 @@ def update_resume(
     if not resume:
         return None  # 또는 raise 예외 처리
 
-#########################아래 수정중
-
     updates = {
-        "thread_id_job_recommend": thread_id_job_recommend,
-        "thread_id_recruit_recommend": thread_id_recruit_recommend,
-        "thread_id_roadmap": thread_id_roadmap,
-        "thread_id_resume_review": thread_id_resume_review,
-        "thread_id_find_study": thread_id_find_study,
-        "vector_store_id": vector_store_id,
-        "user_img": user_img,
-        "wanted_position": wanted_position,
         "skill_stack": skill_stack,
+        "work_experiences": work_experiences,
+        "final_degree": final_degree,
+        "major": major,
+        "gpa": gpa,
+        "education_and_exp": education_and_exp,
+        "certificates": certificates,
+        "awards": awards,
+        "languages": languages,
+        "additional_info": additional_info
     }
 
     for field, value in updates.items():
         if value is not None:
-            setattr(user, field, value)
-
-    if password:
-        user.set_password(password)
+            setattr(resume, field, value)
 
     db.commit()
-    db.refresh(user)
-    return user
+    db.refresh(resume)
+    return resume
 
 
 def delete_resume(db: Session, user_id: str):
-    user = db.query(User).filter(User.id == user_id).first()
+    resume = db.query(User).filter(User.id == user_id).first()
     if user:
-        db.delete(user)
+        db.delete(resume)
         db.commit()
         return True
     return False
