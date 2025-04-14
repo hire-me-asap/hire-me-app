@@ -161,7 +161,7 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=theme) as demo:
                     ['📜 이력서 포함시키기', '이런 식으로 체크박스', '여러 개 넣을 수 있어요'],
                     show_label=False
                 )
-                gr.TextArea(
+                input_textarea = gr.TextArea(
                     placeholder='❔ 엣취에게 물어보세요',
                     lines=1,
                     max_lines=5,
@@ -243,16 +243,13 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=theme) as demo:
     """ 이벤트 """
 
     def update_sidebar_profile_image(current):
-        print('@', current)
-        print('@', app_logic._signed_in)
         if current.endswith("profile-placeholder.png'>") and app_logic._signed_in:
             return gr.HTML(
                 f"<img id='profile' src='/gradio_api/file={app_logic.get_user_img(app_logic.user_id())[1:]}'>"
-            ), gr.update(active=False)
-        return gr.update(), gr.update()
-    
-    timer = gr.Timer(0.01)
-    timer.tick(update_sidebar_profile_image, inputs=[sidebar_profile_image], outputs=[sidebar_profile_image, timer])
+            )
+        return gr.update()
+
+    demo.load(update_sidebar_profile_image, inputs=[sidebar_profile_image], outputs=[sidebar_profile_image])
     
     def set_topbar_visibility(is_visible):
         return gr.update(visible=is_visible)
@@ -266,6 +263,7 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=theme) as demo:
     profile_button.click(lambda: select_profile_tab(), outputs=[tab_host])
 
     def select_chat_tab(mode):
+        history = []
         if mode == 'general':
             pass
         elif mode == 'job':
@@ -281,7 +279,7 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=theme) as demo:
         else:
             return gr.update(), gr.update()
 
-        return gr.update(selected=0), gr.update(label=FEATURES[mode], examples=EXAMPLE_MESSAGES[mode])
+        return gr.update(selected=0), gr.update(value=history, label=FEATURES[mode], examples=EXAMPLE_MESSAGES[mode])
 
     general_chat_button.click(lambda: select_chat_tab('general'), outputs=[tab_host, main_chatbot])
     job_chat_button.click(lambda: select_chat_tab('job'), outputs=[tab_host, main_chatbot])
@@ -292,6 +290,31 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=theme) as demo:
 
     topbar_logo_image.select(lambda: select_chat_tab('general'), outputs=[tab_host, main_chatbot])
     sidebar_logo_image.select(lambda: select_chat_tab('general'), outputs=[tab_host, main_chatbot])
+    
+    def select_example(selected: gr.SelectData):
+        return selected.value['text']
+    
+    main_chatbot.example_select(select_example, outputs=[input_textarea])
+    
+    def queue_message(content, history):
+        if content.strip():
+            message = {'role': 'user', 'content': content}
+            history.append(message)
+        return history
+    
+    def wait_message(content, history):
+        if not content.strip():
+            return '', history
+        
+        response = {'role': 'assistant', 'content': '임시 응답입니다. 엣취!'}
+        history.append(response)
+        return '', history
+    
+    input_textarea.submit(
+        queue_message, inputs=[input_textarea, main_chatbot], outputs=[main_chatbot]
+    ).then(
+        wait_message, inputs=[input_textarea, main_chatbot], outputs=[input_textarea, main_chatbot], scroll_to_output=True
+    )
 
 
 account_pattern = re.compile(r'^[A-Za-z\d_]{4,}$')
@@ -315,8 +338,11 @@ def sign_in_or_sign_up(user_id: str, password: str) -> bool:
 
 
 AUTH_MESSAGE = (
-    '<p><b>새 계정</b>으로 가입하거나 <b>기존 계정</b>으로 로그인하세요.</p>'
+    '<p><b>새 계정</b>으로 가입하거나 <b>기존 계정</b>으로 로그인하세요.</p><p><nbsp></p>'
+    '<p>&#8203;</p>'
     '<p>아이디와 비밀번호는 <b>길이가 4 이상</b>이어야 하고<br/>'
     '<b>영문자, 숫자, 언더바</b>로만 구성되어야 합니다.</p>'
+    '<p>&#8203;</p>'
     '<p><b>[로그인]</b> 버튼을 클릭하고 잠시 기다려주세요</p>'
+    '<p>첫 가입 시에는 리소스 할당에 1분 정도 소요될 수 있습니다.</p>'
 )
