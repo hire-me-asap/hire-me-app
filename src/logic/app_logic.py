@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from typing import List, Optional, TypedDict, Tuple
 from openai.types import VectorStore
 from sqlalchemy.orm import Session
+from enum import Enum
 
 from src.logic.openai_requests import (
     upload_vector_store_files,
@@ -17,6 +18,7 @@ from src.logic.openai_requests import (
     run_message_to_thread,
     is_run_done,
     get_last_assistant_message,
+    get_all_assistant_response,
 )
 
 
@@ -42,6 +44,15 @@ ASSISTANT_ID_RECRUIT_RECOMMEND = os.getenv("ASSISTANT_ID_RECRUIT_RECOMMEND")
 ASSISTANT_ID_ROADMAP = os.getenv("ASSISTANT_ID_ROADMAP")
 ASSISTANT_ID_RESUME_REVIEW = os.getenv("ASSISTANT_ID_RESUME_REVIEW")
 ASSISTANT_ID_FIND_STUDY = os.getenv("ASSISTANT_ID_FIND_STUDY")
+
+
+class AssistantType(str, Enum):
+    JOB_RECOMMEND = "job_recommend"
+    RECRUIT_RECOMMEND = "recruit_recommend"
+    ROADMAP = "roadmap"
+    RESUME_REVIEW = "resume_review"
+    FIND_STUDY = "find_study"
+    ASSISTANT = "assistant"
 
 
 class FileInfo(TypedDict):
@@ -379,12 +390,12 @@ class AppLogic:
         from src.models.recruitment import User
 
         assistant_mapping = {
-            "assistant": [ASSISTANT_ID, "thread_id_assistant"],
-            "job_recommend": [ASSISTANT_ID_JOB_RECOMMEND, "thread_id_job_recommend"],
-            "recruit_recommend": [ASSISTANT_ID_RECRUIT_RECOMMEND, "thread_id_recruit_recommend"],
-            "roadmap": [ASSISTANT_ID_ROADMAP, "thread_id_roadmap"],
-            "resume_review": [ASSISTANT_ID_RESUME_REVIEW, "thread_id_resume_review"],
-            "find_study": [ASSISTANT_ID_FIND_STUDY, "thread_id_find_study"],
+            AssistantType.ASSISTANT: [ASSISTANT_ID, "thread_id_assistant"],
+            AssistantType.JOB_RECOMMEND: [ASSISTANT_ID_JOB_RECOMMEND, "thread_id_job_recommend"],
+            AssistantType.RECRUIT_RECOMMEND: [ASSISTANT_ID_RECRUIT_RECOMMEND, "thread_id_recruit_recommend"],
+            AssistantType.ROADMAP: [ASSISTANT_ID_ROADMAP, "thread_id_roadmap"],
+            AssistantType.RESUME_REVIEW: [ASSISTANT_ID_RESUME_REVIEW, "thread_id_resume_review"],
+            AssistantType.FIND_STUDY: [ASSISTANT_ID_FIND_STUDY, "thread_id_find_study"],
         }
 
         assistant_id, thread_column_name = assistant_mapping[assistant_type]
@@ -401,7 +412,7 @@ class AppLogic:
         )
 
         # 도우미 타입에 따라 처리 방식 다르게
-        if assistant_type == "roadmap":
+        if assistant_type == AssistantType.ROADMAP:
             text, image = split_text_and_json(response_text)
             return {
                 "text": text,
@@ -411,6 +422,49 @@ class AppLogic:
             return {
                 "text": response_text
             }
+
+    def get_all_thread_dialogue(self, user_id: str, assistant_type: str) -> dict:
+        """
+        사용자의 assistant_type에 해당하는 Thread ID를 통해 전체 대화 내역을 반환합니다.
+
+        Parameters:
+            user_id (str): 사용자 ID
+            assistant_type (str): assistant 유형
+
+        Returns:
+            dict: 대화 순서를 보장한 전체 메시지 딕셔너리 (role: message)
+        """
+        from src.models.recruitment import User
+
+        user = self.db.query(User).filter(User.id == user_id).first()
+        if not user:
+            return {"error": "사용자를 찾을 수 없습니다."}
+
+        # Enum 값에 따라 thread_id 매핑
+        try:
+            assistant_type_enum = AssistantType(assistant_type)
+        except ValueError:
+            return {"error": "유효하지 않은 assistant_type 입니다."}
+
+        thread_id_map = {
+            AssistantType.JOB_RECOMMEND: user.thread_id_job_recommend,
+            AssistantType.RECRUIT_RECOMMEND: user.thread_id_recruit_recommend,
+            AssistantType.ROADMAP: user.thread_id_roadmap,
+            AssistantType.RESUME_REVIEW: user.thread_id_resume_review,
+            AssistantType.FIND_STUDY: user.interview_thread_id,
+            AssistantType.ASSISTANT: user.thread_id_assistant,
+        }
+
+        thread_id = thread_id_map.get(assistant_type_enum)
+
+        if not thread_id:
+            return {"error": "해당 assistant_type에 대한 thread_id가 존재하지 않습니다."}
+
+        dialogue = get_all_assistant_response(thread_id)
+        if not dialogue:
+            return {"error": "메시지를 불러오지 못했습니다."}
+
+        return dialogue
 
     def update_resume_info(
         self,
@@ -447,7 +501,7 @@ class AppLogic:
         if not self._signed_in:
             raise RuntimeError('로그인 정보가 없습니다.')
         return self._user_id
-    
+
     def signed_in(self):
         """로그인 여부를 반환합니다.
 

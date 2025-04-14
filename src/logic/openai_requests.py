@@ -256,15 +256,28 @@ def _get_assistant_response(
     response = result.json()
     messages = response["data"]
 
-    # 가장 최근 assistant 메시지 찾기
-    for message in messages:
-        if message["role"] == "assistant":
-            return message["content"][0]["text"]["value"]
+    return messages
+
+
+def get_all_assistant_response(thread_id: str) -> list | None:
+    """
+    4.2.1 환경변수에 설정된 엔드포인트를 이용하여 특정 Thread에서 전체 응답을 가져옵니다.
+
+    Parameters:
+        thread_id (str): 사용자 개인 Thread의 ID.
+
+    Returns:
+        list | None: 전체 응답 메시지. 실패 시 None.
+    """
+    return _get_assistant_response(
+        os.getenv("AZURE_OPENAI_ENDPOINT"), os.getenv(
+            "AZURE_OPENAI_API_KEY"), thread_id
+    )
 
 
 def get_last_assistant_message(thread_id: str) -> str | None:
     """
-    4.2. 환경변수에 설정된 엔드포인트를 이용하여 특정 Thread에서 가장 마지막 Assistant 응답을 가져옵니다.
+    4.2.2 환경변수에 설정된 엔드포인트를 이용하여 특정 Thread에서 가장 마지막 Assistant 응답을 가져옵니다.
 
     Parameters:
         thread_id (str): 사용자 개인 Thread의 ID.
@@ -272,7 +285,8 @@ def get_last_assistant_message(thread_id: str) -> str | None:
     Returns:
         str | None: 가장 최근 Assistant의 응답 메시지. 실패 시 None.
     """
-    return _get_assistant_response(
-        os.getenv("AZURE_OPENAI_ENDPOINT"), os.getenv(
-            "AZURE_OPENAI_API_KEY"), thread_id
-    )
+    messages = _get_assistant_response(os.getenv(
+        "AZURE_OPENAI_ENDPOINT"), os.getenv("AZURE_OPENAI_API_KEY"), thread_id)
+    for message in messages:
+        if message["role"] == "assistant":
+            return message["content"][0]["text"]["value"]
