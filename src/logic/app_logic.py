@@ -372,14 +372,14 @@ class AppLogic:
         return response_message
 
     def get_response_from_assistant(
-        self, user_id: str, assistant_type: str, user_question: str
+        self, user_id: str, assistant_type: AssistantType, user_question: str
     ) -> dict:
         """
         유저 질문을 기반으로 특정 Assistant 타입에 맞는 응답을 반환합니다.
 
         Args:
             user_id (str): 유저의 ID
-            assistant_type (str): 사용할 도우미 유형
+            assistant_type (AssistantType): 사용할 도우미 유형(job_recommend, recruit_recommend, roadmap, resume_review, find_study, assistant 중 하나.)
             user_question (str): 유저의 질문 메시지
 
         Returns:
@@ -423,13 +423,13 @@ class AppLogic:
                 "text": response_text
             }
 
-    def get_all_thread_dialogue(self, user_id: str, assistant_type: str) -> dict:
+    def get_all_thread_dialogue(self, user_id: str, assistant_type: AssistantType) -> dict:
         """
         사용자의 assistant_type에 해당하는 Thread ID를 통해 전체 대화 내역을 반환합니다.
 
         Parameters:
             user_id (str): 사용자 ID
-            assistant_type (str): assistant 유형
+            assistant_type (AssistantType): assistant 종류
 
         Returns:
             dict: 대화 순서를 보장한 전체 메시지 딕셔너리 (role: message)
@@ -440,12 +440,6 @@ class AppLogic:
         if not user:
             return {"error": "사용자를 찾을 수 없습니다."}
 
-        # Enum 값에 따라 thread_id 매핑
-        try:
-            assistant_type_enum = AssistantType(assistant_type)
-        except ValueError:
-            return {"error": "유효하지 않은 assistant_type 입니다."}
-
         thread_id_map = {
             AssistantType.JOB_RECOMMEND: user.thread_id_job_recommend,
             AssistantType.RECRUIT_RECOMMEND: user.thread_id_recruit_recommend,
@@ -455,7 +449,7 @@ class AppLogic:
             AssistantType.ASSISTANT: user.thread_id_assistant,
         }
 
-        thread_id = thread_id_map.get(assistant_type_enum)
+        thread_id = thread_id_map.get(assistant_type)
 
         if not thread_id:
             return {"error": "해당 assistant_type에 대한 thread_id가 존재하지 않습니다."}
