@@ -133,7 +133,7 @@ class AppLogic:
 
     def sign_up(
         self, user_id: str, password: str
-    ):
+    ) -> Tuple[bool, str]:
         """
         사용자 회원가입 기능을 수행합니다.
 
@@ -142,23 +142,24 @@ class AppLogic:
             password (str): 새로 등록할 사용자의 비밀번호입니다.
 
         Returns:
-            Union[bool, str]:
-                - True: 회원가입 성공
-                - str: 이미 존재하는 아이디일 경우 에러 메시지 반환
+            Tuple[bool, str]: 회원가입 성공 여부와 메시지를 반환합니다.
+                - (True, "회원가입에 성공했습니다.") → 회원가입 성공
+                - (False, "이미 존재하는 아이디입니다.") → 아이디 중복
         """
         from src.models.recruitment import User
 
-        # hashing은 create에서 됨
-        existing_useruser = self.db.query(
-            User).filter(User.id == user_id).first()
-        if existing_useruser:
-            return "이미 존재하는 아이디입니다."
-        else:
-            create_user(user_id=user_id, password=password)
-            self._update_vector_store(user_id=user_id)
-            self._update_thread_id(user_id=user_id)
-            self._update_user_img(user_id=user_id)
-            return True
+        # 기존 사용자 존재 여부 확인
+        existing_user = self.db.query(User).filter(User.id == user_id).first()
+        if existing_user:
+            return False, "이미 존재하는 아이디입니다."
+
+        # 회원가입 로직 수행
+        create_user(user_id=user_id, password=password)
+        self._update_vector_store(user_id=user_id)
+        self._update_thread_id(user_id=user_id)
+        self._update_user_img(user_id=user_id)
+
+        return True, "회원가입에 성공했습니다."
 
     def _update_vector_store(self, user_id: str) -> str:
         """DB에서 사용자 가져오고, 벡터 스토어가 없으면 새로 생성해서 DB에 업데이트
