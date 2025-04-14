@@ -13,18 +13,21 @@ from sqlalchemy import (
     JSON
 )
 
-from sqlalchemy.orm import declarative_base
-from passlib.context import CryptContext
-from sqlalchemy.orm import Session
 from typing import Optional, List
-
-
-Base = declarative_base()
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
+from sqlalchemy.orm import Session, relationship
+from .recruitment import Base
 
 class Resume(Base):
-    """Resume 테이블에 대한 모델"""
+    """
+    Resume 테이블에 대한 모델
+
+    gpt가 아래와 같이 json을 추천함
+    educations = Column(JSON, nullable=True)  # 여러 교육 정보를 구조화하여 저장\n
+    experiences = Column(JSON, nullable=True)  # 경험 정보를 구조화하여 저장\n
+    awards = Column(JSON, nullable=True)  # 수상 정보를 구조화하여 저장\n
+    languages = Column(JSON, nullable=True)  # 언어 정보를 구조화하여 저장\n
+    certificates = Column(JSON, nullable=True)  # 자격증 정보를 구조화하여 저장\n
+    """
 
     __tablename__ = "resumes"
     __table_args__ = {
@@ -35,9 +38,9 @@ class Resume(Base):
     }
 
     # User 테이블의 id를 기본 키이자 외래 키로 사용
-    id = Column(String(50),
-                ForeignKey("recruitment.users.id"),
-                primary_key=True, index=True)
+    user_id = Column(String(56), 
+                ForeignKey("recruitment.users.id", ondelete='CASCADE', onupdate='CASCADE'),
+                primary_key=True)
     # 기술스택
     skill_stack = Column(JSON, nullable=True)  # json이니까 유의!
     # 경력
@@ -45,31 +48,19 @@ class Resume(Base):
     # 최종학력
     final_degree = Column(String(64), nullable=True)
     # 전공
-    major = Column(String(255), nullable=True)
+    major = Column(String(256), nullable=True)
     # 학점
     gpa = Column(Numeric(3, 2), nullable=True)
     # 교육 및 기타경험
-    education_and_exp = Column(String(255), nullable=True)
+    education_and_exp = Column(String(256), nullable=True)
     # 자격증, 수상내역, 언어, 기타 정보
     certificates = Column(Text, nullable=True)
     awards = Column(Text, nullable=True)
-    languages = Column(String(255), nullable=True)
+    languages = Column(String(256), nullable=True)
     additional_info = Column(Text, nullable=True)
 
-    # from sqlalchemy.orm import relationship
-    # User와의 관계 설정 - 양방향 참조를 위해 수정
-    # user = relationship("User", back_populates="resume")
-
-
-'''
-# gpt가 json을 추천함
-educations = Column(JSON, nullable=True)  # 여러 교육 정보를 구조화하여 저장
-experiences = Column(JSON, nullable=True)  # 경험 정보를 구조화하여 저장
-awards = Column(JSON, nullable=True)  # 수상 정보를 구조화하여 저장
-languages = Column(JSON, nullable=True)  # 언어 정보를 구조화하여 저장
-certificates = Column(JSON, nullable=True)  # 자격증 정보를 구조화하여 저장
-'''
-
+    # 역참조 관계 설정 (필수는 아님)
+    table_users = relationship("User", back_populates="resumes")
 
 def create_resume(
     db: Session,
@@ -87,7 +78,7 @@ def create_resume(
 ):
 
     resume = Resume(
-        id=user_id,
+        user_id=user_id,
         skill_stack=skill_stack,
         work_experiences=work_experiences,
         final_degree=final_degree,
@@ -107,7 +98,7 @@ def create_resume(
 
 
 def get_resume_by_id(db: Session, user_id: str):
-    return db.query(Resume).filter(Resume.id == user_id).first()
+    return db.query(Resume).filter(Resume.user_id == user_id).first()
 
 
 def update_resume(
@@ -125,7 +116,7 @@ def update_resume(
     additional_info: Optional[str] = None
 ):
 
-    resume = db.query(Resume).filter(Resume.id == user_id).first()
+    resume = db.query(Resume).filter(Resume.user_id == user_id).first()
     if not resume:
         return None  # 또는 raise 예외 처리
 
@@ -152,7 +143,7 @@ def update_resume(
 
 
 def delete_resume(db: Session, user_id: str):
-    resume = db.query(Resume).filter(Resume.id == user_id).first()
+    resume = db.query(Resume).filter(Resume.user_id == user_id).first()
     if resume:
         db.delete(resume)
         db.commit()
