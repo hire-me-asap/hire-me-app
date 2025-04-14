@@ -64,11 +64,9 @@ class Resume(Base):
     awards = Column(JSON, nullable=True)  # JSON: award, award _date
     languages = Column(JSON, nullable=True)  # JSON: languages, language_date
 
-    # from sqlalchemy.orm import relationship
     # User와의 관계 설정 - 양방향 참조를 위해 수정
-    # user = relationship("User", back_populates="resume")
-    # 양방향 관계 설정 (필수는 아님)
-    table_a = relationship("TableA", back_populates="table_b_items")
+    # 역참조 관계 설정 (필수는 아님)
+    table_users = relationship("User", back_populates="table_resumes")
 
 
 def create_resume(
