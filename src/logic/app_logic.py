@@ -222,6 +222,27 @@ class AppLogic:
             wanted_position=job
         )
 
+    def get_user_img(self, user_id: str) -> str:
+        """
+        사용자의 아바타 카드 이미지 URL을 반환합니다.
+
+        Args:
+            user_id (str): 조회할 사용자 ID
+
+        Returns:
+            str: 사용자의 user_img URL
+
+        Raises:
+            ValueError: 해당 사용자가 존재하지 않을 경우
+        """
+        from src.models.recruitment import get_user_by_id
+
+        user = get_user_by_id(db=self.db, user_id=user_id)
+        if user is None:
+            raise ValueError("해당 사용자가 존재하지 않습니다.")
+
+        return user.user_img
+
     def _update_wanted_position(
         self, user_id: str, wanted_position: str
     ) -> None:
