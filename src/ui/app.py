@@ -350,7 +350,6 @@ account_pattern = re.compile(r'^[A-Za-z\d_]{4,}$')
 
 def sign_in_or_sign_up(user_id: str, password: str) -> bool:
     if not account_pattern.fullmatch(user_id) or not account_pattern.fullmatch(password):
-        gr.Error('부적절한 아이디 혹은 비밀번호가 입력되었습니다.')
         return False
 
     logged_in, message = app_logic.sign_in(user_id, password)
@@ -362,7 +361,6 @@ def sign_in_or_sign_up(user_id: str, password: str) -> bool:
         app_logic.sign_in(user_id, password)
         return True
     
-    gr.Error('부적절한 아이디 혹은 비밀번호가 입력되었습니다.')
     return False
 
 
