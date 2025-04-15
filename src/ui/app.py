@@ -111,16 +111,6 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=custom_theme) as demo:
                 </picture>
                 """)
 
-        sidebar_profile_image = gr.Image(
-            './resources/retro_id_card.png',
-            elem_id='profile',
-            show_label=False,
-            container=False,
-            show_download_button=False,
-            show_share_button=False,
-            show_fullscreen_button=False,
-        )
-
         sidebar_profile_image = gr.HTML(
             "<img id='profile' src='/gradio_api/file=resources/profile-placeholder.png'>")
 
