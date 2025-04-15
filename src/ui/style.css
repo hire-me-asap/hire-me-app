@@ -46,6 +46,7 @@ footer {
 #topbar-logo img {
     height: 30px;
     display: inline-block;
+    cursor: pointer;
 }
 
 /* tab 기본 설정 */
@@ -157,6 +158,7 @@ textarea {
 
 #sidebar-logo img {
     height: 40px;
+    cursor: pointer;
 }
 
 .sidebar-content,
@@ -170,6 +172,10 @@ textarea {
 
 .sidebar-content>.column>*:nth-last-child(1)>.html-container {
     padding: 0;
+}
+
+#profile {
+    cursor: pointer;
 }
 
 .gradio-container {
