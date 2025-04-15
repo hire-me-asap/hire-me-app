@@ -121,6 +121,9 @@ gr.set_static_paths(paths=[
 with gr.Blocks(css_paths=['src/ui/style.css'], theme=theme) as demo:
     """ 앱 """
 
+    with gr.Sidebar(position='right'):
+        gr.Markdown('test')
+        
     with gr.Sidebar(position='left') as sidebar:
         """ 사이드바 """
 
@@ -359,6 +362,7 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=theme) as demo:
         if content.strip():
             message = {'role': 'user', 'content': content}
             chat_state['histories'][chat_state['mode']].append(message)
+            chat_state['histories'][chat_state['mode']].append({'role': 'assistant', 'content': '허리 피세요'})
         return chat_state['histories'][chat_state['mode']], chat_state
     
     def wait_message(content, chat_state):
@@ -371,8 +375,8 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=theme) as demo:
             content
         )
         message = convert_to_openai_style(response)
+        chat_state['histories'][mode].pop()
         chat_state['histories'][mode].append(message)
-        
         return '', chat_state['histories'][chat_state['mode']], chat_state
     
     input_textarea.submit(
