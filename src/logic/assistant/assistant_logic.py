@@ -1,7 +1,6 @@
 import time
 
 from typing import List, Optional, TypedDict, Tuple
-from openai.types import VectorStore
 from sqlalchemy.orm import Session
 from enum import Enum
 
@@ -15,9 +14,14 @@ from src.logic.assistant.openai_requests import (
     get_assistant_citations,
 )
 
-from src.logic.app_logic import AssistantType
 
-AssistantType.JOB_RECOMMEND.value
+class AssistantType(Enum):
+    JOB_RECOMMEND = "job_recommend"
+    RECRUIT_RECOMMEND = "recruit_recommend"
+    ROADMAP = "roadmap"
+    RESUME_REVIEW = "resume_review"
+    FIND_STUDY = "find_study"
+    ASSISTANT = "assistant"
 
 
 class AssistantLogic:
@@ -51,7 +55,7 @@ class AssistantLogic:
         return response, run_id
 
     def get_response_from_assistant(
-        self, assistant_type: assistant_type, user_question: str
+        self, assistant_type: AssistantType, user_question: str
     ) -> dict:
         """
         유저 질문을 기반으로 특정 Assistant 타입에 맞는 응답을 반환합니다.

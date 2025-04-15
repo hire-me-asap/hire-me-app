@@ -4,7 +4,6 @@ import json
 
 from dotenv import load_dotenv
 from typing import List, Optional, TypedDict, Tuple
-from openai.types import VectorStore
 from sqlalchemy.orm import Session
 from enum import Enum
 
