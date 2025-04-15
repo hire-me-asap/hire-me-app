@@ -1,21 +1,16 @@
+from typing import List, Optional, TypedDict, Tuple
+from sqlalchemy.orm import Session
+
+from src.models.resume import get_resume_by_id, create_resume, update_resume, delete_resume
+from logic.resume.generate_pdf_resume import generate_pdf_resume
+from src.db import Session
+
+
 class ResumeLogic:
-    def update_resume_file(self, resume_file_url: str) -> None:
-        """
-        유저의 이력서 PDF 파일 URL을 DB에 저장합니다.
-
-        Args:
-            db (Session): SQLAlchemy 세션
-            resume_file_url (str): 업로드된 PDF 파일 경로 또는 URL
-
-        Returns:
-            User: 업데이트된 사용자 객체 또는 None (사용자 미존재 시)
-        """
-
-        update_user(
-            db=self.db,
-            user_id=self._user_id,
-            resume_file=resume_file_url,
-        )
+    def __init__(self):
+        self._signed_in: bool = False
+        self._user_id: Optional[str] = None
+        self.db = Session()
 
     def update_resume_info(
         self,
