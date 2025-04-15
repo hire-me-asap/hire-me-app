@@ -287,6 +287,7 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=theme) as demo:
         return gr.update(selected=1)
 
     profile_button.click(lambda: select_profile_tab(), outputs=[tab_host])
+    sidebar_profile_image.click(lambda: select_profile_tab(), outputs=[tab_host])
 
     # chatbot tab 함수 및 이벤트
     def select_chat_tab(mode):
