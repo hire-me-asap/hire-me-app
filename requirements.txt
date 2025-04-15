@@ -46,6 +46,7 @@ python-dotenv==1.1.0
 python-multipart==0.0.20
 pytz==2025.2
 pyyaml==6.0.2
+reportlab==4.3.1
 requests==2.32.3
 rich==14.0.0 ; sys_platform != 'emscripten'
 ruff==0.11.4 ; sys_platform != 'emscripten'
@@ -66,4 +67,3 @@ tzdata==2025.2
 urllib3==2.3.0
 uvicorn==0.34.0 ; sys_platform != 'emscripten'
 websockets==15.0.1
-weasyprint>=60.0

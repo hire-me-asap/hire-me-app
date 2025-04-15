@@ -19,6 +19,7 @@ from src.logic.openai_requests import (
     is_run_done,
     get_last_assistant_message,
     get_all_assistant_response,
+    get_assistant_citations,
 )
 
 from src.models.user import get_user_by_id, update_user, create_user, delete_user
@@ -168,46 +169,40 @@ class AppLogic:
 
         # 회원가입 로직 수행
         create_user(self.db, user_id=user_id, password=password)
-        self._update_vector_store(user_id=user_id)
-        self._update_thread_id(user_id=user_id)
-        self._update_user_img(user_id=user_id)
+        self._update_vector_store()
+        self._update_thread_id()
+        self._update_user_img()
 
         return True, "회원가입에 성공했습니다."
 
-    def _update_vector_store(self, user_id: str) -> str:
+    def _update_vector_store(self) -> str:
         """DB에서 사용자 가져오고, 벡터 스토어가 없으면 새로 생성해서 DB에 업데이트
-
-        Args:
-            db (Session): DB 세션
-            user_id (str): 사용자 ID
-
         Returns:
             str: 벡터 스토어 ID
         """
-        user = get_user_by_id(self.db, user_id)
+        user = get_user_by_id(self.db, user_id=self._user_id)
 
         if not user:
-            raise ValueError(f"User with id {user_id} not found")
+            raise ValueError(f"User with id {self._user_id} not found")
 
         if user.vector_store_id:
             pass
             return user.vector_store_id
         else:
             # Azure에서 ID 가져오기
-            vector_store_id = get_vector_store(vector_store_name=user_id)
+            vector_store_id = get_vector_store(vector_store_name=self._user_id)
 
             # DB에 업데이트
-            update_user(db=self.db, user_id=user_id,
+            update_user(db=self.db, user_id=self._user_id,
                         vector_store_id=vector_store_id)
         return vector_store_id
 
-    def _update_thread_id(self, user_id: str) -> None:
+    def _update_thread_id(self) -> None:
         """
         사용자의 thread_id를 생성한 뒤, 이를 DB에 저장합니다.
 
         Args:
             db (Session): SQLAlchemy DB 세션
-            user_id (str): 업데이트할 사용자 ID
         """
         thread_types = ["assistant", "job_recommend",
                         "recruit_recommend", "roadmap", "resume_review", "find_study"]
@@ -215,71 +210,64 @@ class AppLogic:
             f"thread_id_{thread_type}": create_new_thread(AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_API_KEY)
             for thread_type in thread_types
         }
-        update_user(db=self.db, user_id=user_id, **thread_ids)
+        update_user(db=self.db, user_id=self._user_id, **thread_ids)
 
-    def _update_user_img(self, user_id: str, wanted_position: str = '미정') -> None:
+    def _update_user_img(self, wanted_position: str = '미정') -> None:
         """
         사용자의 직무 정보를 기반으로 아바타 카드 이미지를 생성하고,
         해당 이미지 경로를 DB에 저장합니다.
 
         Args:
-            user_id (str): 업데이트할 사용자 ID
             wanted_position (str): 사용자의 희망 직무 (없을 경우 '미정'으로 처리)
         """
 
         job = wanted_position if wanted_position else "미정"
         update_user(
             db=self.db,
-            user_id=user_id,
-            user_img=generate_avatar_id_card(seed=user_id, job=job),
+            user_id=self._user_id,
+            user_img=generate_avatar_id_card(seed=self._user_id, job=job),
             wanted_position=job
         )
 
-    def get_user_img(self, user_id: str) -> str:
+    def get_user_img(self) -> str:
         """
         사용자의 아바타 카드 이미지 URL을 반환합니다.
-
-        Args:
-            user_id (str): 조회할 사용자 ID
-
         Returns:
             str: 사용자의 user_img URL
 
         Raises:
             ValueError: 해당 사용자가 존재하지 않을 경우
         """
-        user = get_user_by_id(db=self.db, user_id=user_id)
+        user = get_user_by_id(db=self.db, user_id=self._user_id)
         if user is None:
             raise ValueError("해당 사용자가 존재하지 않습니다.")
 
         return user.user_img
 
     def _update_wanted_position(
-        self, user_id: str, wanted_position: str
+        self, wanted_position: str
     ) -> None:
         """
         사용자의 희망 직무를 DB에 반영하고,
         변경된 직무에 맞춰 아바타 카드 이미지를 새로 생성해 저장합니다.
 
         Args:
-            user_id (str): 업데이트할 사용자 ID
             wanted_position (str): 새로 설정할 희망 직무
         """
         update_user(
             db=self.db,
-            user_id=user_id,
+            user_id=self._user_id,
             wanted_position=wanted_position,
             user_img=generate_avatar_id_card(
-                seed=user_id, job=wanted_position),
+                seed=self._user_id, job=wanted_position),
         )
 
-    def update_resume_file(self, user_id: str, resume_file_url: str) -> None:
+    def update_resume_file(self, resume_file_url: str) -> None:
         """
         유저의 이력서 PDF 파일 URL을 DB에 저장합니다.
 
         Args:
             db (Session): SQLAlchemy 세션
-            user_id (str): 사용자 ID
             resume_file_url (str): 업로드된 PDF 파일 경로 또는 URL
 
         Returns:
@@ -288,21 +276,13 @@ class AppLogic:
 
         update_user(
             db=self.db,
-            user_id=user_id,
+            user_id=self._user_id,
             resume_file=resume_file_url,
         )
 
-    def _request_assistant_response(self, assistant_id: str, message: str, thread_id: str) -> str:
-        """사용자 질문을 스레드에 추가하고, AI 도우미의 응답을 받아옵니다.
+    def _request_assistant_response(self, assistant_id: str, message: str, thread_id: str) -> tuple[str, str]:
+        """사용자 질문을 스레드에 추가하고, AI 도우미의 응답과 run_id를 받아옵니다."""
 
-        Args:
-            assistant_id (str): 응답을 요청할 도우미의 ID
-            message (str): 사용자의 질문 메시지
-            thread_id (str): 사용자의 스레드 ID
-
-        Returns:
-            str: 도우미의 응답 메시지 내용
-        """
         # 1. 사용자 메시지를 스레드에 추가
         response = add_user_question_to_thread(
             personal_thread_id=thread_id,
@@ -310,7 +290,8 @@ class AppLogic:
         )
         if response.status_code != 200:
             raise Exception(
-                f"Failed to add user question to thread: {response.text}")
+                f"Failed to add user question to thread: {response.text}"
+            )
 
         # 2. 메시지를 기반으로 도우미 실행(run)
         run_id = run_message_to_thread(
@@ -321,7 +302,7 @@ class AppLogic:
         if not run_id:
             raise Exception("Failed to start run for the thread.")
 
-        # 3. 도우미가 응답을 완료할 때까지 대기 (최대 30초)
+        # 3. 도우미가 응답을 완료할 때까지 대기
         polling_interval = 1
         max_wait_time = 30
         elapsed_time = 0
@@ -334,16 +315,16 @@ class AppLogic:
 
         # 4. 도우미의 최종 응답 메시지 반환
         response_message = get_last_assistant_message(thread_id)
-        return response_message
+
+        return response_message, run_id
 
     def get_response_from_assistant(
-        self, user_id: str, assistant_type: AssistantType, user_question: str
+        self, assistant_type: AssistantType, user_question: str
     ) -> dict:
         """
         유저 질문을 기반으로 특정 Assistant 타입에 맞는 응답을 반환합니다.
 
         Args:
-            user_id (str): 유저의 ID
             assistant_type (AssistantType): 사용할 도우미 유형(job_recommend, recruit_recommend, roadmap, resume_review, find_study, assistant 중 하나.)
             user_question (str): 유저의 질문 메시지
 
@@ -366,34 +347,37 @@ class AppLogic:
         assistant_id, thread_column_name = assistant_mapping[assistant_type]
 
         # 사용자 정보 조회
-        user = self.db.query(User).filter(User.id == user_id).first()
+        user = self.db.query(User).filter(User.id == self._user_id).first()
         personal_thread_id = getattr(user, thread_column_name)
 
         # 도우미 응답 텍스트 받아오기
-        response_text = self._request_assistant_response(
+        response_text, run_id = self._request_assistant_response(
             assistant_id=assistant_id,
             message=user_question,
             thread_id=personal_thread_id,
         )
+
+        citations = get_assistant_citations(personal_thread_id, run_id)
 
         # 도우미 타입에 따라 처리 방식 다르게
         if assistant_type == AssistantType.ROADMAP:
             text, image = split_text_and_json(response_text)
             return {
                 "text": text,
-                "image": image
+                "image": image,
+                "citations": citations,
             }
         else:
             return {
-                "text": response_text
+                "text": response_text,
+                "citations": citations,
             }
 
-    def get_all_thread_dialogue(self, user_id: str, assistant_type: AssistantType) -> dict:
+    def get_all_thread_dialogue(self, assistant_type: AssistantType) -> dict:
         """
         사용자의 assistant_type에 해당하는 Thread ID를 통해 전체 대화 내역을 반환합니다.
 
         Parameters:
-            user_id (str): 사용자 ID
             assistant_type (AssistantType): assistant 종류
 
         Returns:
@@ -401,50 +385,45 @@ class AppLogic:
         """
         from src.models.user import User
 
-        user = self.db.query(User).filter(User.id == user_id).first()
+        user = self.db.query(User).filter(User.id == self._user_id).first()
         if not user:
-            return {"error": "사용자를 찾을 수 없습니다."}
+            raise RuntimeError("사용자를 찾을 수 없습니다.")
 
         thread_id_map = {
             AssistantType.JOB_RECOMMEND: user.thread_id_job_recommend,
             AssistantType.RECRUIT_RECOMMEND: user.thread_id_recruit_recommend,
             AssistantType.ROADMAP: user.thread_id_roadmap,
             AssistantType.RESUME_REVIEW: user.thread_id_resume_review,
-            AssistantType.FIND_STUDY: user.interview_thread_id,
+            AssistantType.FIND_STUDY: user.thread_id_find_study,
             AssistantType.ASSISTANT: user.thread_id_assistant,
         }
 
         thread_id = thread_id_map.get(assistant_type)
 
         if not thread_id:
-            return {"error": "해당 assistant_type에 대한 thread_id가 존재하지 않습니다."}
+            raise RuntimeError(
+                "해당 assistant_type에 대한 thread_id가 존재하지 않습니다.", thread_id_map, thread_id)
 
-        dialogue = get_all_assistant_response(thread_id)
-        if not dialogue:
-            return {"error": "메시지를 불러오지 못했습니다."}
-
-        return dialogue
+        return get_all_assistant_response(thread_id)
 
     def update_resume_info(
         self,
-        user_id: str,
         **resume_fields
     ) -> None:
         """
         사용자의 이력 정보를 Resume 테이블에 생성 또는 업데이트합니다.
 
         Args:
-            user_id (str): 사용자 ID
             **resume_fields: 업데이트 또는 생성할 이력 정보 필드들 (None 값은 무시됨)
         """
 
-        existing_resume = get_resume_by_id(self.db, user_id)
+        existing_resume = get_resume_by_id(self.db, self._user_id)
 
         # None인 값은 필터링
         filtered_data = {k: v for k,
                          v in resume_fields.items() if v is not None}
 
-        filtered_data["user_id"] = user_id
+        filtered_data["user_id"] = self._user_id
 
         if existing_resume:
             update_resume(db=self.db, **filtered_data)
@@ -467,10 +446,10 @@ class AppLogic:
         Returns:
             bool: 로그인 여부
         """
-        return self._sign_in
+        return self._signed_in
 
-    def generate_pdf_from_resume_id(self, user_id: str) -> str:
-        resume = get_resume_by_id(db=self.db, user_id=user_id)
+    def generate_pdf_from_resume_id(self) -> str:
+        resume = get_resume_by_id(db=self.db, user_id=self._user_id)
         # 저장 원하는 위치로 수정 가능.
         output_path = r"src/tmp/outputs/resume.pdf"
 

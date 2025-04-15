@@ -5,6 +5,7 @@ from pathlib import Path
 from enum import Enum
 
 from ..logic.app_logic import app_logic, AssistantType
+from ..logic.message_converter import convert_to_openai_style
 
 
 class Modes(Enum):
@@ -16,7 +17,7 @@ class Modes(Enum):
     COURSE = "course"
 
 
-ASSISTANTS = {
+ASSISTANTS_OF_MODE = {
     Modes.GENERAL: AssistantType.ASSISTANT,
     Modes.JOB: AssistantType.JOB_RECOMMEND,
     Modes.RECRUIT: AssistantType.RECRUIT_RECOMMEND,
@@ -119,11 +120,6 @@ gr.set_static_paths(paths=[
 
 with gr.Blocks(css_paths=['src/ui/style.css'], theme=theme) as demo:
     """ 앱 """
-    
-    history_state = gr.State([])
-    """ State로 history 관리 : 세션 단위의 임시 저장소, 
-    이걸 안하면 화면 새로고침 해도 history가 누적 저장됨
-    chatbot에서 history 관리시 state를 항상 통과하도록 경로 설정 """
 
     with gr.Sidebar(position='left') as sidebar:
         """ 사이드바 """
@@ -188,6 +184,8 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=theme) as demo:
                 label=FEATURES[Modes.GENERAL],
                 type='messages',
                 examples=EXAMPLE_MESSAGES[Modes.GENERAL],
+                show_copy_button=True,
+                show_copy_all_button=True
             )
             option_checkboxes = gr.CheckboxGroup(
                 ['📜 이력서 포함시키기', '이런 식으로 체크박스', '여러 개 넣을 수 있어요'],
@@ -284,15 +282,44 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=theme) as demo:
     
 
     """ 이벤트 """
+    chat_state = gr.State({
+        'mode': Modes.GENERAL,
+        'histories': {
+            Modes.GENERAL: [],
+            Modes.JOB: [],
+            Modes.RECRUIT: [],
+            Modes.RESUME: [],
+            Modes.ROADMAP: [],
+            Modes.COURSE: [],
+        }
+    })
 
     def update_sidebar_profile_image(current):
-        if current.endswith("profile-placeholder.png'>") and app_logic._signed_in:
-            return gr.HTML(
-                f"<img id='profile' src='/gradio_api/file={app_logic.get_user_img(app_logic.user_id())[1:]}'>"
-            )
-        return gr.update()
+        if not app_logic.signed_in():
+            return gr.update()
+        
+        if not current.endswith("profile-placeholder.png'>"):
+            return gr.update()
+        
+        return gr.HTML(
+            f"<img id='profile' src='/gradio_api/file={app_logic.get_user_img(app_logic.user_id())[1:]}'>"
+        )
+    
+    def load_histories(chat_state):
+        if not app_logic.signed_in():
+            return gr.update(), gr.update()
+        
+        for mode in Modes:
+            history = app_logic.get_all_thread_dialogue(app_logic.user_id(), ASSISTANTS_OF_MODE[chat_state['mode']])
+            chat_state['histories'][mode] = list(map(convert_to_openai_style, reversed(history)))
+        
+        return chat_state, chat_state['histories'][chat_state['mode']]
 
-    demo.load(update_sidebar_profile_image, inputs=[sidebar_profile_image], outputs=[sidebar_profile_image])
+    demo.load(
+        update_sidebar_profile_image, inputs=[sidebar_profile_image], outputs=[sidebar_profile_image]
+    ).then(
+        load_histories, inputs=[chat_state], outputs=[chat_state, main_chatbot]
+    )
     
     # 로고 보이기 함수 및 이벤트
     def set_topbar_visibility(is_visible):
@@ -309,18 +336,6 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=theme) as demo:
     sidebar_profile_image.click(lambda: select_profile_tab(), outputs=[tab_host])
 
     # chatbot tab 함수 및 이벤트
-    chat_state = gr.State({
-        'mode': Modes.GENERAL,
-        'histories': {
-            Modes.GENERAL: [],
-            Modes.JOB: [],
-            Modes.RECRUIT: [],
-            Modes.RESUME: [],
-            Modes.ROADMAP: [],
-            Modes.COURSE: [],
-        }
-    })
-    
     def select_chat_tab(mode: Optional[Modes], chat_state):
         mode = mode if mode else chat_state['mode']
         chat_state['mode'] = mode
@@ -353,10 +368,10 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=theme) as demo:
     def wait_message(content, history, chat_state):
         if not content.strip():
             return '', history, chat_state
-        
+
         response = app_logic.get_response_from_assistant(
             app_logic.user_id(),
-            ASSISTANTS[chat_state['mode']],
+            ASSISTANTS_OF_MODE[chat_state['mode']],
             content
         )
         response = {'role': 'assistant', 'content': response['text']}        

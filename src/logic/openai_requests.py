@@ -222,6 +222,53 @@ def is_run_done(thread_id: str, run_id: str) -> bool:
     )
 
 
+def _get_assistant_citation(azure_openai_endpoint: str, azure_openai_api_key: str, personal_thread_id: str, run_id: str) -> dict | None:
+    """
+    3.2.3. 주어진 Run ID의 실행 결과 JSON을 반환합니다.
+
+    Parameters:
+        azure_openai_endpoint (str): Azure OpenAI 엔드포인트 (예: 'your-resource-name.openai.azure.com')
+        azure_openai_api_key (str): Azure OpenAI API 키
+        personal_thread_id (str): 사용자 고유 Thread ID
+        run_id (str): Run ID
+
+    Returns:
+        dict | None: Run 결과 JSON (성공 시), None (실패 시)
+    """
+    RUN_ENDPOINT = f"https://{azure_openai_endpoint}/openai/threads/{personal_thread_id}/runs/{run_id}?api-version=2024-05-01-preview"
+
+    headers = {
+        "api-key": azure_openai_api_key,
+        "Content-Type": "application/json"
+    }
+
+    response = requests.get(RUN_ENDPOINT, headers=headers)
+
+    if response.status_code == 200:
+        return response.json()
+    else:
+        print(
+            f"Failed to get run details: {response.status_code}, {response.text}")
+        return None
+
+
+def get_assistant_citations(thread_id: str, run_id: str) -> dict | None:
+    """
+    3.2.4. 주어진 Run ID의 실행 결과 JSON을 반환합니다.
+
+    Parameters:
+        thread_id (str): 사용자 개인 Thread의 ID.
+        run_id: (str) : 실행 중인 Thread의 run ID
+
+    Returns:
+        dict | None: Run 결과 JSON (성공 시), None (실패 시)
+    """
+    return _get_assistant_citation(
+        os.getenv("AZURE_OPENAI_ENDPOINT"), os.getenv(
+            "AZURE_OPENAI_API_KEY"), thread_id, run_id
+    )
+
+
 def _get_assistant_response(
     azure_openai_endpoint, azure_openai_api_key, personal_thread_id
 ) -> str | None:
