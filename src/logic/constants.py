@@ -18,3 +18,6 @@ class Constants:
         self.ASSISTANT_ID_RESUME_REVIEW = os.getenv(
             "ASSISTANT_ID_RESUME_REVIEW")
         self.ASSISTANT_ID_FIND_STUDY = os.getenv("ASSISTANT_ID_FIND_STUDY")
+
+
+constants = Constants()

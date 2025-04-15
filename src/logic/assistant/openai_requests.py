@@ -2,12 +2,12 @@ import requests
 from requests import Response
 from openai import AzureOpenAI
 
-from src.logic.constants import Constants
+from src.logic.constants import constants
 
 AZURE_OPENAI_CLIENT: AzureOpenAI = AzureOpenAI(
-    api_key=Constants.AZURE_OPENAI_API_KEY,
+    api_key=constants.AZURE_OPENAI_API_KEY,
     api_version="2024-05-01-preview",
-    azure_endpoint=f"https://{Constants.AZURE_OPENAI_ENDPOINT}/",
+    azure_endpoint=f"https://{constants.AZURE_OPENAI_ENDPOINT}/",
 )
 
 
@@ -23,12 +23,12 @@ def create_new_thread():
         str: 생성된 개인 Thread의 ID.
     """
     PERSONAL_THREAD_ENDPOINT = (
-        f"https://{Constants.AZURE_OPENAI_ENDPOINT}/openai/threads?api-version=2024-05-01-preview"
+        f"https://{constants.AZURE_OPENAI_ENDPOINT}/openai/threads?api-version=2024-05-01-preview"
     )
 
     result = requests.post(
         PERSONAL_THREAD_ENDPOINT,
-        headers={"api-key": Constants.AZURE_OPENAI_API_KEY,
+        headers={"api-key": constants.AZURE_OPENAI_API_KEY,
                  "Content-Type": "application/json"},
     )
 
@@ -50,11 +50,11 @@ def add_dialogue_to_thread(
     Returns:
         Response: 요청 결과에 대한 응답 객체.
     """
-    USER_QUESTION_ENDPOINT = f"https://{Constants.AZURE_OPENAI_ENDPOINT}/openai/threads/{personal_thread_id}/messages?api-version=2024-05-01-preview"
+    USER_QUESTION_ENDPOINT = f"https://{constants.AZURE_OPENAI_ENDPOINT}/openai/threads/{personal_thread_id}/messages?api-version=2024-05-01-preview"
 
     result = requests.post(
         USER_QUESTION_ENDPOINT,
-        headers={"api-key": Constants.AZURE_OPENAI_API_KEY,
+        headers={"api-key": constants.AZURE_OPENAI_API_KEY,
                  "Content-Type": "application/json"},
         json={"role": role, "content": message},
     )
@@ -74,11 +74,11 @@ def _run_thread(personal_thread_id, assistant_id) -> str:
     Returns:
         str | None: 실행된 run의 ID. 실패 시 None 반환.
     """
-    USER_QUESTION_RUN_ENDPOINT = f"https://{Constants.AZURE_OPENAI_ENDPOINT}/openai/threads/{personal_thread_id}/runs?api-version=2024-05-01-preview"
+    USER_QUESTION_RUN_ENDPOINT = f"https://{constants.AZURE_OPENAI_ENDPOINT}/openai/threads/{personal_thread_id}/runs?api-version=2024-05-01-preview"
 
     result = requests.post(
         USER_QUESTION_RUN_ENDPOINT,
-        headers={"api-key": Constants.AZURE_OPENAI_API_KEY,
+        headers={"api-key": constants.AZURE_OPENAI_API_KEY,
                  "Content-Type": "application/json"},
         json={"assistant_id": assistant_id},
     )
@@ -124,12 +124,12 @@ def _get_status_of_run(personal_thread_id, run_id) -> str:
     Returns:
         str: 현재 run의 상태 (예: "queued", "in_progress", "completed" 등).
     """
-    TEMP_RUN_ENDPOINT = f"https://{Constants.AZURE_OPENAI_ENDPOINT}/openai/threads/{personal_thread_id}/runs/{run_id}?api-version=2024-05-01-preview"
+    TEMP_RUN_ENDPOINT = f"https://{constants.AZURE_OPENAI_ENDPOINT}/openai/threads/{personal_thread_id}/runs/{run_id}?api-version=2024-05-01-preview"
 
     result = requests.get(
         TEMP_RUN_ENDPOINT,
         headers={
-            "api-key": Constants.AZURE_OPENAI_API_KEY,
+            "api-key": constants.AZURE_OPENAI_API_KEY,
         },
     )
 
@@ -164,10 +164,10 @@ def _get_assistant_citation(personal_thread_id: str, run_id: str) -> dict | None
     Returns:
         dict | None: Run 결과 JSON (성공 시), None (실패 시)
     """
-    RUN_ENDPOINT = f"https://{Constants.AZURE_OPENAI_ENDPOINT}/openai/threads/{personal_thread_id}/runs/{run_id}?api-version=2024-05-01-preview"
+    RUN_ENDPOINT = f"https://{constants.AZURE_OPENAI_ENDPOINT}/openai/threads/{personal_thread_id}/runs/{run_id}?api-version=2024-05-01-preview"
 
     headers = {
-        "api-key": Constants.AZURE_OPENAI_API_KEY,
+        "api-key": constants.AZURE_OPENAI_API_KEY,
         "Content-Type": "application/json"
     }
 
@@ -205,11 +205,11 @@ def get_all_assistant_response(personal_thread_id: str) -> str | None:
     Returns:
         str | None: 가장 최근 Assistant의 텍스트 응답. 없으면 None.
     """
-    USER_QUESTION_ENDPOINT = f"https://{Constants.AZURE_OPENAI_ENDPOINT}/openai/threads/{personal_thread_id}/messages?api-version=2024-05-01-preview"
+    USER_QUESTION_ENDPOINT = f"https://{constants.AZURE_OPENAI_ENDPOINT}/openai/threads/{personal_thread_id}/messages?api-version=2024-05-01-preview"
 
     result = requests.get(
         USER_QUESTION_ENDPOINT,
-        headers={"api-key": Constants.AZURE_OPENAI_API_KEY,
+        headers={"api-key": constants.AZURE_OPENAI_API_KEY,
                  "Content-Type": "application/json"},
     )
     if result.status_code != 200:
