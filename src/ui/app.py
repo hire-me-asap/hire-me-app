@@ -4,7 +4,7 @@ import json
 from typing import Optional
 from pathlib import Path
 from enum import Enum
-from theme import custom_theme
+from ..ui.theme import custom_theme
 from ..logic.app_logic import app_logic, AssistantType
 from ..logic.messages import convert_to_openai_style
 
@@ -93,15 +93,15 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=custom_theme) as demo:
 
         profile_button = gr.Button('이력서 입력하러 가기', variant='primary')
 
-        general_chat_button = gr.Button(FEATURES['general'])
+        general_chat_button = gr.Button(FEATURES[Modes.GENERAL])
 
         gr.Markdown('📊 맞춤 직무 설계', elem_id='small-title')
         with gr.Group(elem_id='custom-group'):
-            job_chat_button = gr.Button(FEATURES['job'], size="md")
-            roadmap_chat_button = gr.Button(FEATURES['roadmap'], size="md")
-            recruit_chat_button = gr.Button(FEATURES['recruit'], size="md")
-            resume_chat_button = gr.Button(FEATURES['resume'], size="md")
-            course_chat_button = gr.Button(FEATURES['course'], size="md")
+            job_chat_button = gr.Button(FEATURES[Modes.JOB], size="md")
+            roadmap_chat_button = gr.Button(FEATURES[Modes.ROADMAP], size="md")
+            recruit_chat_button = gr.Button(FEATURES[Modes.RECRUIT], size="md")
+            resume_chat_button = gr.Button(FEATURES[Modes.RESUME], size="md")
+            course_chat_button = gr.Button(FEATURES[Modes.COURSE], size="md")
 
         # about us : 밝은모드 / 어두운모드 선택시 달라짐 (로컬이미지를 html로 불러오기 힘들어서 github에 이미지 올린 후 링크 따옴)
         gr.HTML("""
@@ -123,6 +123,7 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=custom_theme) as demo:
 
         sidebar_profile_image = gr.HTML(
             "<img id='profile' src='/gradio_api/file=resources/profile-placeholder.png'>")
+
 
     with gr.Sidebar(position='right') as sidebar2:
         with gr.Accordion('이력서 미리보기') as resume_preview:
@@ -146,9 +147,9 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=custom_theme) as demo:
             main_chatbot = gr.Chatbot(
                 [],
                 elem_id="chatbot",
-                label=FEATURES['general'],
+                label=FEATURES[Modes.GENERAL],
                 type='messages',
-                examples=EXAMPLE_MESSAGES['general'],
+                examples=EXAMPLE_MESSAGES[Modes.GENERAL],
             )
             user_check = gr.CheckboxGroup(
                 ['📜 이력서 포함시키기', '이런 식으로 체크박스', '여러 개 넣을 수 있어요'],
@@ -232,11 +233,11 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=custom_theme) as demo:
 
                 gr.Markdown(
                     '프로필 페이지에 입력된 이력서를 모두 빈칸으로 되돌립니다. 이 작업은 되돌릴 수 없습니다.')
-                clear_resume_button = gr.Button('이력서 지우기', variant='stop')
+                clear_resume_button = gr.Button('이력서 지우기', elem_classes='red-button')
                 gr.Markdown()
 
                 gr.Markdown('사용자의 모든 대화 기록을 지웁니다. 이 작업은 되돌릴 수 없습니다.')
-                clear_history_button = gr.Button('대화 기록 지우기', variant='stop')
+                clear_history_button = gr.Button('대화 기록 지우기', elem_classes='red-button')
 
     gr.Markdown("""
         <div id="site-footer">
@@ -303,8 +304,7 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=custom_theme) as demo:
         return gr.update(selected=1)
 
     profile_button.click(lambda: select_profile_tab(), outputs=[tab_host])
-    sidebar_profile_image.select(lambda: select_profile_tab(), outputs=[
-                                 tab_host])  # Image 요소라서 click으로 안됨
+    sidebar_profile_image.click(lambda: select_profile_tab(), outputs=[tab_host])
 
     # chatbot tab 함수 및 이벤트
     def select_chat_tab(mode: Optional[Modes], chat_state):
