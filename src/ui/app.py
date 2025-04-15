@@ -125,7 +125,6 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=theme) as demo:
 
         general_chat_button = gr.Button(FEATURES['general'])
 
-        
         gr.Markdown('📊 맞춤 직무 설계', elem_id='small-title')
         with gr.Group(elem_id='custom-group') :
             job_chat_button = gr.Button(FEATURES['job'], size="md")
@@ -144,18 +143,6 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=theme) as demo:
             interactive=False
         )
 
-        # sidebar_profile_image = gr.Image(
-        #     app_logic.get_user_img(app_logic.user_id()) if app_logic._signed_in else PROFILE_IMAGE_PLACEHOLDER,
-        #     elem_id='profile',
-        #     show_label=False,
-        #     container=False,
-        #     show_download_button=False,
-        #     show_share_button=False,
-        #     show_fullscreen_button=False,
-        #     type='filepath',
-        #     interactive=False
-        # )
-        
         sidebar_profile_image = gr.HTML("<img id='profile' src='/gradio_api/file=resources/profile-placeholder.png'>")
 
     """ 상단 바 """
@@ -183,12 +170,12 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=theme) as demo:
                 type='messages',
                 examples=EXAMPLE_MESSAGES['general'],
             )
-            user_check = gr.CheckboxGroup(
+            option_checkboxes = gr.CheckboxGroup(
                 ['📜 이력서 포함시키기', '이런 식으로 체크박스', '여러 개 넣을 수 있어요'],
                 show_label=False,
                 elem_id="custom-checkbox"
             )
-            user_input = gr.TextArea(
+            input_textarea = gr.TextArea(
                 placeholder='❔ 엣취에게 물어보세요',
                 lines=1,
                 max_lines=5,
@@ -356,37 +343,7 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=theme) as demo:
     ).then(
         wait_message, inputs=[input_textarea, main_chatbot], outputs=[input_textarea, main_chatbot], scroll_to_output=True
     )
-
-    # chatbot example 함수 및 이벤트   
-    def handle_example_click(evt: gr.SelectData):
-        """ 이 함수에는 evt 외의 추가 인수를 넣을 수 없음 """
-        """ llm 함수 실행(추가 필요) """        
-        selected_message = evt.value['text']    
-        example_history = []
-        example_history.append({"role": "user", "content": selected_message})    
-        result = "좋은 질문이에요! 엣취!🤧 지금 분석 중입니다."  # llm으로부터 답변 획득 
-        example_history.append({"role": "assistant", "content": result})       
-        
-        return example_history, example_history
     
-    main_chatbot.example_select(handle_example_click, outputs=[main_chatbot, history_state])
-
-
-    # chatbot 질문 입력 함수 및 이벤트
-    def handle_user_message(user_input, user_check, history_state) :
-        """ user_check 처리 함수 필요 """
-        history_state.append({"role": "user", "content": user_input})
-        bot_response = "좋은 질문이에요! 엣취!🤧 지금 분석 중입니다."
-        history_state.append({"role": "assistant", "content": bot_response})
-        
-        return history_state, history_state  # chatbot과 history_state 각각에 보내서 저장 
-
-
-    # 함수 실행 후 user_input 지우는 함수 
-    def clear_user_input() :
-        return gr.update(value=None)
-
-    user_input.submit(handle_user_message, inputs=[user_input, user_check, history_state], outputs=[main_chatbot, history_state]).then(clear_user_input, None, user_input)
 
 account_pattern = re.compile(r'^[A-Za-z\d_]{4,}$')
 
