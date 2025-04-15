@@ -14,8 +14,8 @@ from src.logic.openai_requests import (
     delete_vector_store_files,
     get_vector_store,
     create_new_thread,
-    add_user_question_to_thread,
-    _run_message_to_thread,
+    add_dialogue_to_thread,
+    run_message_to_thread,
     is_run_done,
     get_last_assistant_message,
     get_all_assistant_response,
@@ -171,7 +171,7 @@ class AppLogic:
         create_user(self.db, user_id=user_id, password=password)
 
         self.sign_in(user_id, password)
-        
+
         self._update_vector_store()
         self._update_thread_id()
         self._update_user_img()
@@ -285,11 +285,12 @@ class AppLogic:
 
     def _request_assistant_response(self, assistant_id: str, message: str, thread_id: str) -> tuple[str, str]:
         """사용자 질문을 스레드에 추가하고, AI 도우미의 응답과 run_id를 받아옵니다."""
-        
+
         # 1. 메시지를 기반으로 도우미 실행(run)
-        run_id = _run_message_to_thread(
+        run_id = run_message_to_thread(
             thread_id=thread_id,
             assistant_id=assistant_id,
+            role="user",
             message=message
         )
         if not run_id:
@@ -387,6 +388,21 @@ class AppLogic:
                 "해당 assistant_type에 대한 thread_id가 존재하지 않습니다.", thread_id_map, thread_id)
 
         return get_all_assistant_response(thread_id)
+
+    def add_dialogue_thread(self, role: str, message: str) -> None:
+        from src.models.user import User
+
+        # 사용자 정보 조회
+        user = self.db.query(User).filter(User.id == self._user_id).first()
+        if not user or not user.thread_id_assistant:
+            raise ValueError("유효한 사용자 또는 thread_id_assistant가 없습니다.")
+
+        # 스레드에 대화 추가
+        add_dialogue_to_thread(
+            personal_thread_id=user.thread_id_assistant,
+            role=role,
+            message=message
+        )
 
     def update_resume_info(
         self,
