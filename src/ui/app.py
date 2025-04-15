@@ -1,80 +1,23 @@
-import gradio as gr
+import os
 import re
-import json
-from typing import Optional
+import sys
+import gradio as gr
+
 from pathlib import Path
-from enum import Enum
-from ..ui.theme import custom_theme
-from ..logic.app_logic import app_logic, AssistantType
-from ..logic.messages import convert_to_openai_style
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "src")))
+
+from src.logic.app_logic import app_logic
+from src.ui.theme import custom_theme
+from src.ui.constants import *
+from src.ui.events.on_demo_load import load_histories, update_sidebar_profile_image
+from src.ui.events.on_input_submit import queue_message, wait_message
+from src.ui.events.on_tab_change_required import select_chat_tab, select_profile_tab
+from src.ui.events.on_chatbot_example_select import select_example
+from src.ui.events.on_sidebar_expand_or_collapse import set_topbar_visibility
 
 
-class Modes(Enum):
-    GENERAL = "general"
-    JOB = "job"
-    RECRUIT = "recruit"
-    RESUME = "resume"
-    ROADMAP = "roadmap"
-    COURSE = "course"
-
-
-ASSISTANTS_OF_MODE = {
-    Modes.GENERAL: AssistantType.ASSISTANT,
-    Modes.JOB: AssistantType.JOB_RECOMMEND,
-    Modes.RECRUIT: AssistantType.RECRUIT_RECOMMEND,
-    Modes.RESUME: AssistantType.RESUME_REVIEW,
-    Modes.ROADMAP: AssistantType.ROADMAP,
-    Modes.COURSE: AssistantType.FIND_STUDY,
-}
-
-FEATURES = {
-    Modes.GENERAL: '무엇이든 물어보세요!',
-    Modes.JOB: '직무 찾기',
-    Modes.RECRUIT: '채용 공고 찾기',
-    Modes.RESUME: '이력서 검토하기',
-    Modes.ROADMAP: '취업 준비 로드맵 작성하기',
-    Modes.COURSE: '강의 찾기'
-}
-
-EXAMPLE_MESSAGES = {
-    Modes.GENERAL: [
-        {'text': '🐤 신입에게 적합한 직무나 역할이 뭘까?'},
-        {'text': '📛 경력이 없어도 도전할 수 있는 직업에는 어떤 것이 있을까?'},
-        {'text': '🛠️ 취업 시장에서 인기가 있는 IT 스킬은 뭘까?'},
-        {'text': '📝 이력서에 어떤 IT 관련 경험을 추가하면 취업에 유리할까?'},
-    ],
-    Modes.JOB: [
-        {'text': '🐤 신입도 취업할 수 있는 일자리가 있을까?'},
-        {'text': '🎨 디자인 관련 지식을 살릴 수 있는 직업에는 뭐가 있을까?'},
-        {'text': '💻 프론트엔드에 관한 직업에는 뭐가 있을까?'},
-        {'text': '🗄️ 백엔드에 관한 경험이 중요한 직업을 추천해줘'},
-        {'text': '🤖 인공지능에 관한 지식을 살릴 수 있는 일자리를 찾아줘'},
-    ],
-    Modes.RECRUIT: [
-        {'text': '📢 지금 지원할 수 있는 신입 개발자 채용 공고를 찾아줘.'},
-        {'text': '📍 서울 지역에서 프론트엔드 개발자를 뽑는 공고가 있을까?'},
-        {'text': '🏢 백엔드 관련 채용 공고를 알려줘.'},
-        {'text': '🐍 Python 기술 스택을 주로 사용하는 회사의 공고를 추천해줘.'},
-    ],
-    Modes.RESUME: [
-        {'text': '📄 내 이력서에서 개선할 점이 있을까?'},
-        {'text': '🤔 프로젝트 경험을 이력서에 어떻게 녹여내는 것이 좋을까?'},
-        {'text': '✨ 신입 개발자로서 이력서에 어떤 내용을 강조해야 할까?'},
-    ],
-    Modes.ROADMAP: [
-        {'text': '🗺️ 백엔드 개발자가 되기 위한 학습 로드맵을 짜줘.'},
-        {'text': '📅 6개월 안에 웹 개발자로 취업하기 위한 계획을 세워줘.'},
-        {'text': '📚 비전공자인데 데이터 분석가로 취업하려면 어떤 순서로 공부해야 할까?'},
-    ],
-    Modes.COURSE: [
-        {'text': '🎓 파이썬 기초를 배울 수 있는 온라인 강의를 추천해줘.'},
-        {'text': '💻 React 프레임워크 관련해서 평이 좋은 강의가 있을까?'},
-        {'text': '💰 무료로 들을 수 있는 데이터베이스 관련 강의를 찾아줘.'},
-    ]
-}
-
-PROFILE_IMAGE_PLACEHOLDER = 'resources/profile-placeholder.png'
-
+APP_VERSION = "1.0.0"
 
 gr.set_static_paths(paths=[
     Path.cwd().absolute()/"resources",
@@ -85,7 +28,6 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=custom_theme) as demo:
     """ 앱 """
 
     with gr.Sidebar(position='left') as sidebar:
-
         # sidebar logo : button에 css 이용하여 이미지 배경 삽입 (gr.HTML 이용시 탭이동 불가, gr.Image 이용시 다크모드 이미지 변경하려면 js 필요)
         # 밝은모드 / 어두운모드 선택시 달라짐 (css로 변경 : 로컬이미지를 css로 불러오기 힘들어서 github에 이미지 올린 후 링크 따옴)
         sidebar_logo_image = gr.Button(
@@ -113,7 +55,6 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=custom_theme) as demo:
 
         sidebar_profile_image = gr.HTML(
             "<img id='profile' src='/gradio_api/file=resources/profile-placeholder.png'>")
-
 
     with gr.Sidebar(position='right') as sidebar2:
         with gr.Accordion('이력서 미리보기') as resume_preview:
@@ -223,11 +164,13 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=custom_theme) as demo:
 
                 gr.Markdown(
                     '프로필 페이지에 입력된 이력서를 모두 빈칸으로 되돌립니다. 이 작업은 되돌릴 수 없습니다.')
-                clear_resume_button = gr.Button('이력서 지우기', elem_classes='red-button')
+                clear_resume_button = gr.Button(
+                    '이력서 지우기', elem_classes='red-button')
                 gr.Markdown()
 
                 gr.Markdown('사용자의 모든 대화 기록을 지웁니다. 이 작업은 되돌릴 수 없습니다.')
-                clear_history_button = gr.Button('대화 기록 지우기', elem_classes='red-button')
+                clear_history_button = gr.Button(
+                    '대화 기록 지우기', elem_classes='red-button')
 
     gr.Markdown("""
         <div id="site-footer">
@@ -251,29 +194,9 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=custom_theme) as demo:
         }
     })
 
-    def update_sidebar_profile_image(current):
-        if not app_logic.signed_in():
-            return gr.update()
-
-        if not current.endswith("profile-placeholder.png'>"):
-            return gr.update()
-
-        return gr.HTML(
-            f"<img id='profile' src='/gradio_api/file={app_logic.get_user_img()[1:]}'>"
-        )
-
-    def load_histories(chat_state):
-        if not app_logic.signed_in():
-            return gr.update(), gr.update()
-
-        for mode in Modes:
-            history = app_logic.get_all_thread_dialogue(
-                ASSISTANTS_OF_MODE[mode])
-            chat_state['histories'][mode] = list(
-                map(convert_to_openai_style, reversed(history)))
-
-        return chat_state, chat_state['histories'][chat_state['mode']], ''
-
+    """ 이벤트 핸들러 """
+    
+    # 앱 처음 실행시
     demo.load(
         update_sidebar_profile_image, inputs=[
             sidebar_profile_image], outputs=[sidebar_profile_image]
@@ -282,148 +205,60 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=custom_theme) as demo:
             chat_state, main_chatbot, input_textarea]
     )
 
-    # 로고 보이기 함수 및 이벤트
-    def set_topbar_visibility(is_visible):
-        return gr.update(visible=is_visible)
-
+    # 사이드바 열고 닫을 때
     sidebar.expand(lambda: set_topbar_visibility(False), outputs=[topbar])
     sidebar.collapse(lambda: set_topbar_visibility(True), outputs=[topbar])
 
     # '프로필 입력하러가기' 버튼 클릭 함수 및 이벤트
-    def select_profile_tab():
-        return gr.update(selected=1)
-
-    profile_button.click(lambda: select_profile_tab(), outputs=[tab_host])
-    sidebar_profile_image.click(lambda: select_profile_tab(), outputs=[tab_host])
+    profile_button.click(select_profile_tab, outputs=[tab_host])
+    sidebar_profile_image.click(select_profile_tab, outputs=[tab_host])
 
     # chatbot tab 함수 및 이벤트
-    def select_chat_tab(mode: Optional[Modes], chat_state):
-        mode = mode if mode else chat_state['mode']
-        chat_state['mode'] = mode
-        return gr.update(selected=0), gr.update(value=chat_state['histories'][mode], label=FEATURES[mode], examples=EXAMPLE_MESSAGES[mode]), chat_state
-
-    general_chat_button.click(select_chat_tab, inputs=[gr.State(
-        Modes.GENERAL), chat_state], outputs=[tab_host, main_chatbot, chat_state])
-    job_chat_button.click(select_chat_tab, inputs=[gr.State(
-        Modes.JOB), chat_state], outputs=[tab_host, main_chatbot, chat_state])
-    recruit_chat_button.click(select_chat_tab, inputs=[gr.State(
-        Modes.RECRUIT), chat_state], outputs=[tab_host, main_chatbot, chat_state])
-    resume_chat_button.click(select_chat_tab, inputs=[gr.State(
-        Modes.RESUME), chat_state], outputs=[tab_host, main_chatbot, chat_state])
-    roadmap_chat_button.click(select_chat_tab, inputs=[gr.State(
-        Modes.ROADMAP), chat_state], outputs=[tab_host, main_chatbot, chat_state])
-    course_chat_button.click(select_chat_tab, inputs=[gr.State(
-        Modes.COURSE), chat_state], outputs=[tab_host, main_chatbot, chat_state])
+    general_chat_button.click(
+        select_chat_tab, 
+        inputs=[gr.State(Modes.GENERAL), chat_state], 
+        outputs=[tab_host, main_chatbot, chat_state]
+    )
+    job_chat_button.click(
+        select_chat_tab, 
+        inputs=[gr.State(Modes.JOB), chat_state], 
+        outputs=[tab_host, main_chatbot, chat_state]
+    )
+    recruit_chat_button.click(
+        select_chat_tab, 
+        inputs=[gr.State(Modes.RECRUIT), chat_state], 
+        outputs=[tab_host, main_chatbot, chat_state]
+    )
+    resume_chat_button.click(
+        select_chat_tab, 
+        inputs=[gr.State(Modes.RESUME), chat_state], 
+        outputs=[tab_host, main_chatbot, chat_state]
+    )
+    roadmap_chat_button.click(
+        select_chat_tab, 
+        inputs=[gr.State(Modes.ROADMAP), chat_state], 
+        outputs=[tab_host, main_chatbot, chat_state]
+    )
+    course_chat_button.click(
+        select_chat_tab, 
+        inputs=[gr.State(Modes.COURSE), chat_state], 
+        outputs=[tab_host, main_chatbot, chat_state]
+    )
 
     # 로고 이미지 클릭시 메인 챗봇으로 이동 이벤트
-    topbar_logo_image.click(select_chat_tab, inputs=[gr.State(
-        None), chat_state], outputs=[tab_host, main_chatbot, chat_state])
-    sidebar_logo_image.click(select_chat_tab, inputs=[gr.State(
-        None), chat_state], outputs=[tab_host, main_chatbot, chat_state])
+    topbar_logo_image.click(
+        select_chat_tab, 
+        inputs=[gr.State(None), chat_state], 
+        outputs=[tab_host, main_chatbot, chat_state]
+    )
+    sidebar_logo_image.click(
+        select_chat_tab, 
+        inputs=[gr.State(None), chat_state], 
+        outputs=[tab_host, main_chatbot, chat_state]
+    )
 
-    def select_example(selected: gr.SelectData):
-        return selected.value['text']
-
+    # 챗봇 예시 메시지 클릭 -> 입력 텍스트 박스 값으로 전달
     main_chatbot.example_select(select_example, outputs=[input_textarea])
-
-    def queue_message(content, chat_state):
-        if content.strip():
-            message = {'role': 'user', 'content': content}
-            chat_state['histories'][chat_state['mode']].append(message)
-            chat_state['histories'][chat_state['mode']].append(
-                {'role': 'assistant', 'content': '허리 피세요'})
-        return chat_state['histories'][chat_state['mode']], chat_state
-
-    def wait_message(content, chat_state):
-        mode = chat_state['mode']
-        if not content.strip():
-            return '', chat_state['histories'][mode], chat_state
-
-        # GENERAL 모드일 때만 처리
-        if mode == Modes.GENERAL:
-            # GENERAL 모드의 기본 응답 처리
-            response = app_logic.get_response_from_assistant(
-                ASSISTANTS_OF_MODE[mode],
-                content
-            )
-            # 첫 번째 메시지 추가
-            main_message = convert_to_openai_style(response)
-            chat_state['histories'][mode].append(main_message)
-
-            # main_message의 content에서 코드 블록 제거
-            raw_content = main_message['content'].strip()
-            if raw_content.startswith("```") and raw_content.endswith("```"):
-                raw_content = raw_content[raw_content.find(
-                    '\n') + 1:raw_content.rfind('\n')].strip()
-
-            # JSON 변환 시도
-            try:
-                message_json = json.loads(raw_content)
-            except json.JSONDecodeError:
-                # JSON 변환 실패 시 에러 메시지 추가
-                error_message = {
-                    'role': 'assistant',
-                    'content': "⚠️ 응답 메시지를 처리하는 중 오류가 발생했습니다. 올바른 형식의 JSON이 아닙니다."
-                }
-                chat_state['histories'][mode].append(error_message)
-                return '', chat_state['histories'][mode], chat_state
-
-            # JSON 응답에서 true인 항목에 대해 추가 처리
-            if message_json.get("job", False):
-                additional_response = app_logic.get_response_from_assistant(
-                    ASSISTANTS_OF_MODE[Modes.JOB],
-                    content
-                )
-                additional_message = convert_to_openai_style(
-                    additional_response)
-                app_logic.add_dialogue_thread(
-                    role="assistant", message=additional_message['content'])
-                chat_state['histories'][mode].append(additional_message)
-
-            if message_json.get("resume", False):
-                additional_response = app_logic.get_response_from_assistant(
-                    ASSISTANTS_OF_MODE[Modes.RESUME],
-                    content
-                )
-                additional_message = convert_to_openai_style(
-                    additional_response)
-                app_logic.add_dialogue_thread(
-                    role="assistant", message=additional_message['content'])
-                chat_state['histories'][mode].append(additional_message)
-
-            if message_json.get("roadmap", False):
-                additional_response = app_logic.get_response_from_assistant(
-                    ASSISTANTS_OF_MODE[Modes.ROADMAP],
-                    content
-                )
-                additional_message = convert_to_openai_style(
-                    additional_response)
-                app_logic.add_dialogue_thread(
-                    role="assistant", message=additional_message['content'])
-                chat_state['histories'][mode].append(additional_message)
-
-            if message_json.get("recruitment", False):
-                additional_response = app_logic.get_response_from_assistant(
-                    ASSISTANTS_OF_MODE[Modes.RECRUIT],
-                    content
-                )
-                additional_message = convert_to_openai_style(
-                    additional_response)
-                app_logic.add_dialogue_thread(
-                    role="assistant", message=additional_message['content'])
-                chat_state['histories'][mode].append(additional_message)
-
-        else:
-            # GENERAL이 아닌 경우 기본 응답 처리
-            response = app_logic.get_response_from_assistant(
-                ASSISTANTS_OF_MODE[mode],
-                content
-            )
-            message = convert_to_openai_style(response)
-            chat_state['histories'][mode].pop()
-            chat_state['histories'][mode].append(message)
-
-        return '', chat_state['histories'][chat_state['mode']], chat_state
 
     input_textarea.submit(
         queue_message,

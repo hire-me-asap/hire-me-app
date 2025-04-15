@@ -5,7 +5,10 @@ from pathlib import Path
 from src.ui.app import demo, sign_in_or_sign_up, AUTH_MESSAGE
 
 app = FastAPI()
-app = gr.mount_gradio_app(app, demo, path='',
+app = gr.mount_gradio_app(
+    app,
+    demo,
+    path='',
     auth=sign_in_or_sign_up,
     auth_message=AUTH_MESSAGE,
     allowed_paths=[
