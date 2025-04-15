@@ -2,15 +2,21 @@ from typing import List, Optional, TypedDict, Tuple
 from sqlalchemy.orm import Session
 
 from src.models.resume import get_resume_by_id, create_resume, update_resume, delete_resume
-from logic.resume.generate_pdf_resume import generate_pdf_resume
-from src.db import Session
+from src.logic.resume.generate_pdf_resume import generate_pdf_resume
 
 
 class ResumeLogic:
-    def __init__(self):
-        self._signed_in: bool = False
-        self._user_id: Optional[str] = None
-        self.db = Session()
+    def __init__(self, db: Session, user_id: Optional[str] = None):
+        """
+        ResumeLogic 클래스 초기화 메서드.
+
+        Args:
+            db (Session): SQLAlchemy 데이터베이스 세션.
+            user_id (Optional[str]): 초기화 시 설정할 사용자 ID (기본값: None).
+        """
+        self._signed_in: bool = user_id is not None
+        self._user_id: Optional[str] = user_id
+        self.db = db
 
     def update_resume_info(
         self,

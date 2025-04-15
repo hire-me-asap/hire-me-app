@@ -1,6 +1,8 @@
 import time
 
 from enum import Enum
+from typing import Optional
+from sqlalchemy.orm import Session
 
 from src.logic.assistant.openai_requests import (
     add_dialogue_to_thread,
@@ -11,7 +13,8 @@ from src.logic.assistant.openai_requests import (
     get_assistant_citations,
 )
 
-from src.logic.constants import Constants
+from src.logic.constants import constants
+from src.models.user import User
 
 
 class AssistantType(Enum):
@@ -24,6 +27,17 @@ class AssistantType(Enum):
 
 
 class AssistantLogic:
+    def __init__(self, db: Session, user_id: Optional[str] = None):
+        """
+        AssistantLogic 클래스 초기화 메서드.
+
+        Args:
+            db (Session): SQLAlchemy 데이터베이스 세션.
+            user_id (Optional[str]): 초기화 시 설정할 사용자 ID (기본값: None).
+        """
+        self._user_id: Optional[str] = user_id
+        self.db = db
+
     def _request_assistant_response(self, assistant_id: str, message: str, thread_id: str) -> tuple[str, str]:
         """사용자 질문을 스레드에 추가하고, AI 도우미의 응답과 run_id를 받아옵니다."""
 
@@ -64,17 +78,15 @@ class AssistantLogic:
             user_question (str): 유저의 질문 메시지
 
         Returns:
-            dict: 도우미의 응답 메시지를 포함한 딕셔너리
+            dict: 도우미의 응답 메시지 및 참조를 포함한 딕셔너리
         """
-        from src.models.user import User
-
         assistant_mapping = {
-            AssistantType.ASSISTANT: [Constants.ASSISTANT_ID, "thread_id_assistant"],
-            AssistantType.JOB_RECOMMEND: [Constants.ASSISTANT_ID_JOB_RECOMMEND, "thread_id_job_recommend"],
-            AssistantType.RECRUIT_RECOMMEND: [Constants.ASSISTANT_ID_RECRUIT_RECOMMEND, "thread_id_recruit_recommend"],
-            AssistantType.ROADMAP: [Constants.ASSISTANT_ID_ROADMAP, "thread_id_roadmap"],
-            AssistantType.RESUME_REVIEW: [Constants.ASSISTANT_ID_RESUME_REVIEW, "thread_id_resume_review"],
-            AssistantType.FIND_STUDY: [Constants.ASSISTANT_ID_FIND_STUDY, "thread_id_find_study"],
+            AssistantType.ASSISTANT: [constants.ASSISTANT_ID, "thread_id_assistant"],
+            AssistantType.JOB_RECOMMEND: [constants.ASSISTANT_ID_JOB_RECOMMEND, "thread_id_job_recommend"],
+            AssistantType.RECRUIT_RECOMMEND: [constants.ASSISTANT_ID_RECRUIT_RECOMMEND, "thread_id_recruit_recommend"],
+            AssistantType.ROADMAP: [constants.ASSISTANT_ID_ROADMAP, "thread_id_roadmap"],
+            AssistantType.RESUME_REVIEW: [constants.ASSISTANT_ID_RESUME_REVIEW, "thread_id_resume_review"],
+            AssistantType.FIND_STUDY: [constants.ASSISTANT_ID_FIND_STUDY, "thread_id_find_study"],
         }
 
         assistant_id, thread_column_name = assistant_mapping[assistant_type]
@@ -105,7 +117,6 @@ class AssistantLogic:
         Returns:
             dict: 대화 순서를 보장한 전체 메시지 딕셔너리 (role: message)
         """
-        from src.models.user import User
 
         user = self.db.query(User).filter(User.id == self._user_id).first()
         if not user:
@@ -129,7 +140,6 @@ class AssistantLogic:
         return get_all_assistant_response(thread_id)
 
     def add_dialogue_thread(self, role: str, message: str) -> None:
-        from src.models.user import User
 
         # 사용자 정보 조회
         user = self.db.query(User).filter(User.id == self._user_id).first()

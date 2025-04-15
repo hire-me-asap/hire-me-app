@@ -1,81 +1,26 @@
 from typing import Optional, Tuple
 from sqlalchemy.orm import Session
 
-from logic.assistant.openai_requests import create_new_thread
-
+from src.logic.assistant.openai_requests import create_new_thread
+from src.logic.user.generate_id_card import generate_avatar_id_card
 from src.models.user import get_user_by_id, update_user, create_user, delete_user
-from logic.user.generate_id_card import generate_avatar_id_card
-from src.db import Session
+
+from src.models.user import User
 
 
 class UserLogic:
-    def __init__(self):
-        self._signed_in: bool = False
-        self._user_id: Optional[str] = None
-        self.db = Session()
-
-    def sign_in(self, user_id: str, password: str) -> Tuple[bool, str]:
+    def __init__(self, db: Session, user_id: Optional[str] = None):
         """
-        사용자 로그인 기능을 수행합니다.
+        UserLogic 클래스 초기화 메서드.
 
-        Parameters:
-            user_id (str): 로그인하려는 사용자의 ID입니다.
-            password (str): 로그인하려는 사용자의 비밀번호입니다.
-
-        Returns:
-            Tuple[bool, str]: 로그인 성공 여부와 메시지를 반환합니다.
-                - (True, "로그인 성공") → 로그인 성공
-                - (False, "아이디가 존재하지 않습니다.") → 사용자 없음
-                - (False, "비밀번호가 틀렸습니다.") → 비밀번호 불일치
+        Args:
+            db (Session): SQLAlchemy 데이터베이스 세션.
+            user_id (Optional[str]): 초기화 시 설정할 사용자 ID (기본값: None).
         """
-        from src.models.user import User
+        self._user_id: Optional[str] = user_id
+        self.db = db
 
-        # User 테이블에서 user_id 로 사용자 조회
-        user = self.db.query(User).filter(User.id == user_id).first()
-
-        if user is None:
-            return False, "아이디가 존재하지 않습니다."
-
-        if not user.verify_password(password):
-            return False, "비밀번호가 틀렸습니다."
-
-        # 로그인 성공
-        self._signed_in = True
-        self._user_id = user_id
-        return True, "로그인 성공"
-
-    def sign_up(
-        self, user_id: str, password: str
-    ) -> Tuple[bool, str]:
-        """
-        사용자 회원가입 기능을 수행합니다.
-
-        Parameters:
-            user_id (str): 새로 등록할 사용자의 ID입니다.
-            password (str): 새로 등록할 사용자의 비밀번호입니다.
-
-        Returns:
-            Tuple[bool, str]: 회원가입 성공 여부와 메시지를 반환합니다.
-                - (True, "회원가입에 성공했습니다.") → 회원가입 성공
-                - (False, "이미 존재하는 아이디입니다.") → 아이디 중복
-        """
-        from src.models.user import User
-
-        # 기존 사용자 존재 여부 확인
-        existing_user = self.db.query(User).filter(User.id == user_id).first()
-        if existing_user:
-            return False, "이미 존재하는 아이디입니다."
-
-        # 회원가입 로직 수행
-        create_user(self.db, user_id=user_id, password=password)
-
-        self.sign_in(user_id, password)
-        self._update_thread_id()
-        self._update_user_img()
-
-        return True, "회원가입에 성공했습니다."
-
-    def _update_thread_id(self) -> None:
+    def update_thread_id(self) -> None:
         """
         사용자의 thread_id를 생성한 뒤, 이를 DB에 저장합니다.
 
@@ -90,7 +35,7 @@ class UserLogic:
         }
         update_user(db=self.db, user_id=self._user_id, **thread_ids)
 
-    def _update_user_img(self, wanted_position: str = '미정') -> None:
+    def update_user_img(self, wanted_position: str = '미정') -> None:
         """
         사용자의 직무 정보를 기반으로 아바타 카드 이미지를 생성하고,
         해당 이미지 경로를 DB에 저장합니다.
@@ -122,7 +67,7 @@ class UserLogic:
 
         return user.user_img
 
-    def _update_wanted_position(
+    def update_wanted_position(
         self, wanted_position: str
     ) -> None:
         """

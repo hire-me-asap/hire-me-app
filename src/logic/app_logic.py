@@ -1,4 +1,4 @@
-from typing import Optional, TypedDict
+from typing import Optional, TypedDict, Tuple
 from sqlalchemy.orm import Session
 
 from src.db import Session
@@ -6,17 +6,8 @@ from src.logic.user.user_logic import UserLogic
 from src.logic.resume.resume_logic import ResumeLogic
 from src.logic.assistant.assistant_logic import AssistantLogic, AssistantType
 
-
-class FileInfo(TypedDict):
-    """벡터 스토어에 업로드된 파일의 정보를 담는 타입입니다.
-
-    Args:
-        file_id: 벡터 스토어에 파일을 업로드할 때 지정되는 고유 식별자
-        file_name: 원본 파일의 이름
-    """
-
-    file_id: str
-    file_name: str
+from src.models.user import create_user
+from src.models.user import User
 
 
 class AppLogic:
@@ -35,9 +26,71 @@ class AppLogic:
         self.db = Session()
 
         # 각 로직 클래스 초기화
-        self.user_logic = UserLogic(self.db)
-        self.resume_logic = ResumeLogic(self.db)
-        self.assistant_logic = AssistantLogic(self.db)
+        self.user_logic = UserLogic(self.db, self._user_id)
+        self.resume_logic = ResumeLogic(self.db, self._user_id)
+        self.assistant_logic = AssistantLogic(self.db, self._user_id)
+
+    def sign_in(self, user_id: str, password: str) -> Tuple[bool, str]:
+        """
+        사용자 로그인 기능을 수행합니다.
+
+        Parameters:
+            user_id (str): 로그인하려는 사용자의 ID입니다.
+            password (str): 로그인하려는 사용자의 비밀번호입니다.
+
+        Returns:
+            Tuple[bool, str]: 로그인 성공 여부와 메시지를 반환합니다.
+                - (True, "로그인 성공") → 로그인 성공
+                - (False, "아이디가 존재하지 않습니다.") → 사용자 없음
+                - (False, "비밀번호가 틀렸습니다.") → 비밀번호 불일치
+        """
+
+        # User 테이블에서 user_id 로 사용자 조회
+        user = self.db.query(User).filter(User.id == user_id).first()
+
+        if user is None:
+            return False, "아이디가 존재하지 않습니다."
+
+        if not user.verify_password(password):
+            return False, "비밀번호가 틀렸습니다."
+
+        # 로그인 성공
+        self._signed_in = True
+        self._user_id = user_id
+
+        self.user_logic = UserLogic(self.db, self._user_id)
+        self.resume_logic = ResumeLogic(self.db, self._user_id)
+        self.assistant_logic = AssistantLogic(self.db, self._user_id)
+        return True, "로그인 성공"
+
+    def sign_up(
+        self, user_id: str, password: str
+    ) -> Tuple[bool, str]:
+        """
+        사용자 회원가입 기능을 수행합니다.
+
+        Parameters:
+            user_id (str): 새로 등록할 사용자의 ID입니다.
+            password (str): 새로 등록할 사용자의 비밀번호입니다.
+
+        Returns:
+            Tuple[bool, str]: 회원가입 성공 여부와 메시지를 반환합니다.
+                - (True, "회원가입에 성공했습니다.") → 회원가입 성공
+                - (False, "이미 존재하는 아이디입니다.") → 아이디 중복
+        """
+        # 기존 사용자 존재 여부 확인
+        existing_user = self.db.query(User).filter(User.id == user_id).first()
+        if existing_user:
+            return False, "이미 존재하는 아이디입니다."
+
+        # 회원가입 로직 수행
+        create_user(self.db, user_id=user_id, password=password)
+
+        self.sign_in(user_id, password)
+        self.user_logic.update_thread_id()
+        self.user_logic.update_user_img()
+
+        return True, "회원가입에 성공했습니다."
 
     def user_id(self):
         """사용자 아이디를 반환합니다.
@@ -65,7 +118,7 @@ class AppLogic:
         """이력서 PDF를 생성합니다."""
         return self.resume_logic.generate_pdf_from_resume_id()
 
-    def get_response_from_assistant(self, assistant_type: AssistantType, user_question: str):
+    def get_response_from_assistant(self, assistant_type: AssistantType, user_question: str) -> dict:
         """AI 도우미를 통해 사용자 질문에 응답합니다."""
         return self.assistant_logic.get_response_from_assistant(assistant_type, user_question)
 
