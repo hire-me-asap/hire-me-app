@@ -127,7 +127,7 @@ class AppLogic:
                 - (False, "아이디가 존재하지 않습니다.") → 사용자 없음
                 - (False, "비밀번호가 틀렸습니다.") → 비밀번호 불일치
         """
-        from src.models.recruitment import User
+        from src.models.user import User
 
         # User 테이블에서 user_id 로 사용자 조회
         user = self.db.query(User).filter(User.id == user_id).first()
@@ -158,7 +158,7 @@ class AppLogic:
                 - (True, "회원가입에 성공했습니다.") → 회원가입 성공
                 - (False, "이미 존재하는 아이디입니다.") → 아이디 중복
         """
-        from src.models.recruitment import User
+        from src.models.user import User
 
         # 기존 사용자 존재 여부 확인
         existing_user = self.db.query(User).filter(User.id == user_id).first()
@@ -351,7 +351,7 @@ class AppLogic:
                 roadmap일 경우 {"text": str, "image": Image.Image 또는 str}
                 그 외에는 {"text": str}
         """
-        from src.models.recruitment import User
+        from src.models.user import User
 
         assistant_mapping = {
             AssistantType.ASSISTANT: [ASSISTANT_ID, "thread_id_assistant"],
@@ -398,7 +398,7 @@ class AppLogic:
         Returns:
             dict: 대화 순서를 보장한 전체 메시지 딕셔너리 (role: message)
         """
-        from src.models.recruitment import User
+        from src.models.user import User
 
         user = self.db.query(User).filter(User.id == user_id).first()
         if not user:
