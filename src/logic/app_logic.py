@@ -402,7 +402,7 @@ class AppLogic:
 
         user = self.db.query(User).filter(User.id == user_id).first()
         if not user:
-            return {"error": "사용자를 찾을 수 없습니다."}
+            raise RuntimeError("사용자를 찾을 수 없습니다.")
 
         thread_id_map = {
             AssistantType.JOB_RECOMMEND: user.thread_id_job_recommend,
@@ -416,13 +416,9 @@ class AppLogic:
         thread_id = thread_id_map.get(assistant_type)
 
         if not thread_id:
-            return {"error": "해당 assistant_type에 대한 thread_id가 존재하지 않습니다."}
+            raise RuntimeError("해당 assistant_type에 대한 thread_id가 존재하지 않습니다.", thread_id_map, thread_id)
 
-        dialogue = get_all_assistant_response(thread_id)
-        if not dialogue:
-            return {"error": "메시지를 불러오지 못했습니다."}
-
-        return dialogue
+        return get_all_assistant_response(thread_id)
 
     def update_resume_info(
         self,
@@ -466,7 +462,7 @@ class AppLogic:
         Returns:
             bool: 로그인 여부
         """
-        return self._sign_in
+        return self._signed_in
 
     def generate_pdf_from_resume_id(self, user_id: str) -> str:
         resume = get_resume_by_id(db=self.db, user_id=user_id)
