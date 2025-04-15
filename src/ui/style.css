@@ -160,8 +160,21 @@ textarea {
     background: var(--block-background-fill) !important;
 }
 
-#profile {
+.sidebar-content>.column>*:nth-last-child(1) {
     margin-top: auto;
+}
+
+.sidebar-content>.column>*:nth-last-child(1)>.html-container {
+    padding: 0;
+}
+
+.gradio-container {
+    min-width: var(--size-full) !important;
+}
+
+.profile-save-button {
+    width: auto;
+    margin-right: auto;
 }
 
 /* site 하단 footer */
@@ -179,4 +192,3 @@ textarea {
     border-top: transparent;
     box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.1);    
     color: #d5d5d5;
-}

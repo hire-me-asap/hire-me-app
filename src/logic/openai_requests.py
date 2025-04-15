@@ -33,7 +33,8 @@ def get_vector_store(vector_store_name: str) -> str:
         if vector_store.name == vector_store_name:
             return vector_store.id
 
-    new_vector_store = AZURE_OPENAI_CLIENT.vector_stores.create(name=vector_store_name)
+    new_vector_store = AZURE_OPENAI_CLIENT.vector_stores.create(
+        name=vector_store_name)
     return new_vector_store.id
 
 
@@ -49,7 +50,8 @@ def get_vector_store_files_list(vector_store_id: str) -> list[FileObject]:
         vector_store_id=vector_store_id
     ).data
     file_ids = [file.id for file in vector_store_files]
-    files = [AZURE_OPENAI_CLIENT.files.retrieve(file_id) for file_id in file_ids]
+    files = [AZURE_OPENAI_CLIENT.files.retrieve(
+        file_id) for file_id in file_ids]
     return files
 
 
@@ -60,7 +62,8 @@ def upload_vector_store_files(vector_store_id: str, files: tuple[str]):
         files (tuple[str]): 업로드할 파일 경로가 담긴 튜플
     """
     AZURE_OPENAI_CLIENT.vector_stores.file_batches.create_and_poll(
-        vector_store_id=vector_store_id, files=[open(file, mode="rb") for file in files]
+        vector_store_id=vector_store_id, files=[
+            open(file, mode="rb") for file in files]
     )
 
 
@@ -77,44 +80,77 @@ def delete_vector_store_files(vector_store_id: str, file_ids: tuple[str]):
         )
 
 
-# 0) 사용자 개인 thread 생성
 def create_new_thread(azure_openai_endpoint, azure_openai_api_key):
+    """
+    1. 사용자 개인용 Azure OpenAI Thread를 생성합니다.
+
+    Parameters:
+        azure_openai_endpoint (str): Azure OpenAI 서비스의 엔드포인트 도메인.
+        azure_openai_api_key (str): Azure OpenAI API 인증 키.
+
+    Returns:
+        str: 생성된 개인 Thread의 ID.
+    """
     PERSONAL_THREAD_ENDPOINT = (
         f"https://{azure_openai_endpoint}/openai/threads?api-version=2024-05-01-preview"
     )
 
     result = requests.post(
         PERSONAL_THREAD_ENDPOINT,
-        headers={"api-key": azure_openai_api_key, "Content-Type": "application/json"},
+        headers={"api-key": azure_openai_api_key,
+                 "Content-Type": "application/json"},
     )
 
     PERSONAL_THREAD_ID = result.json()["id"]
     return PERSONAL_THREAD_ID
 
 
-# 1) thread에 신규 질문 발송
-def _add_user_question_to_thread(
-    azure_openai_endpoint, azure_openai_api_key, personal_thread_id, user_question
+def add_user_question_to_thread(
+    personal_thread_id, user_question
 ) -> Response:
-    USER_QUESTION_ENDPOINT = f"https://{azure_openai_endpoint}/openai/threads/{personal_thread_id}/messages?api-version=2024-05-01-preview"
+    """
+    2. 사용자 질문을 지정된 Thread에 추가합니다.
+
+    Parameters:
+        personal_thread_id (str): 사용자 개인 Thread의 ID.
+        user_question (str): 사용자가 질문한 내용.
+
+    Returns:
+        Response: 요청 결과에 대한 응답 객체.
+    """
+    ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT")
+    API_KEY = os.getenv("AZURE_OPENAI_API_KEY")
+    USER_QUESTION_ENDPOINT = f"https://{ENDPOINT}/openai/threads/{personal_thread_id}/messages?api-version=2024-05-01-preview"
 
     result = requests.post(
         USER_QUESTION_ENDPOINT,
-        headers={"api-key": azure_openai_api_key, "Content-Type": "application/json"},
+        headers={"api-key": API_KEY, "Content-Type": "application/json"},
         json={"role": "user", "content": user_question},
     )
     return result
 
 
-# 2-1) thread 실행
 def _run_thread(
     azure_openai_endpoint, azure_openai_api_key, personal_thread_id, assistant_id
-):
+) -> str:
+    """
+    3. 지정된 Thread에 대해 Assistant 실행을 트리거합니다.
+
+    Parameters:
+        azure_openai_endpoint (str): Azure OpenAI 서비스의 엔드포인트 도메인.
+        azure_openai_api_key (str): Azure OpenAI API 인증 키.
+        personal_thread_id (str): 사용자 개인 Thread의 ID.
+        assistant_id (str): 실행할 Assistant의 ID.
+
+    Returns:
+        str | None: 실행된 run의 ID. 실패 시 None 반환.
+    """
     USER_QUESTION_RUN_ENDPOINT = f"https://{azure_openai_endpoint}/openai/threads/{personal_thread_id}/runs?api-version=2024-05-01-preview"
 
     result = requests.post(
         USER_QUESTION_RUN_ENDPOINT,
-        headers={"api-key": azure_openai_api_key, "Content-Type": "application/json"},
+        headers={"api-key": azure_openai_api_key,
+                 "Content-Type": "application/json"},
         json={"assistant_id": assistant_id},
     )
     if result.status_code != 200:
@@ -124,10 +160,44 @@ def _run_thread(
     return RUN_ID
 
 
-# 2-2) thread 모니터링 및 응답 대기
+def run_message_to_thread(thread_id: str, assistant_id: str, message: str) -> any:
+    """
+    3.1. 지정된 Thread에 메시지를 추가하고 실행을 시작합니다.
+
+    Parameters:
+        thread_id (str): 사용자 개인 Thread의 ID.
+        assistant_id (str): 실행할 Assistant의 ID.
+        message (str): 사용자 질문 메시지.
+
+    Returns:
+        str | None: 실행된 run의 ID. 실패 시 None 반환.
+    """
+    ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT")
+    API_KEY = os.getenv("AZURE_OPENAI_API_KEY")
+
+    result = add_user_question_to_thread(ENDPOINT, API_KEY, thread_id, message)
+    if result.status_code != 200:
+        return
+
+    run_id = _run_thread(ENDPOINT, API_KEY, thread_id, assistant_id)
+    return run_id
+
+
 def _get_status_of_run(
     azure_openai_endpoint, azure_openai_api_key, personal_thread_id, run_id
-):
+) -> str:
+    """
+    3.2.1. 실행 중인 run의 상태를 확인합니다.
+
+    Parameters:
+        azure_openai_endpoint (str): Azure OpenAI 서비스의 엔드포인트 도메인.
+        azure_openai_api_key (str): Azure OpenAI API 인증 키.
+        personal_thread_id (str): 사용자 개인 Thread의 ID.
+        run_id (str): 실행 중인 run의 ID.
+
+    Returns:
+        str: 현재 run의 상태 (예: "queued", "in_progress", "completed" 등).
+    """
     TEMP_RUN_ENDPOINT = f"https://{azure_openai_endpoint}/openai/threads/{personal_thread_id}/runs/{run_id}?api-version=2024-05-01-preview"
 
     result = requests.get(
@@ -140,41 +210,17 @@ def _get_status_of_run(
     return result.json()["status"]
 
 
-# 3) 응답 수신 및 출력 # 마지막 text value로 가져오기
-def _get_assistant_response(
-    azure_openai_endpoint, azure_openai_api_key, personal_thread_id
-):
-    USER_QUESTION_ENDPOINT = f"https://{azure_openai_endpoint}/openai/threads/{personal_thread_id}/messages?api-version=2024-05-01-preview"
-
-    result = requests.get(
-        USER_QUESTION_ENDPOINT,
-        headers={"api-key": azure_openai_api_key, "Content-Type": "application/json"},
-    )
-    if result.status_code != 200:
-        return
-
-    response = result.json()
-    messages = response["data"]
-
-    # 가장 최근 assistant 메시지 찾기
-    for message in messages:
-        if message["role"] == "assistant":
-            return message["content"][0]["text"]["value"]
-
-
-def send_message_to_thread(thread_id: str, assistant_id: str, message: str) -> any:
-    ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT")
-    API_KEY = os.getenv("AZURE_OPENAI_API_KEY")
-
-    result = _add_user_question_to_thread(ENDPOINT, API_KEY, thread_id, message)
-    if result.status_code != 200:
-        return
-
-    run_id = _run_thread(ENDPOINT, API_KEY, thread_id, assistant_id)
-    return run_id
-
-
 def is_run_done(thread_id: str, run_id: str) -> bool:
+    """
+    3.2.2. 주어진 run이 완료되었는지 확인합니다.
+
+    Parameters:
+        thread_id (str): 사용자 개인 Thread의 ID.
+        run_id (str): 실행 중인 run의 ID.
+
+    Returns:
+        bool: run이 완료되었으면 True, 아니면 False.
+    """
     return "completed" == _get_status_of_run(
         os.getenv("AZURE_OPENAI_ENDPOINT"),
         os.getenv("AZURE_OPENAI_API_KEY"),
@@ -183,7 +229,64 @@ def is_run_done(thread_id: str, run_id: str) -> bool:
     )
 
 
-def get_last_assistant_message(thread_id: str) -> str | None:
-    return _get_assistant_response(
-        os.getenv("AZURE_OPENAI_ENDPOINT"), os.getenv("AZURE_OPENAI_API_KEY"), thread_id
+def _get_assistant_response(
+    azure_openai_endpoint, azure_openai_api_key, personal_thread_id
+) -> str | None:
+    """
+    4. 특정 Thread에서 최신 Assistant의 응답 메시지를 가져옵니다.
+
+    Parameters:
+        azure_openai_endpoint (str): Azure OpenAI 서비스의 엔드포인트 도메인.
+        azure_openai_api_key (str): Azure OpenAI API 인증 키.
+        personal_thread_id (str): 사용자 개인 Thread의 ID.
+
+    Returns:
+        str | None: 가장 최근 Assistant의 텍스트 응답. 없으면 None.
+    """
+    USER_QUESTION_ENDPOINT = f"https://{azure_openai_endpoint}/openai/threads/{personal_thread_id}/messages?api-version=2024-05-01-preview"
+
+    result = requests.get(
+        USER_QUESTION_ENDPOINT,
+        headers={"api-key": azure_openai_api_key,
+                 "Content-Type": "application/json"},
     )
+    if result.status_code != 200:
+        return
+
+    response = result.json()
+    messages = response["data"]
+
+    return messages
+
+
+def get_all_assistant_response(thread_id: str) -> list | None:
+    """
+    4.2.1 환경변수에 설정된 엔드포인트를 이용하여 특정 Thread에서 전체 응답을 가져옵니다.
+
+    Parameters:
+        thread_id (str): 사용자 개인 Thread의 ID.
+
+    Returns:
+        list | None: 전체 응답 메시지. 실패 시 None.
+    """
+    return _get_assistant_response(
+        os.getenv("AZURE_OPENAI_ENDPOINT"), os.getenv(
+            "AZURE_OPENAI_API_KEY"), thread_id
+    )
+
+
+def get_last_assistant_message(thread_id: str) -> str | None:
+    """
+    4.2.2 환경변수에 설정된 엔드포인트를 이용하여 특정 Thread에서 가장 마지막 Assistant 응답을 가져옵니다.
+
+    Parameters:
+        thread_id (str): 사용자 개인 Thread의 ID.
+
+    Returns:
+        str | None: 가장 최근 Assistant의 응답 메시지. 실패 시 None.
+    """
+    messages = _get_assistant_response(os.getenv(
+        "AZURE_OPENAI_ENDPOINT"), os.getenv("AZURE_OPENAI_API_KEY"), thread_id)
+    for message in messages:
+        if message["role"] == "assistant":
+            return message["content"][0]["text"]["value"]
