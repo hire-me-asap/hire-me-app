@@ -23,9 +23,8 @@ from src.logic.openai_requests import (
 )
 
 from src.models.user import get_user_by_id, update_user, create_user, delete_user
-from src.models.resume import get_resume_by_id, create_resume, update_resume, delete_resume, Resume
+from src.models.resume import get_resume_by_id, create_resume, update_resume, delete_resume
 from src.logic.generate_id_card import generate_avatar_id_card
-from src.logic.generate_roadmap_img import split_text_and_json
 from src.logic.generate_pdf_resume import generate_pdf_resume
 from src.db import Session
 
@@ -447,6 +446,15 @@ class AppLogic:
         return self._signed_in
 
     def generate_pdf_from_resume_id(self) -> str:
+        """
+        사용자의 이력서 정보를 기반으로 PDF 파일을 생성합니다.
+
+        Returns:
+            str: 생성된 PDF 파일의 경로
+
+        Raises:
+            ValueError: 이력서 정보가 존재하지 않을 경우 예외를 발생시킵니다.
+        """
         resume = get_resume_by_id(db=self.db, user_id=self._user_id)
         # 저장 원하는 위치로 수정 가능.
         output_path = r"src/tmp/outputs/resume.pdf"

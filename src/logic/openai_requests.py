@@ -264,13 +264,11 @@ def get_assistant_citations(thread_id: str, run_id: str) -> dict | None:
     return _get_assistant_citation(thread_id, run_id)
 
 
-def _get_assistant_response(personal_thread_id) -> str | None:
+def get_all_assistant_response(personal_thread_id: str) -> str | None:
     """
     4. 특정 Thread에서 최신 Assistant의 응답 메시지를 가져옵니다.
 
     Parameters:
-        azure_openai_endpoint (str): Azure OpenAI 서비스의 엔드포인트 도메인.
-        azure_openai_api_key (str): Azure OpenAI API 인증 키.
         personal_thread_id (str): 사용자 개인 Thread의 ID.
 
     Returns:
@@ -294,19 +292,6 @@ def _get_assistant_response(personal_thread_id) -> str | None:
     return messages
 
 
-def get_all_assistant_response(thread_id: str) -> list | None:
-    """
-    4.2.1 환경변수에 설정된 엔드포인트를 이용하여 특정 Thread에서 전체 응답을 가져옵니다.
-
-    Parameters:
-        thread_id (str): 사용자 개인 Thread의 ID.
-
-    Returns:
-        list | None: 전체 응답 메시지. 실패 시 None.
-    """
-    return _get_assistant_response(thread_id)
-
-
 def get_last_assistant_message(thread_id: str) -> str | None:
     """
     4.2.2 환경변수에 설정된 엔드포인트를 이용하여 특정 Thread에서 가장 마지막 Assistant 응답을 가져옵니다.
@@ -317,7 +302,7 @@ def get_last_assistant_message(thread_id: str) -> str | None:
     Returns:
         dict | None: 가장 최근 Assistant의 응답. 실패 시 None.
     """
-    messages = _get_assistant_response(thread_id)
+    messages = get_all_assistant_response(thread_id)
     for message in messages:
         if message["role"] == "assistant":
             return message
