@@ -75,19 +75,19 @@ def create_resume(
     real_name: Optional[str] = None,
     summary: Optional[str] = None,
     skill_stack: Optional[List[float]] = None,
-    work: Optional[dict] = None,
-    education: Optional[dict] = None,
-    education_and_exp: Optional[dict] = None,
-    certificates: Optional[dict] = None,
-    awards: Optional[dict] = None,
-    languages: Optional[dict] = None
+    work_experiences: Optional[List[dict]] = None,
+    education: Optional[List[dict]] = None,
+    education_and_exp: Optional[List[dict]] = None,
+    certificates: Optional[List[dict]] = None,
+    awards: Optional[List[dict]] = None,
+    languages: Optional[List[dict]] = None
 ):
     resume = Resume(
         id=id,
         real_name=real_name,
         summary=summary,
         skill_stack=skill_stack,
-        work=work,
+        work_experiences=work_experiences,
         education=education,
         education_and_exp=education_and_exp,
         certificates=certificates,
@@ -111,12 +111,12 @@ def update_resume(
     real_name: Optional[str] = None,
     summary: Optional[str] = None,
     skill_stack: Optional[List[float]] = None,
-    work: Optional[dict] = None,
-    education: Optional[dict] = None,
-    education_and_exp: Optional[dict] = None,
-    certificates: Optional[dict] = None,
-    awards: Optional[dict] = None,
-    languages: Optional[dict] = None
+    work_experiences: Optional[List[dict]] = None,
+    education: Optional[List[dict]] = None,
+    education_and_exp: Optional[List[dict]] = None,
+    certificates: Optional[List[dict]] = None,
+    awards: Optional[List[dict]] = None,
+    languages: Optional[List[dict]] = None
 ):
     resume = db.query(Resume).filter(Resume.id == id).first()
     if not resume:
@@ -126,7 +126,7 @@ def update_resume(
         "real_name": real_name,
         "summary": summary,
         "skill_stack": skill_stack,
-        "work": work,
+        "work_experiences": work_experiences,
         "education": education,
         "education_and_exp": education_and_exp,
         "certificates": certificates,
