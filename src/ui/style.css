@@ -233,7 +233,7 @@ footer {
     background: var(--block-background-fill) !important;
 }
 
-#profile {
+.sidebar-content>.column>*:nth-last-child(1) {
     margin-top: auto;
 }
 
@@ -247,6 +247,15 @@ footer {
 /* 엣취 카와이 */
 #etch_kawai{
     margin : 10px 0 0 10px;
+}
+
+.sidebar-content>.column>*:nth-last-child(1)>.html-container {
+    padding: 0;
+}
+
+.profile-save-button {
+    width: auto;
+    margin-right: auto;
 }
 
 /* site 하단 footer */

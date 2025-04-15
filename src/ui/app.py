@@ -1,5 +1,11 @@
 import gradio as gr
 from theme import custom_theme
+import re
+from pathlib import Path
+
+from ..logic.app_logic import AppLogic
+
+app_logic = AppLogic()
 
 FEATURES = {
     'general': '무엇이든 물어보세요!',
@@ -46,6 +52,8 @@ EXAMPLE_MESSAGES = {
         {'text': '💰 무료로 들을 수 있는 데이터베이스 관련 강의를 찾아줘.'},
     ]
 }
+
+PROFILE_IMAGE_PLACEHOLDER = 'resources/profile-placeholder.png'
 
 
 with gr.Blocks(css_paths=['src/ui/style.css'], theme=custom_theme) as demo:
@@ -117,7 +125,7 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=custom_theme) as demo:
                 show_label=False,
                 elem_id="custom-checkbox"
             )
-            user_input = gr.TextArea(
+            input_textarea = gr.TextArea(
                 placeholder='❔ 엣취에게 물어보세요',
                 elem_id='user-input-txt',  
                 lines=1,              
@@ -209,6 +217,15 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=custom_theme) as demo:
     
 
     """ 이벤트 """
+
+    def update_sidebar_profile_image(current):
+        if current.endswith("profile-placeholder.png'>") and app_logic._signed_in:
+            return gr.HTML(
+                f"<img id='profile' src='/gradio_api/file={app_logic.get_user_img(app_logic.user_id())[1:]}'>"
+            )
+        return gr.update()
+
+    demo.load(update_sidebar_profile_image, inputs=[sidebar_profile_image], outputs=[sidebar_profile_image])
     
     # 로고 보이기 함수 및 이벤트
     def set_topbar_visibility(is_visible):
@@ -225,6 +242,7 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=custom_theme) as demo:
 
     # chatbot tab 함수 및 이벤트
     def select_chat_tab(mode):
+        history = []
         if mode == 'general':
             pass
         elif mode == 'job':
@@ -240,7 +258,7 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=custom_theme) as demo:
         else:
             return gr.update(), gr.update()
 
-        return gr.update(selected=0), gr.update(label=FEATURES[mode], examples=EXAMPLE_MESSAGES[mode])
+        return gr.update(selected=0), gr.update(value=history, label=FEATURES[mode], examples=EXAMPLE_MESSAGES[mode])
 
     general_chat_button.click(lambda: select_chat_tab('general'), outputs=[tab_host, main_chatbot])
     job_chat_button.click(lambda: select_chat_tab('job'), outputs=[tab_host, main_chatbot])
@@ -251,7 +269,32 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=custom_theme) as demo:
 
     # 로고 이미지 클릭시 메인 챗봇으로 이동 이벤트
     topbar_logo_image.click(lambda: select_chat_tab('general'), outputs=[tab_host, main_chatbot])    
-    sidebar_logo_image.click(lambda: select_chat_tab('general'), outputs=[tab_host, main_chatbot])    
+    sidebar_logo_image.click(lambda: select_chat_tab('general'), outputs=[tab_host, main_chatbot]) 
+    
+    def select_example(selected: gr.SelectData):
+        return selected.value['text']
+    
+    main_chatbot.example_select(select_example, outputs=[input_textarea])
+    
+    def queue_message(content, history):
+        if content.strip():
+            message = {'role': 'user', 'content': content}
+            history.append(message)
+        return history
+    
+    def wait_message(content, history):
+        if not content.strip():
+            return '', history
+        
+        response = {'role': 'assistant', 'content': '임시 응답입니다. 엣취!'}
+        history.append(response)
+        return '', history
+    
+    input_textarea.submit(
+        queue_message, inputs=[input_textarea, main_chatbot], outputs=[main_chatbot]
+    ).then(
+        wait_message, inputs=[input_textarea, main_chatbot], outputs=[input_textarea, main_chatbot], scroll_to_output=True
+    )
 
     # chatbot example 함수 및 이벤트   
     def handle_example_click(evt: gr.SelectData):
@@ -276,21 +319,39 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=custom_theme) as demo:
         history_state.append({"role": "assistant", "content": bot_response})
         
         return history_state, history_state  # chatbot과 history_state 각각에 보내서 저장 
-
-
-    # 함수 실행 후 user_input 지우는 함수 
-    def clear_user_input() :
-        return gr.update(value=None)
-
-    user_input.submit(handle_user_message, inputs=[user_input, user_check, history_state], outputs=[main_chatbot, history_state]).then(clear_user_input, None, user_input)
-
+    
     # profile 이미지 클릭시 이력서 페이지로 이동 
     def move_to_profile() :
         return gr.update(selected=1)
     
     sidebar_profile_image.select(move_to_profile, outputs=[tab_host])
 
-demo.launch(share=True)
+account_pattern = re.compile(r'^[A-Za-z\d_]{4,}$')
+
+def sign_in_or_sign_up(user_id: str, password: str) -> bool:
+    if not account_pattern.fullmatch(user_id) or not account_pattern.fullmatch(password):
+        gr.Error('부적절한 아이디 혹은 비밀번호가 입력되었습니다.')
+        return False
+
+    logged_in, message = app_logic.sign_in(user_id, password)
+    if logged_in:
+        return True
+    
+    if message == '아이디가 존재하지 않습니다.':
+        app_logic.sign_up(user_id, password)
+        app_logic.sign_in(user_id, password)
+        return True
+    
+    gr.Error('부적절한 아이디 혹은 비밀번호가 입력되었습니다.')
+    return False
 
 
-
+AUTH_MESSAGE = (
+    '<p><b>새 계정</b>으로 가입하거나 <b>기존 계정</b>으로 로그인하세요.</p><p><nbsp></p>'
+    '<p>&#8203;</p>'
+    '<p>아이디와 비밀번호는 <b>길이가 4 이상</b>이어야 하고<br/>'
+    '<b>영문자, 숫자, 언더바</b>로만 구성되어야 합니다.</p>'
+    '<p>&#8203;</p>'
+    '<p><b>[로그인]</b> 버튼을 클릭하고 잠시 기다려주세요</p>'
+    '<p>첫 가입 시에는 리소스 할당에 1분 정도 소요될 수 있습니다.</p>'
+)

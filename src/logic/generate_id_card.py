@@ -2,6 +2,7 @@
 
 import os
 import requests
+from typing import Optional
 from PIL import Image, ImageDraw, ImageFont
 
 
@@ -22,6 +23,11 @@ def generate_avatar_id_card(
     with open(avatar_path, "wb") as f:
         f.write(response.content)
 
+    # ID 카드 생성
+    card_width, card_height = 360, 160
+    avatar_size = 100
+    padding = 12
+
     # card image
     card = Image.new("RGB", (360, 160), "#ffffff")
     draw = ImageDraw.Draw(card)
@@ -33,9 +39,13 @@ def generate_avatar_id_card(
     font = ImageFont.truetype(font_path, size=16)
     font_bold = ImageFont.truetype(font_path, size=18)
 
+    text_x = avatar_size + 3 * padding
+    text_y = padding
+
     draw.text((text_x, text_y), "▶ USER ID", font=font, fill="black")
     draw.text((text_x, text_y + 22), f"{seed}", font=font_bold, fill="black")
-    draw.text((text_x, text_y + 54), "▶ WANTED POSITION", font=font, fill="black")
+    draw.text((text_x, text_y + 54), "▶ WANTED POSITION",
+              font=font, fill="black")
     draw.text((text_x, text_y + 76), f"{job}", font=font_bold, fill="black")
 
     draw.rectangle(
