@@ -46,8 +46,8 @@ class User(Base):
     resume_file = Column(Text, nullable=True)
 
     # 역참조 관계 설정 (필수는 아님)
-    table_resumes = relationship("Resume", back_populates="table_users",
-                                cascade="all, delete-orphan")
+    # table_resumes = relationship("Resume", back_populates="table_users",
+    #                             cascade="all, delete-orphan")
 
     def verify_password(self, plain_password):
         return pwd_context.verify(plain_password, self.hashed_password)

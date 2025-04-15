@@ -66,7 +66,7 @@ class Resume(Base):
 
     # User와의 관계 설정 - 양방향 참조를 위해 수정
     # 역참조 관계 설정 (필수는 아님)
-    table_users = relationship("User", back_populates="table_resumes")
+    # table_users = relationship("User", back_populates="table_resumes")
 
 
 def create_resume(
