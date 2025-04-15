@@ -7,20 +7,94 @@
     font-weight: 400;
 }
 
+@media (prefers-color-scheme: dark) {
+    #sidebar-logo {
+        background-image: url("https://raw.githubusercontent.com/Bosongsae/hiremeasap/71a35e2b3b58d38d09d12d08931973e8bdf0eded/etch_white.png");
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center;
+        height : 50px !important;
+        width: 100px !important;
+        padding-bottom: 0px;
+        padding-left: 0px;
+        padding-top: 0px;
+        padding-right: 0px;
+    }
+    #topbar-logo {
+        background-image: url("https://raw.githubusercontent.com/Bosongsae/hiremeasap/71a35e2b3b58d38d09d12d08931973e8bdf0eded/etch_white.png");
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center;
+        min-width : min(70px,100%) !important;
+        height : 35px !important;
+        width: 85px !important;
+        padding-bottom: 0px;
+        padding-left: 0px;
+        padding-top: 0px;
+        padding-right: 0px;
+    }
+    
+    .red-button {
+        background: #FF6363 !important;
+        border-color : #FF6363 !important;
+        box-shadow : 0px 3px 0px 0px #FFA09B !important;
+        color : white !important;
+    }
+    .red-button:hover {
+        box-shadow : 0px 5px 0px 0px #FFA09B !important;
+        color : white !important;
+    }
+}
+
+@media (prefers-color-scheme: light) {
+    #sidebar-logo {
+        background-image: url('https://raw.githubusercontent.com/Bosongsae/hiremeasap/71a35e2b3b58d38d09d12d08931973e8bdf0eded/etch_black.png');
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center;
+        height : 50px !important;
+        width: 100px !important;
+        padding-bottom: 0px;
+        padding-left: 0px;
+        padding-top: 0px;
+        padding-right: 0px;
+    }
+    #topbar-logo {
+        background-image: url('https://raw.githubusercontent.com/Bosongsae/hiremeasap/71a35e2b3b58d38d09d12d08931973e8bdf0eded/etch_black.png');
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center;
+        min-width : min(70px,100%) !important;
+        height : 35px !important;
+        width: 85px !important;
+        padding-bottom: 0px;
+        padding-left: 0px;
+        padding-top: 0px;
+        padding-right: 0px;
+    }
+   
+    .red-button {
+        background: #FFB0B0 !important;
+        border-color : #FFB0B0 !important;
+        box-shadow : 0px 3px 0px 0px #FFCFCF !important;
+        color : white !important;
+    }
+    .red-button:hover {
+        box-shadow : 0px 5px 0px 0px #FFCFCF !important;
+        color : white !important;
+    }
+}
+
+
 
 .contain>*:nth-child(1),
 
 .tabs,
 #chatbot-tab,
 #chatbot-tab>.column,
-#chatbot-tab>.column>.gr-group,
-#chatbot-tab>.column>.gr-group>.styler,
+#chatbot-tab>.column>.styler,
 #chatbot {
     flex-grow: 1 !important;
-}
-
-#chatbot {
-    overflow: hidden !important;
 }
 
 .contain>*:nth-child(1) {
@@ -31,151 +105,180 @@
     min-width: var(--size-full) !important;
 }
 
-/* 기본 footer 안보이게 하기 */
+/* 기본 footer 안보이게 하기 */ 
 footer {
     display: none !important;
 }
 
-/* tobbar logo 설정 */
-.html-container.svelte-phx28p {
+/* ---- tobbar 설정 ---- */
+.html-container.svelte-phx28p{
     display: inline-block;
-    width: auto;
+    width:auto;
 }
 
-#topbar-section {
+#topbar-section{
     text-align: center;
     justify-content: center;
 }
 
-#topbar-logo img {
-    height: 30px;
-    display: inline-block;
-    cursor: pointer;
-}
+/* topbar 로고 설정 */
+#topbar-logo{       
+    flex : none;            
+    }
 
-/* tab 기본 설정 */
-.tabs>.tab-wrapper {
+#topbar-logo:hover {
+    cursor:pointer;
+}    
+
+#topbar-logo img:hover {
+    cursor:pointer;
+}    
+
+/* ---- tab 기본 설정 ---- */
+.tabs > .tab-wrapper {
     display: none;
 }
 
 /* ---- chatbot tab 설정 ---- */
-
 #chatbot-tab {
-    text-align: center;
+    text-align : center;    
 }
 
+/* chatbot에 영향 줘서 주석처리함 
 #chatbot-tab .prose {
     text-align: center;
     color: var(--border-color-primary);
     font-size: 0.8rem;
-}
+}*/
 
 #chatbot-tab textarea {
-    border-radius: var(--radius-lg);
-    border-style: none !important;
+    border-radius: var(--radius-lg);   
+    border: 1px solid var(--neutral-300) !important;
+    box-shadow: var(--input-shadow); 
 }
 
 #chatbot-tab button {
-    margin-left: var(--spacing-xl);
+    margin-left: var(--spacing-xl);    
 }
 
 /* chatbot 내부 예시 영역 설정 */
-.examples.svelte-9pi8y1 {
+.examples.svelte-9pi8y1{
     display: grid;
-    grid-template-columns: repeat(2, minmax(auto, 300px));
-    /* 2개의 열 */
-    gap: 30px;
-    /* 각 칸 사이 여백 */
-    justify-content: center;
-    /* 가운데 정렬 (선택사항) */
+    grid-template-columns: repeat(2, minmax(auto, 300px)); /* 2개의 열 */
+    gap: 30px; /* 각 칸 사이 여백 */
+    justify-content: center; /* 가운데 정렬 (선택사항) */
 }
 
-.example-content.svelte-9pi8y1 {
+.example-content.svelte-9pi8y1{
     display: flex;
     text-align: center;
     align-items: top;
-    justify-content: center;
-    /* 가로 방향 가운데 */
-    color: #a4a8ad;
-    padding: 2px;
-}
+    justify-content: center; /* 가로 방향 가운데 */    
+    padding : 2px;
+    }
 
-.example-text-content.svelte-9pi8y1 {
+.example-text-content.svelte-9pi8y1{    
     text-align: center;
     justify-content: center;
 }
 
-/* text area 기본 사이즈 변경 */
-textarea {
-    height: 37px !important;
-}
-
-/* 체크박스 border */
-#custom-checkbox {
-    border-style: none !important;
-    padding-bottom: 0 !important;
-}
-
 /* 체크박스 글자 크기 */
-.svelte-1e02hys {
-    font-size: 13px !important;
-}
-
-/* 엣지는 실수 부분 margin */
-#chatbot-tab .html-container {
-    margin-top: 10px;
+.svelte-1e02hys{
+    font-size : 13px !important;
 }
 
 /* ---- sidebar 내부 설정 ---- */
+
+#sidebar-logo:hover {
+    cursor: pointer;   
+}
+
+#sidebar-logo img:hover {
+    cursor: pointer;   
+}
+
 #custom-group {
-    background-color: transparent !important;
+    background-color : transparent !important;
 }
 
 #custom-group button {
     background-color: var(--block-title-background-fill);
-    color: var(--block-title-text-color);
+    color : var(--block-title-text-color);
 }
 
 #custom-group button:hover {
     background-color: var(--primary-400);
-    color: var(--block-title-background-fill);
+    color : var(--block-title-background-fill);
 }
 
 #small-title {
-    margin-top: 7px;
+    margin-top : 15px;
 }
 
 .sidebar .spacer {
     height: 20px;
 }
 
-#sidebar-logo,
-#topbar-logo {
+#sidebar-logo, #topbar-logo {
     margin: 0 auto 0 auto;
 }
 
 .sidebar-content,
-.sidebar-content>.column {
+.sidebar-content > .column {
     flex-grow: 1;
     height: 100%;
 }
-
-#sidebar-logo img {
-    height: 40px;
-    cursor: pointer;
-}
-
 .sidebar-content,
 .sidebar-content .html-container {
     background: var(--block-background-fill) !important;
 }
 
-.sidebar-content>.column>*:nth-last-child(1) {
+.sidebar:nth-of-type(2)>.sidebar-content>.column>*:last-child {
     margin-top: auto;
 }
 
-.sidebar-content>.column>*:nth-last-child(1)>.html-container {
+#profile:hover {
+    cursor: pointer;   
+}
+#profile img:hover {
+    cursor: pointer;   
+}
+
+/* 엣취 카와이 */
+#etch_kawai{
+    margin : 10px 0 0 10px;
+}
+
+#profile:hover {
+    cursor: pointer;   
+}
+#profile img:hover {
+    cursor: pointer;   
+}
+
+/* 엣취 카와이 */
+#etch_kawai{
+    margin : 10px 0 0 10px;
+}
+
+#profile:hover {
+    cursor: pointer;   
+}
+#profile img:hover {
+    cursor: pointer;   
+}
+
+/* 엣취 카와이 */
+#etch_kawai{
+    margin : 10px 0 0 10px;
+}
+
+.sidebar:nth-of-type(2)>.sidebar-content>.column>*:last-child>.html-container {
     padding: 0;
+}
+
+.sidebar.right>.sidebar-content>.column>*:first-child {
+    margin-top: auto;
 }
 
 #profile {
@@ -193,19 +296,36 @@ textarea {
 
 /* site 하단 footer */
 #site-footer {
+    display: flex;
+    flex-wrap: wrap; /* 줄바꿈 허용 */
+    justify-content: center;
+    align-items: center;
+    gap: 6px;  /* 요소 간 간격 */
+
     white-space: nowrap;
-    position: static;
+    position: static;    
     width: 100%;
-    height: 45px;
+    height: auto; /* 높이는 내용에 맞게 자동 */
     background: transparent;
     -webkit-backdrop-filter: blur(3px);
     backdrop-filter: blur(3px);
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    /* 유리창 효과 */
+    border-top: 0px solid rgba(255,255,255,0.1);
     text-align: center;
     font-size: 10px;
     padding: 8px 0;
-    border-top: transparent;
-    box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.1);    
     color: #d5d5d5;
+}
+
+#site-footer a {
+    color: #d5d5d5;
+    text-decoration: none;
+}
+
+/* 창 너비가 500px 이하일 때 세로 정렬 */
+@media (max-width: 500px) {
+    #site-footer {
+        flex-direction: column;
+        gap: 2px;
+    }
 }
