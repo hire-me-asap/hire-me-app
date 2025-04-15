@@ -1,64 +1,13 @@
-import os
-import time
-import json
-
-from dotenv import load_dotenv
-from typing import List, Optional, TypedDict, Tuple
-from openai.types import VectorStore
+from typing import Optional, TypedDict, Tuple
 from sqlalchemy.orm import Session
-from enum import Enum
 
-from src.logic.openai_requests import (
-    upload_vector_store_files,
-    get_vector_store_files_list,
-    delete_vector_store_files,
-    get_vector_store,
-    create_new_thread,
-    add_dialogue_to_thread,
-    run_message_to_thread,
-    is_run_done,
-    get_last_assistant_message,
-    get_all_assistant_response,
-    get_assistant_citations,
-)
-
-from src.models.user import get_user_by_id, update_user, create_user, delete_user
-from src.models.resume import get_resume_by_id, create_resume, update_resume, delete_resume
-from src.logic.generate_id_card import generate_avatar_id_card
-from src.logic.generate_pdf_resume import generate_pdf_resume
 from src.db import Session
+from src.logic.user.user_logic import UserLogic
+from src.logic.resume.resume_logic import ResumeLogic
+from src.logic.assistant.assistant_logic import AssistantLogic, AssistantType
 
-load_dotenv()
-AZURE_OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT")
-AZURE_OPENAI_API_KEY = os.getenv("AZURE_OPENAI_API_KEY")
-
-ASSISTANT_ID = os.getenv("ASSISTANT_ID")
-ASSISTANT_ID_JOB_RECOMMEND = os.getenv("ASSISTANT_ID_JOB_RECOMMEND")
-ASSISTANT_ID_RECRUIT_RECOMMEND = os.getenv("ASSISTANT_ID_RECRUIT_RECOMMEND")
-ASSISTANT_ID_ROADMAP = os.getenv("ASSISTANT_ID_ROADMAP")
-ASSISTANT_ID_RESUME_REVIEW = os.getenv("ASSISTANT_ID_RESUME_REVIEW")
-ASSISTANT_ID_FIND_STUDY = os.getenv("ASSISTANT_ID_FIND_STUDY")
-
-
-class AssistantType(str, Enum):
-    JOB_RECOMMEND = "job_recommend"
-    RECRUIT_RECOMMEND = "recruit_recommend"
-    ROADMAP = "roadmap"
-    RESUME_REVIEW = "resume_review"
-    FIND_STUDY = "find_study"
-    ASSISTANT = "assistant"
-
-
-class FileInfo(TypedDict):
-    """벡터 스토어에 업로드된 파일의 정보를 담는 타입입니다.
-
-    Args:
-        file_id: 벡터 스토어에 파일을 업로드할 때 지정되는 고유 식별자
-        file_name: 원본 파일의 이름
-    """
-
-    file_id: str
-    file_name: str
+from src.models.user import create_user
+from src.models.user import User
 
 
 class AppLogic:
@@ -74,45 +23,12 @@ class AppLogic:
     def __init__(self):
         self._signed_in: bool = False
         self._user_id: Optional[str] = None
-        self._vector_store_id: Optional[str] = None
         self.db = Session()
 
-    def upload_user_files(self, *files: str):
-        """파일을 사용자 전용 벡터 스토어에 업로드합니다.
-
-        Args:
-            *files (str): 업로드할 파일의 경로
-        """
-        if not self._signed_in:
-            raise RuntimeError("로그인 정보가 없습니다.")
-        upload_vector_store_files(self._vector_store_id, files)
-
-    def list_user_files(self) -> list[FileInfo]:
-        """사용자 전용 벡터 스토어에 업로드된 모든 파일의 ID 리스트를 반환합니다.
-
-        Returns:
-            list[FileInfo]: 파일 정보가 담긴 리스트입니다.
-        """
-        if not self._signed_in:
-            raise RuntimeError("로그인 정보가 없습니다.")
-
-        files = get_vector_store_files_list(self._vector_store_id)
-        files = [FileInfo(file_id=file.id, file_name=file.filename)
-                 for file in files]
-        return files
-
-    def remove_user_files(self, *file_ids: str) -> bool:
-        """파일을 사용자 전용 벡터 스토어에서 삭제합니다.
-
-        Args:
-            *files_ids (str): 삭제할 파일의 ID
-        """
-        if not self._signed_in:
-            raise RuntimeError("로그인 정보가 없습니다.")
-
-        delete_vector_store_files(
-            vector_store_id=self._vector_store_id, file_ids=file_ids
-        )
+        # 각 로직 클래스 초기화
+        self.user_logic = UserLogic(self.db, self._user_id)
+        self.resume_logic = ResumeLogic(self.db, self._user_id)
+        self.assistant_logic = AssistantLogic(self.db, self._user_id)
 
     def sign_in(self, user_id: str, password: str) -> Tuple[bool, str]:
         """
@@ -128,7 +44,6 @@ class AppLogic:
                 - (False, "아이디가 존재하지 않습니다.") → 사용자 없음
                 - (False, "비밀번호가 틀렸습니다.") → 비밀번호 불일치
         """
-        from src.models.user import User
 
         # User 테이블에서 user_id 로 사용자 조회
         user = self.db.query(User).filter(User.id == user_id).first()
@@ -142,6 +57,10 @@ class AppLogic:
         # 로그인 성공
         self._signed_in = True
         self._user_id = user_id
+
+        self.user_logic = UserLogic(self.db, self._user_id)
+        self.resume_logic = ResumeLogic(self.db, self._user_id)
+        self.assistant_logic = AssistantLogic(self.db, self._user_id)
         return True, "로그인 성공"
 
     def sign_up(
@@ -159,8 +78,6 @@ class AppLogic:
                 - (True, "회원가입에 성공했습니다.") → 회원가입 성공
                 - (False, "이미 존재하는 아이디입니다.") → 아이디 중복
         """
-        from src.models.user import User
-
         # 기존 사용자 존재 여부 확인
         existing_user = self.db.query(User).filter(User.id == user_id).first()
         if existing_user:
@@ -170,262 +87,10 @@ class AppLogic:
         create_user(self.db, user_id=user_id, password=password)
 
         self.sign_in(user_id, password)
-
-        self._update_vector_store()
-        self._update_thread_id()
-        self._update_user_img()
+        self.user_logic.update_thread_id()
+        self.user_logic.update_user_img()
 
         return True, "회원가입에 성공했습니다."
-
-    def _update_vector_store(self) -> str:
-        """DB에서 사용자 가져오고, 벡터 스토어가 없으면 새로 생성해서 DB에 업데이트
-        Returns:
-            str: 벡터 스토어 ID
-        """
-        user = get_user_by_id(self.db, user_id=self._user_id)
-
-        if not user:
-            raise ValueError(f"User with id {self._user_id} not found")
-
-        if user.vector_store_id:
-            pass
-            return user.vector_store_id
-        else:
-            # Azure에서 ID 가져오기
-            vector_store_id = get_vector_store(vector_store_name=self._user_id)
-
-            # DB에 업데이트
-            update_user(db=self.db, user_id=self._user_id,
-                        vector_store_id=vector_store_id)
-        return vector_store_id
-
-    def _update_thread_id(self) -> None:
-        """
-        사용자의 thread_id를 생성한 뒤, 이를 DB에 저장합니다.
-
-        Args:
-            db (Session): SQLAlchemy DB 세션
-        """
-        thread_types = ["assistant", "job_recommend",
-                        "recruit_recommend", "roadmap", "resume_review", "find_study"]
-        thread_ids = {
-            f"thread_id_{thread_type}": create_new_thread(AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_API_KEY)
-            for thread_type in thread_types
-        }
-        update_user(db=self.db, user_id=self._user_id, **thread_ids)
-
-    def _update_user_img(self, wanted_position: str = '미정') -> None:
-        """
-        사용자의 직무 정보를 기반으로 아바타 카드 이미지를 생성하고,
-        해당 이미지 경로를 DB에 저장합니다.
-
-        Args:
-            wanted_position (str): 사용자의 희망 직무 (없을 경우 '미정'으로 처리)
-        """
-
-        job = wanted_position if wanted_position else "미정"
-        update_user(
-            db=self.db,
-            user_id=self._user_id,
-            user_img=generate_avatar_id_card(seed=self._user_id, job=job),
-            wanted_position=job
-        )
-
-    def get_user_img(self) -> str:
-        """
-        사용자의 아바타 카드 이미지 URL을 반환합니다.
-        Returns:
-            str: 사용자의 user_img URL
-
-        Raises:
-            ValueError: 해당 사용자가 존재하지 않을 경우
-        """
-        user = get_user_by_id(db=self.db, user_id=self._user_id)
-        if user is None:
-            raise ValueError("해당 사용자가 존재하지 않습니다.")
-
-        return user.user_img
-
-    def _update_wanted_position(
-        self, wanted_position: str
-    ) -> None:
-        """
-        사용자의 희망 직무를 DB에 반영하고,
-        변경된 직무에 맞춰 아바타 카드 이미지를 새로 생성해 저장합니다.
-
-        Args:
-            wanted_position (str): 새로 설정할 희망 직무
-        """
-        update_user(
-            db=self.db,
-            user_id=self._user_id,
-            wanted_position=wanted_position,
-            user_img=generate_avatar_id_card(
-                seed=self._user_id, job=wanted_position),
-        )
-
-    def update_resume_file(self, resume_file_url: str) -> None:
-        """
-        유저의 이력서 PDF 파일 URL을 DB에 저장합니다.
-
-        Args:
-            db (Session): SQLAlchemy 세션
-            resume_file_url (str): 업로드된 PDF 파일 경로 또는 URL
-
-        Returns:
-            User: 업데이트된 사용자 객체 또는 None (사용자 미존재 시)
-        """
-
-        update_user(
-            db=self.db,
-            user_id=self._user_id,
-            resume_file=resume_file_url,
-        )
-
-    def _request_assistant_response(self, assistant_id: str, message: str, thread_id: str) -> tuple[str, str]:
-        """사용자 질문을 스레드에 추가하고, AI 도우미의 응답과 run_id를 받아옵니다."""
-
-        # 1. 메시지를 기반으로 도우미 실행(run)
-        run_id = run_message_to_thread(
-            thread_id=thread_id,
-            assistant_id=assistant_id,
-            role="user",
-            message=message
-        )
-        if not run_id:
-            raise Exception("Failed to start run for the thread.")
-
-        # 2. 도우미가 응답을 완료할 때까지 대기
-        polling_interval = 1
-        max_wait_time = 30
-        elapsed_time = 0
-        while not is_run_done(thread_id, run_id):
-            if elapsed_time >= max_wait_time:
-                raise TimeoutError(
-                    "Run did not complete within the maximum wait time.")
-            time.sleep(polling_interval)
-            elapsed_time += polling_interval
-
-        # 3. 도우미의 최종 응답 메시지 반환
-        response = get_last_assistant_message(thread_id)
-
-        return response, run_id
-
-    def get_response_from_assistant(
-        self, assistant_type: AssistantType, user_question: str
-    ) -> dict:
-        """
-        유저 질문을 기반으로 특정 Assistant 타입에 맞는 응답을 반환합니다.
-
-        Args:
-            assistant_type (AssistantType): 사용할 도우미 유형(job_recommend, recruit_recommend, roadmap, resume_review, find_study, assistant 중 하나.)
-            user_question (str): 유저의 질문 메시지
-
-        Returns:
-            dict: 도우미의 응답 메시지를 포함한 딕셔너리
-                roadmap일 경우 {"text": str, "image": Image.Image 또는 str}
-                그 외에는 {"text": str}
-        """
-        from src.models.user import User
-
-        assistant_mapping = {
-            AssistantType.ASSISTANT: [ASSISTANT_ID, "thread_id_assistant"],
-            AssistantType.JOB_RECOMMEND: [ASSISTANT_ID_JOB_RECOMMEND, "thread_id_job_recommend"],
-            AssistantType.RECRUIT_RECOMMEND: [ASSISTANT_ID_RECRUIT_RECOMMEND, "thread_id_recruit_recommend"],
-            AssistantType.ROADMAP: [ASSISTANT_ID_ROADMAP, "thread_id_roadmap"],
-            AssistantType.RESUME_REVIEW: [ASSISTANT_ID_RESUME_REVIEW, "thread_id_resume_review"],
-            AssistantType.FIND_STUDY: [ASSISTANT_ID_FIND_STUDY, "thread_id_find_study"],
-        }
-
-        assistant_id, thread_column_name = assistant_mapping[assistant_type]
-
-        # 사용자 정보 조회
-        user = self.db.query(User).filter(User.id == self._user_id).first()
-        personal_thread_id = getattr(user, thread_column_name)
-
-        # 도우미 응답 텍스트 받아오기
-        response, run_id = self._request_assistant_response(
-            assistant_id=assistant_id,
-            message=user_question,
-            thread_id=personal_thread_id,
-        )
-
-        citations = get_assistant_citations(personal_thread_id, run_id)
-
-        response['citations'] = citations
-        return response
-
-    def get_all_thread_dialogue(self, assistant_type: AssistantType) -> dict:
-        """
-        사용자의 assistant_type에 해당하는 Thread ID를 통해 전체 대화 내역을 반환합니다.
-
-        Parameters:
-            assistant_type (AssistantType): assistant 종류
-
-        Returns:
-            dict: 대화 순서를 보장한 전체 메시지 딕셔너리 (role: message)
-        """
-        from src.models.user import User
-
-        user = self.db.query(User).filter(User.id == self._user_id).first()
-        if not user:
-            raise RuntimeError("사용자를 찾을 수 없습니다.")
-
-        thread_id_map = {
-            AssistantType.JOB_RECOMMEND: user.thread_id_job_recommend,
-            AssistantType.RECRUIT_RECOMMEND: user.thread_id_recruit_recommend,
-            AssistantType.ROADMAP: user.thread_id_roadmap,
-            AssistantType.RESUME_REVIEW: user.thread_id_resume_review,
-            AssistantType.FIND_STUDY: user.thread_id_find_study,
-            AssistantType.ASSISTANT: user.thread_id_assistant,
-        }
-
-        thread_id = thread_id_map.get(assistant_type)
-
-        if not thread_id:
-            raise RuntimeError(
-                "해당 assistant_type에 대한 thread_id가 존재하지 않습니다.", thread_id_map, thread_id)
-
-        return get_all_assistant_response(thread_id)
-
-    def add_dialogue_thread(self, role: str, message: str) -> None:
-        from src.models.user import User
-
-        # 사용자 정보 조회
-        user = self.db.query(User).filter(User.id == self._user_id).first()
-        if not user or not user.thread_id_assistant:
-            raise ValueError("유효한 사용자 또는 thread_id_assistant가 없습니다.")
-
-        # 스레드에 대화 추가
-        add_dialogue_to_thread(
-            personal_thread_id=user.thread_id_assistant,
-            role=role,
-            message=message
-        )
-
-    def update_resume_info(
-        self,
-        **resume_fields
-    ) -> None:
-        """
-        사용자의 이력 정보를 Resume 테이블에 생성 또는 업데이트합니다.
-
-        Args:
-            **resume_fields: 업데이트 또는 생성할 이력 정보 필드들 (None 값은 무시됨)
-        """
-
-        existing_resume = get_resume_by_id(self.db, self._user_id)
-
-        # None인 값은 필터링
-        filtered_data = {k: v for k,
-                         v in resume_fields.items() if v is not None}
-
-        filtered_data["user_id"] = self._user_id
-
-        if existing_resume:
-            update_resume(db=self.db, **filtered_data)
-        else:
-            create_resume(db=self.db, **filtered_data)
 
     def user_id(self):
         """사용자 아이디를 반환합니다.
@@ -445,39 +110,29 @@ class AppLogic:
         """
         return self._signed_in
 
-    def generate_pdf_from_resume_id(self) -> str:
-        """
-        사용자의 이력서 정보를 기반으로 PDF 파일을 생성합니다.
+    def get_user_img(self):
+        """사용자 카드 이미지 주소를 반환합니다."""
+        return self.user_logic.get_user_img()
 
-        Returns:
-            str: 생성된 PDF 파일의 경로
+    def generate_resume_pdf(self):
+        """이력서 PDF를 생성합니다."""
+        return self.resume_logic.generate_pdf_from_resume_id()
 
-        Raises:
-            ValueError: 이력서 정보가 존재하지 않을 경우 예외를 발생시킵니다.
-        """
-        resume = get_resume_by_id(db=self.db, user_id=self._user_id)
-        # 저장 원하는 위치로 수정 가능.
-        output_path = r"src/tmp/outputs/resume.pdf"
+    def get_response_from_assistant(self, assistant_type: AssistantType, user_question: str) -> dict:
+        """AI 도우미를 통해 사용자 질문에 응답합니다."""
+        return self.assistant_logic.get_response_from_assistant(assistant_type, user_question)
 
-        if not resume:
-            raise ValueError("이력서를 찾을 수 없습니다.")
+    def get_all_thread_dialogue(self, assistant_type: AssistantType):
+        """사용자의 assistant_type에 해당하는 Thread ID를 통해 전체 대화 내역을 반환합니다."""
+        return self.assistant_logic.get_all_thread_dialogue(assistant_type)
 
-        # 안전하게 None 처리
-        def safe_data(val, default):
-            return val if val else default
+    def add_dialogue_thread(self, role: str, message: str):
+        """스레드에 해당 역할에 대한 메세지를 추가합니다."""
+        return self.assistant_logic.add_dialogue_thread(role, message)
 
-        user_info = {
-            "real_name": resume.real_name or "",
-            "summary": resume.summary or "",
-            "skill_stack": safe_data(resume.skill_stack, []),
-            "work_experiences": safe_data(resume.work_experiences, []),
-            "education": safe_data(resume.education, {}),
-            "education_and_exp": safe_data(resume.education_and_exp, []),
-            "certificates": safe_data(resume.certificates, []),
-            "awards": safe_data(resume.awards, []),
-            "languages": safe_data(resume.languages, [])
-        }
-        return generate_pdf_resume(output_path, user_info)
+    def update_resume_file(self, resume_file_url: str):
+        """유저의 이력서 PDF 파일 URL을 User 테이블 DB에 저장합니다."""
+        return self.user_logic.update_resume_file(resume_file_url)
 
     def __del__(self):
         # 인스턴스 소멸 시 세션 닫기

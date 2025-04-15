@@ -15,13 +15,13 @@ gr.set_static_paths(paths=[
 ])
 
 with gr.Blocks(css_paths=['src/ui/style.css'], theme=custom_theme) as demo:
-    
+
     """ 
     컴포넌트 배치
     """
     left_sidebar_wrapper = LeftSidebar()
     right_sidebar_wrapper = RightSidebar()
-    
+
     topbar_wrapper = Topbar()
     tab_host_wrapper = TabHost()
 
@@ -37,7 +37,7 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=custom_theme) as demo:
     """
     상태 변수
     """
-    
+
     chat_state = gr.State({
         'mode': Modes.GENERAL,
         'histories': {
@@ -53,24 +53,24 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=custom_theme) as demo:
     """
     이벤트 핸들러
     """
-    
+
     # 앱 처음 실행시
     demo.load(
-        update_sidebar_profile_image, 
-        inputs=[left_sidebar_wrapper.profile_image], 
+        update_sidebar_profile_image,
+        inputs=[left_sidebar_wrapper.profile_image],
         outputs=[left_sidebar_wrapper.profile_image]
     ).then(
-        load_histories, 
-        inputs=[chat_state], 
+        load_histories,
+        inputs=[chat_state],
         outputs=[
-            chat_state, 
+            chat_state,
             tab_host_wrapper.chatbot_tab_wrapper.main_chatbot,
-            tab_host_wrapper.chatbot_tab_wrapper.input_textarea 
+            tab_host_wrapper.chatbot_tab_wrapper.input_textarea
         ]
     )
     # 각 컴포넌트의 이벤트 핸들러 초기화
     left_sidebar_wrapper.init_event_handlers(
-        topbar_wrapper.topbar, 
+        topbar_wrapper.topbar,
         tab_host_wrapper.tab_host,
         tab_host_wrapper.chatbot_tab_wrapper.main_chatbot,
         chat_state

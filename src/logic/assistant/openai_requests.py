@@ -1,79 +1,17 @@
-import os
 import requests
 from requests import Response
 from openai import AzureOpenAI
-from openai.types import VectorStore, FileObject
 
+from src.logic.constants import constants
 
 AZURE_OPENAI_CLIENT: AzureOpenAI = AzureOpenAI(
-    api_key=os.getenv("AZURE_OPENAI_API_KEY"),
+    api_key=constants.AZURE_OPENAI_API_KEY,
     api_version="2024-05-01-preview",
-    azure_endpoint=f"https://{os.getenv('AZURE_OPENAI_ENDPOINT')}/",
+    azure_endpoint=f"https://{constants.AZURE_OPENAI_ENDPOINT}/",
 )
 
 
-def get_vector_store(vector_store_name: str) -> str:
-    """이름으로 기존 벡터 스토어를 찾아 ID를 반환합니다.
-    존재하지 않는 경우, 새로 생성하여 ID를 반환합니다.
-
-    Args:
-        vector_store_name (str): 벡터 스토어 이름 (보통 user_id)
-
-    Returns:
-        str: 벡터 스토어의 ID
-    """
-    for vector_store in AZURE_OPENAI_CLIENT.vector_stores.list():
-        if vector_store.name == vector_store_name:
-            return vector_store.id
-
-    new_vector_store = AZURE_OPENAI_CLIENT.vector_stores.create(
-        name=vector_store_name)
-    return new_vector_store.id
-
-
-def get_vector_store_files_list(vector_store_id: str) -> list[FileObject]:
-    """벡터 스토어에서 파일 목록을 가져오는 함수 추가
-    Args:
-        vector_store_id (str): 벡터 스토어 ID
-
-    Returns:
-        list[FileObject]: 벡터 스토어의 파일 목록
-    """
-    vector_store_files = AZURE_OPENAI_CLIENT.vector_stores.files.list(
-        vector_store_id=vector_store_id
-    ).data
-    file_ids = [file.id for file in vector_store_files]
-    files = [AZURE_OPENAI_CLIENT.files.retrieve(
-        file_id) for file_id in file_ids]
-    return files
-
-
-def upload_vector_store_files(vector_store_id: str, files: tuple[str]):
-    """벡터 스토어에 파일 업로드하는 함수 추가
-    Args:
-        vector_store_id (str): 벡터 스토어 ID
-        files (tuple[str]): 업로드할 파일 경로가 담긴 튜플
-    """
-    AZURE_OPENAI_CLIENT.vector_stores.file_batches.create_and_poll(
-        vector_store_id=vector_store_id, files=[
-            open(file, mode="rb") for file in files]
-    )
-
-
-def delete_vector_store_files(vector_store_id: str, file_ids: tuple[str]):
-    """벡터 스토어에서 파일 삭제
-
-    Args:
-        vector_store_id (str): 벡터 스토어 ID
-        file_ids (tuple[str]): 삭제할 파일 아이디들이 담긴 튜플
-    """
-    for file_id in file_ids:
-        AZURE_OPENAI_CLIENT.vector_stores.files.delete(
-            vector_store_id=vector_store_id, file_id=file_id
-        )
-
-
-def create_new_thread(azure_openai_endpoint, azure_openai_api_key):
+def create_new_thread():
     """
     1. 사용자 개인용 Azure OpenAI Thread를 생성합니다.
 
@@ -85,12 +23,12 @@ def create_new_thread(azure_openai_endpoint, azure_openai_api_key):
         str: 생성된 개인 Thread의 ID.
     """
     PERSONAL_THREAD_ENDPOINT = (
-        f"https://{azure_openai_endpoint}/openai/threads?api-version=2024-05-01-preview"
+        f"https://{constants.AZURE_OPENAI_ENDPOINT}/openai/threads?api-version=2024-05-01-preview"
     )
 
     result = requests.post(
         PERSONAL_THREAD_ENDPOINT,
-        headers={"api-key": azure_openai_api_key,
+        headers={"api-key": constants.AZURE_OPENAI_API_KEY,
                  "Content-Type": "application/json"},
     )
 
@@ -112,13 +50,12 @@ def add_dialogue_to_thread(
     Returns:
         Response: 요청 결과에 대한 응답 객체.
     """
-    ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT")
-    API_KEY = os.getenv("AZURE_OPENAI_API_KEY")
-    USER_QUESTION_ENDPOINT = f"https://{ENDPOINT}/openai/threads/{personal_thread_id}/messages?api-version=2024-05-01-preview"
+    USER_QUESTION_ENDPOINT = f"https://{constants.AZURE_OPENAI_ENDPOINT}/openai/threads/{personal_thread_id}/messages?api-version=2024-05-01-preview"
 
     result = requests.post(
         USER_QUESTION_ENDPOINT,
-        headers={"api-key": API_KEY, "Content-Type": "application/json"},
+        headers={"api-key": constants.AZURE_OPENAI_API_KEY,
+                 "Content-Type": "application/json"},
         json={"role": role, "content": message},
     )
     return result
@@ -137,13 +74,11 @@ def _run_thread(personal_thread_id, assistant_id) -> str:
     Returns:
         str | None: 실행된 run의 ID. 실패 시 None 반환.
     """
-    ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT")
-    API_KEY = os.getenv("AZURE_OPENAI_API_KEY")
-    USER_QUESTION_RUN_ENDPOINT = f"https://{ENDPOINT}/openai/threads/{personal_thread_id}/runs?api-version=2024-05-01-preview"
+    USER_QUESTION_RUN_ENDPOINT = f"https://{constants.AZURE_OPENAI_ENDPOINT}/openai/threads/{personal_thread_id}/runs?api-version=2024-05-01-preview"
 
     result = requests.post(
         USER_QUESTION_RUN_ENDPOINT,
-        headers={"api-key": API_KEY,
+        headers={"api-key": constants.AZURE_OPENAI_API_KEY,
                  "Content-Type": "application/json"},
         json={"assistant_id": assistant_id},
     )
@@ -189,14 +124,12 @@ def _get_status_of_run(personal_thread_id, run_id) -> str:
     Returns:
         str: 현재 run의 상태 (예: "queued", "in_progress", "completed" 등).
     """
-    ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT")
-    API_KEY = os.getenv("AZURE_OPENAI_API_KEY")
-    TEMP_RUN_ENDPOINT = f"https://{ENDPOINT}/openai/threads/{personal_thread_id}/runs/{run_id}?api-version=2024-05-01-preview"
+    TEMP_RUN_ENDPOINT = f"https://{constants.AZURE_OPENAI_ENDPOINT}/openai/threads/{personal_thread_id}/runs/{run_id}?api-version=2024-05-01-preview"
 
     result = requests.get(
         TEMP_RUN_ENDPOINT,
         headers={
-            "api-key": API_KEY,
+            "api-key": constants.AZURE_OPENAI_API_KEY,
         },
     )
 
@@ -231,12 +164,10 @@ def _get_assistant_citation(personal_thread_id: str, run_id: str) -> dict | None
     Returns:
         dict | None: Run 결과 JSON (성공 시), None (실패 시)
     """
-    ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT")
-    API_KEY = os.getenv("AZURE_OPENAI_API_KEY")
-    RUN_ENDPOINT = f"https://{ENDPOINT}/openai/threads/{personal_thread_id}/runs/{run_id}?api-version=2024-05-01-preview"
+    RUN_ENDPOINT = f"https://{constants.AZURE_OPENAI_ENDPOINT}/openai/threads/{personal_thread_id}/runs/{run_id}?api-version=2024-05-01-preview"
 
     headers = {
-        "api-key": API_KEY,
+        "api-key": constants.AZURE_OPENAI_API_KEY,
         "Content-Type": "application/json"
     }
 
@@ -274,13 +205,11 @@ def get_all_assistant_response(personal_thread_id: str) -> str | None:
     Returns:
         str | None: 가장 최근 Assistant의 텍스트 응답. 없으면 None.
     """
-    ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT")
-    API_KEY = os.getenv("AZURE_OPENAI_API_KEY")
-    USER_QUESTION_ENDPOINT = f"https://{ENDPOINT}/openai/threads/{personal_thread_id}/messages?api-version=2024-05-01-preview"
+    USER_QUESTION_ENDPOINT = f"https://{constants.AZURE_OPENAI_ENDPOINT}/openai/threads/{personal_thread_id}/messages?api-version=2024-05-01-preview"
 
     result = requests.get(
         USER_QUESTION_ENDPOINT,
-        headers={"api-key": API_KEY,
+        headers={"api-key": constants.AZURE_OPENAI_API_KEY,
                  "Content-Type": "application/json"},
     )
     if result.status_code != 200:
