@@ -462,6 +462,7 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=theme) as demo:
                 content
             )
             message = convert_to_openai_style(response)
+            chat_state['histories'][mode].pop()
             chat_state['histories'][mode].append(message)
 
         return '', chat_state['histories'][chat_state['mode']], chat_state
