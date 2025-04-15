@@ -233,7 +233,7 @@ footer {
     background: var(--block-background-fill) !important;
 }
 
-.sidebar-content>.column>*:nth-last-child(1) {
+.sidebar:nth-of-type(2)>.sidebar-content>.column>*:last-child {
     margin-top: auto;
 }
 
@@ -249,8 +249,44 @@ footer {
     margin : 10px 0 0 10px;
 }
 
-.sidebar-content>.column>*:nth-last-child(1)>.html-container {
+#profile:hover {
+    cursor: pointer;   
+}
+#profile img:hover {
+    cursor: pointer;   
+}
+
+/* 엣취 카와이 */
+#etch_kawai{
+    margin : 10px 0 0 10px;
+}
+
+#profile:hover {
+    cursor: pointer;   
+}
+#profile img:hover {
+    cursor: pointer;   
+}
+
+/* 엣취 카와이 */
+#etch_kawai{
+    margin : 10px 0 0 10px;
+}
+
+.sidebar:nth-of-type(2)>.sidebar-content>.column>*:last-child>.html-container {
     padding: 0;
+}
+
+.sidebar.right>.sidebar-content>.column>*:first-child {
+    margin-top: auto;
+}
+
+#profile {
+    cursor: pointer;
+}
+
+.gradio-container {
+    min-width: var(--size-full) !important;
 }
 
 .profile-save-button {
@@ -271,6 +307,7 @@ footer {
     width: 100%;
     height: auto; /* 높이는 내용에 맞게 자동 */
     background: transparent;
+    -webkit-backdrop-filter: blur(3px);
     backdrop-filter: blur(3px);
     border-top: 0px solid rgba(255,255,255,0.1);
     text-align: center;

@@ -82,9 +82,6 @@ gr.set_static_paths(paths=[
 
 with gr.Blocks(css_paths=['src/ui/style.css'], theme=custom_theme) as demo:
     """ 앱 """
-
-    with gr.Sidebar(position='right'):
-        gr.Markdown('test')
         
     with gr.Sidebar(position='left') as sidebar:
         
@@ -122,7 +119,16 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=custom_theme) as demo:
             show_fullscreen_button=False,
         )
 
+        sidebar_profile_image = gr.HTML("<img id='profile' src='/gradio_api/file=resources/profile-placeholder.png'>")
 
+
+    with gr.Sidebar(position='right') as sidebar2:
+        with gr.Accordion('이력서 미리보기') as resume_preview:
+            gr.Markdown('👀👀👀👀👀👀👀')
+        with gr.Accordion('아카이브') as archive:
+            gr.Chatbot([], type='messages', show_label=False)
+        
+        
     """ 상단 바 """
     with gr.Row(elem_id='topbar-section', visible=False) as topbar:
         # topbar logo : button에 css 이용하여 이미지 배경 삽입 (gr.HTML 이용시 탭이동 불가, gr.Image 이용시 다크모드 이미지 변경하려면 js 필요)
