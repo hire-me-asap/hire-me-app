@@ -1,3 +1,11 @@
+from src.ui.events.on_sidebar_expand_or_collapse import set_topbar_visibility
+from src.ui.events.on_chatbot_example_select import select_example
+from src.ui.events.on_tab_change_required import select_chat_tab, select_profile_tab
+from src.ui.events.on_input_submit import queue_message, wait_message
+from src.ui.events.on_demo_load import load_histories, update_sidebar_profile_image
+from src.ui.constants import *
+from src.ui.theme import custom_theme
+from logic.user.app_logic import app_logic
 import os
 import re
 import sys
@@ -5,16 +13,8 @@ import gradio as gr
 
 from pathlib import Path
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "src")))
-
-from src.logic.app_logic import app_logic
-from src.ui.theme import custom_theme
-from src.ui.constants import *
-from src.ui.events.on_demo_load import load_histories, update_sidebar_profile_image
-from src.ui.events.on_input_submit import queue_message, wait_message
-from src.ui.events.on_tab_change_required import select_chat_tab, select_profile_tab
-from src.ui.events.on_chatbot_example_select import select_example
-from src.ui.events.on_sidebar_expand_or_collapse import set_topbar_visibility
+sys.path.append(os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "src")))
 
 
 APP_VERSION = "1.0.0"
@@ -195,7 +195,7 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=custom_theme) as demo:
     })
 
     """ 이벤트 핸들러 """
-    
+
     # 앱 처음 실행시
     demo.load(
         update_sidebar_profile_image, inputs=[
@@ -215,45 +215,45 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=custom_theme) as demo:
 
     # chatbot tab 함수 및 이벤트
     general_chat_button.click(
-        select_chat_tab, 
-        inputs=[gr.State(Modes.GENERAL), chat_state], 
+        select_chat_tab,
+        inputs=[gr.State(Modes.GENERAL), chat_state],
         outputs=[tab_host, main_chatbot, chat_state]
     )
     job_chat_button.click(
-        select_chat_tab, 
-        inputs=[gr.State(Modes.JOB), chat_state], 
+        select_chat_tab,
+        inputs=[gr.State(Modes.JOB), chat_state],
         outputs=[tab_host, main_chatbot, chat_state]
     )
     recruit_chat_button.click(
-        select_chat_tab, 
-        inputs=[gr.State(Modes.RECRUIT), chat_state], 
+        select_chat_tab,
+        inputs=[gr.State(Modes.RECRUIT), chat_state],
         outputs=[tab_host, main_chatbot, chat_state]
     )
     resume_chat_button.click(
-        select_chat_tab, 
-        inputs=[gr.State(Modes.RESUME), chat_state], 
+        select_chat_tab,
+        inputs=[gr.State(Modes.RESUME), chat_state],
         outputs=[tab_host, main_chatbot, chat_state]
     )
     roadmap_chat_button.click(
-        select_chat_tab, 
-        inputs=[gr.State(Modes.ROADMAP), chat_state], 
+        select_chat_tab,
+        inputs=[gr.State(Modes.ROADMAP), chat_state],
         outputs=[tab_host, main_chatbot, chat_state]
     )
     course_chat_button.click(
-        select_chat_tab, 
-        inputs=[gr.State(Modes.COURSE), chat_state], 
+        select_chat_tab,
+        inputs=[gr.State(Modes.COURSE), chat_state],
         outputs=[tab_host, main_chatbot, chat_state]
     )
 
     # 로고 이미지 클릭시 메인 챗봇으로 이동 이벤트
     topbar_logo_image.click(
-        select_chat_tab, 
-        inputs=[gr.State(None), chat_state], 
+        select_chat_tab,
+        inputs=[gr.State(None), chat_state],
         outputs=[tab_host, main_chatbot, chat_state]
     )
     sidebar_logo_image.click(
-        select_chat_tab, 
-        inputs=[gr.State(None), chat_state], 
+        select_chat_tab,
+        inputs=[gr.State(None), chat_state],
         outputs=[tab_host, main_chatbot, chat_state]
     )
 
