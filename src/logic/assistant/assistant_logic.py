@@ -1,11 +1,8 @@
 import time
 
-from typing import List, Optional, TypedDict, Tuple
-from sqlalchemy.orm import Session
 from enum import Enum
 
 from src.logic.assistant.openai_requests import (
-    create_new_thread,
     add_dialogue_to_thread,
     run_message_to_thread,
     is_run_done,
@@ -13,6 +10,8 @@ from src.logic.assistant.openai_requests import (
     get_all_assistant_response,
     get_assistant_citations,
 )
+
+from src.logic.constants import Constants
 
 
 class AssistantType(Enum):
@@ -72,12 +71,12 @@ class AssistantLogic:
         from src.models.user import User
 
         assistant_mapping = {
-            AssistantType.ASSISTANT: [ASSISTANT_ID, "thread_id_assistant"],
-            AssistantType.JOB_RECOMMEND: [ASSISTANT_ID_JOB_RECOMMEND, "thread_id_job_recommend"],
-            AssistantType.RECRUIT_RECOMMEND: [ASSISTANT_ID_RECRUIT_RECOMMEND, "thread_id_recruit_recommend"],
-            AssistantType.ROADMAP: [ASSISTANT_ID_ROADMAP, "thread_id_roadmap"],
-            AssistantType.RESUME_REVIEW: [ASSISTANT_ID_RESUME_REVIEW, "thread_id_resume_review"],
-            AssistantType.FIND_STUDY: [ASSISTANT_ID_FIND_STUDY, "thread_id_find_study"],
+            AssistantType.ASSISTANT: [Constants.ASSISTANT_ID, "thread_id_assistant"],
+            AssistantType.JOB_RECOMMEND: [Constants.ASSISTANT_ID_JOB_RECOMMEND, "thread_id_job_recommend"],
+            AssistantType.RECRUIT_RECOMMEND: [Constants.ASSISTANT_ID_RECRUIT_RECOMMEND, "thread_id_recruit_recommend"],
+            AssistantType.ROADMAP: [Constants.ASSISTANT_ID_ROADMAP, "thread_id_roadmap"],
+            AssistantType.RESUME_REVIEW: [Constants.ASSISTANT_ID_RESUME_REVIEW, "thread_id_resume_review"],
+            AssistantType.FIND_STUDY: [Constants.ASSISTANT_ID_FIND_STUDY, "thread_id_find_study"],
         }
 
         assistant_id, thread_column_name = assistant_mapping[assistant_type]
