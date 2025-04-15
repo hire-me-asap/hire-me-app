@@ -5,7 +5,7 @@ from pathlib import Path
 from enum import Enum
 
 from ..logic.app_logic import app_logic, AssistantType
-from ..logic.message_converter import convert_to_openai_style
+from ..logic.messages import convert_to_openai_style
 
 
 class Modes(Enum):
@@ -183,12 +183,11 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=theme) as demo:
                 elem_id="chatbot",
                 label=FEATURES[Modes.GENERAL],
                 type='messages',
-                examples=EXAMPLE_MESSAGES[Modes.GENERAL],
-                show_copy_button=True,
-                show_copy_all_button=True
+                examples=EXAMPLE_MESSAGES[Modes.GENERAL]
             )
             option_checkboxes = gr.CheckboxGroup(
-                ['📜 이력서 포함시키기', '이런 식으로 체크박스', '여러 개 넣을 수 있어요'],
+                ['📜 이력서 포함시키기'],
+                value=[0],
                 show_label=False,
                 elem_id="custom-checkbox"
             )
@@ -302,7 +301,7 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=theme) as demo:
             return gr.update()
         
         return gr.HTML(
-            f"<img id='profile' src='/gradio_api/file={app_logic.get_user_img(app_logic.user_id())[1:]}'>"
+            f"<img id='profile' src='/gradio_api/file={app_logic.get_user_img()[1:]}'>"
         )
     
     def load_histories(chat_state):
@@ -310,15 +309,15 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=theme) as demo:
             return gr.update(), gr.update()
         
         for mode in Modes:
-            history = app_logic.get_all_thread_dialogue(app_logic.user_id(), ASSISTANTS_OF_MODE[chat_state['mode']])
+            history = app_logic.get_all_thread_dialogue(ASSISTANTS_OF_MODE[mode])
             chat_state['histories'][mode] = list(map(convert_to_openai_style, reversed(history)))
         
-        return chat_state, chat_state['histories'][chat_state['mode']]
+        return chat_state, chat_state['histories'][chat_state['mode']], ''
 
     demo.load(
         update_sidebar_profile_image, inputs=[sidebar_profile_image], outputs=[sidebar_profile_image]
     ).then(
-        load_histories, inputs=[chat_state], outputs=[chat_state, main_chatbot]
+        load_histories, inputs=[chat_state], outputs=[chat_state, main_chatbot, input_textarea]
     )
     
     # 로고 보이기 함수 및 이벤트
@@ -339,8 +338,7 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=theme) as demo:
     def select_chat_tab(mode: Optional[Modes], chat_state):
         mode = mode if mode else chat_state['mode']
         chat_state['mode'] = mode
-        history = chat_state['histories'][mode]
-        return gr.update(selected=0), gr.update(value=history, label=FEATURES[mode], examples=EXAMPLE_MESSAGES[mode]), chat_state
+        return gr.update(selected=0), gr.update(value=chat_state['histories'][mode], label=FEATURES[mode], examples=EXAMPLE_MESSAGES[mode]), chat_state
 
     general_chat_button.click(select_chat_tab, inputs=[gr.State(Modes.GENERAL), chat_state], outputs=[tab_host, main_chatbot, chat_state])
     job_chat_button.click(select_chat_tab, inputs=[gr.State(Modes.JOB), chat_state], outputs=[tab_host, main_chatbot, chat_state])
@@ -358,37 +356,38 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=theme) as demo:
 
     main_chatbot.example_select(select_example, outputs=[input_textarea])
 
-    def queue_message(content, history, chat_state):
+    def queue_message(content, chat_state):
         if content.strip():
             message = {'role': 'user', 'content': content}
             chat_state['histories'][chat_state['mode']].append(message)
-            history.append(message)
-        return history, chat_state
+        return chat_state['histories'][chat_state['mode']], chat_state
     
-    def wait_message(content, history, chat_state):
+    def wait_message(content, chat_state):
+        mode = chat_state['mode']
         if not content.strip():
-            return '', history, chat_state
+            return '', chat_state['histories'][mode], chat_state
 
         response = app_logic.get_response_from_assistant(
-            app_logic.user_id(),
-            ASSISTANTS_OF_MODE[chat_state['mode']],
+            ASSISTANTS_OF_MODE[mode],
             content
         )
-        response = {'role': 'assistant', 'content': response['text']}        
-        chat_state['histories'][chat_state['mode']].append(response)
-        history.append(response)
-        return '', history, chat_state
+        message = convert_to_openai_style(response)
+        chat_state['histories'][mode].append(message)
+        
+        return '', chat_state['histories'][chat_state['mode']], chat_state
     
     input_textarea.submit(
-        queue_message, inputs=[input_textarea, main_chatbot, chat_state], outputs=[main_chatbot, chat_state]
+        queue_message, 
+        inputs=[input_textarea, chat_state], 
+        outputs=[main_chatbot, chat_state]
     ).then(
         wait_message, 
-        inputs=[input_textarea, main_chatbot, chat_state], 
+        inputs=[input_textarea, chat_state], 
         outputs=[input_textarea, main_chatbot, chat_state], 
         scroll_to_output=True
     )
     
-
+    
 account_pattern = re.compile(r'^[A-Za-z\d_]{4,}$')
 
 def sign_in_or_sign_up(user_id: str, password: str) -> bool:
@@ -401,7 +400,6 @@ def sign_in_or_sign_up(user_id: str, password: str) -> bool:
     
     if message == '아이디가 존재하지 않습니다.':
         app_logic.sign_up(user_id, password)
-        app_logic.sign_in(user_id, password)
         return True
     
     return False

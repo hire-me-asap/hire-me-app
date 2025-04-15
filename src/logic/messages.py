@@ -10,6 +10,5 @@ def convert_to_openai_style(raw_json_message: dict) -> dict:
     """
     return {
         'role': raw_json_message['role'], 
-        'content': raw_json_message['content'][0]['text'],
-        'additional_info': raw_json_message.get('additional_info', None),
+        'content': raw_json_message['content'][0]['text']['value']
     }

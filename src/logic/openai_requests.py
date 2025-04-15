@@ -153,7 +153,7 @@ def _run_thread(
     return RUN_ID
 
 
-def run_message_to_thread(thread_id: str, assistant_id: str, message: str) -> any:
+def _run_message_to_thread(thread_id: str, assistant_id: str, message: str) -> any:
     """
     3.1. 지정된 Thread에 메시지를 추가하고 실행을 시작합니다.
 
@@ -247,8 +247,7 @@ def _get_assistant_citation(azure_openai_endpoint: str, azure_openai_api_key: st
     if response.status_code == 200:
         return response.json()
     else:
-        print(
-            f"Failed to get run details: {response.status_code}, {response.text}")
+        print(f"Failed to get run details: {response.status_code}, {response.text}")
         return None
 
 
@@ -323,10 +322,10 @@ def get_last_assistant_message(thread_id: str) -> str | None:
         thread_id (str): 사용자 개인 Thread의 ID.
 
     Returns:
-        str | None: 가장 최근 Assistant의 응답 메시지. 실패 시 None.
+        dict | None: 가장 최근 Assistant의 응답. 실패 시 None.
     """
     messages = _get_assistant_response(os.getenv(
         "AZURE_OPENAI_ENDPOINT"), os.getenv("AZURE_OPENAI_API_KEY"), thread_id)
     for message in messages:
         if message["role"] == "assistant":
-            return message["content"][0]["text"]["value"]
+            return message

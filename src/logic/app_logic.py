@@ -15,7 +15,7 @@ from src.logic.openai_requests import (
     get_vector_store,
     create_new_thread,
     add_user_question_to_thread,
-    run_message_to_thread,
+    _run_message_to_thread,
     is_run_done,
     get_last_assistant_message,
     get_all_assistant_response,
@@ -142,7 +142,7 @@ class AppLogic:
 
         # 로그인 성공
         self._signed_in = True
-        self._user_id = user.id
+        self._user_id = user_id
         return True, "로그인 성공"
 
     def sign_up(
@@ -169,6 +169,9 @@ class AppLogic:
 
         # 회원가입 로직 수행
         create_user(self.db, user_id=user_id, password=password)
+
+        self.sign_in(user_id, password)
+        
         self._update_vector_store()
         self._update_thread_id()
         self._update_user_img()
@@ -282,19 +285,9 @@ class AppLogic:
 
     def _request_assistant_response(self, assistant_id: str, message: str, thread_id: str) -> tuple[str, str]:
         """사용자 질문을 스레드에 추가하고, AI 도우미의 응답과 run_id를 받아옵니다."""
-
-        # 1. 사용자 메시지를 스레드에 추가
-        response = add_user_question_to_thread(
-            personal_thread_id=thread_id,
-            user_question=message
-        )
-        if response.status_code != 200:
-            raise Exception(
-                f"Failed to add user question to thread: {response.text}"
-            )
-
-        # 2. 메시지를 기반으로 도우미 실행(run)
-        run_id = run_message_to_thread(
+        
+        # 1. 메시지를 기반으로 도우미 실행(run)
+        run_id = _run_message_to_thread(
             thread_id=thread_id,
             assistant_id=assistant_id,
             message=message
@@ -302,7 +295,7 @@ class AppLogic:
         if not run_id:
             raise Exception("Failed to start run for the thread.")
 
-        # 3. 도우미가 응답을 완료할 때까지 대기
+        # 2. 도우미가 응답을 완료할 때까지 대기
         polling_interval = 1
         max_wait_time = 30
         elapsed_time = 0
@@ -313,10 +306,10 @@ class AppLogic:
             time.sleep(polling_interval)
             elapsed_time += polling_interval
 
-        # 4. 도우미의 최종 응답 메시지 반환
-        response_message = get_last_assistant_message(thread_id)
+        # 3. 도우미의 최종 응답 메시지 반환
+        response = get_last_assistant_message(thread_id)
 
-        return response_message, run_id
+        return response, run_id
 
     def get_response_from_assistant(
         self, assistant_type: AssistantType, user_question: str
@@ -351,7 +344,7 @@ class AppLogic:
         personal_thread_id = getattr(user, thread_column_name)
 
         # 도우미 응답 텍스트 받아오기
-        response_text, run_id = self._request_assistant_response(
+        response, run_id = self._request_assistant_response(
             assistant_id=assistant_id,
             message=user_question,
             thread_id=personal_thread_id,
@@ -359,19 +352,8 @@ class AppLogic:
 
         citations = get_assistant_citations(personal_thread_id, run_id)
 
-        # 도우미 타입에 따라 처리 방식 다르게
-        if assistant_type == AssistantType.ROADMAP:
-            text, image = split_text_and_json(response_text)
-            return {
-                "text": text,
-                "image": image,
-                "citations": citations,
-            }
-        else:
-            return {
-                "text": response_text,
-                "citations": citations,
-            }
+        response['citations'] = citations
+        return response
 
     def get_all_thread_dialogue(self, assistant_type: AssistantType) -> dict:
         """
