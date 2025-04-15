@@ -474,3 +474,6 @@ class AppLogic:
         # 인스턴스 소멸 시 세션 닫기
         if hasattr(self, "db"):
             self.db.close()
+
+
+app_logic = AppLogic()
