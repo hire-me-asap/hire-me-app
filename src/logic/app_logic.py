@@ -22,9 +22,10 @@ from src.logic.openai_requests import (
 )
 
 from src.models.user import get_user_by_id, update_user, create_user, delete_user
-from src.models.resume import get_resume_by_id, create_resume, update_resume, delete_resume
+from src.models.resume import get_resume_by_id, create_resume, update_resume, delete_resume, Resume
 from src.logic.generate_id_card import generate_avatar_id_card
 from src.logic.generate_roadmap_img import split_text_and_json
+from src.logic.generate_pdf_resume import generate_pdf_resume
 from src.db import Session
 
 load_dotenv()
@@ -468,7 +469,30 @@ class AppLogic:
         """
         return self._sign_in
 
-    # TODO : 사용자페이지에서 입력받은 이력서 PDF로 뽑기 -> 형식 고정되어서 출력해야 하나? 권아님
+    def generate_pdf_from_resume_id(self, user_id: str) -> str:
+        resume = get_resume_by_id(db=self.db, user_id=user_id)
+        # 저장 원하는 위치로 수정 가능.
+        output_path = r"src/tmp/outputs/resume.pdf"
+
+        if not resume:
+            raise ValueError("이력서를 찾을 수 없습니다.")
+
+        # 안전하게 None 처리
+        def safe_data(val, default):
+            return val if val else default
+
+        user_info = {
+            "real_name": resume.real_name or "",
+            "summary": resume.summary or "",
+            "skill_stack": safe_data(resume.skill_stack, []),
+            "work_experiences": safe_data(resume.work_experiences, []),
+            "education": safe_data(resume.education, {}),
+            "education_and_exp": safe_data(resume.education_and_exp, []),
+            "certificates": safe_data(resume.certificates, []),
+            "awards": safe_data(resume.awards, []),
+            "languages": safe_data(resume.languages, [])
+        }
+        return generate_pdf_resume(output_path, user_info)
 
     def __del__(self):
         # 인스턴스 소멸 시 세션 닫기
