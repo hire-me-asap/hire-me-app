@@ -8,7 +8,7 @@ from openai.types import VectorStore
 from sqlalchemy.orm import Session
 from enum import Enum
 
-from src.logic.openai_requests import (
+from logic.assistant.openai_requests import (
     upload_vector_store_files,
     get_vector_store_files_list,
     delete_vector_store_files,
@@ -24,8 +24,8 @@ from src.logic.openai_requests import (
 
 from src.models.user import get_user_by_id, update_user, create_user, delete_user
 from src.models.resume import get_resume_by_id, create_resume, update_resume, delete_resume
-from src.logic.generate_id_card import generate_avatar_id_card
-from src.logic.generate_pdf_resume import generate_pdf_resume
+from logic.user.generate_id_card import generate_avatar_id_card
+from logic.resume.generate_pdf_resume import generate_pdf_resume
 from src.db import Session
 
 load_dotenv()

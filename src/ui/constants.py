@@ -1,6 +1,6 @@
 from enum import Enum
 
-from src.logic.app_logic import AssistantType
+from logic.user.app_logic import AssistantType
 
 
 class Modes(Enum):

@@ -1,6 +1,6 @@
 import json
 
-from src.logic.app_logic import app_logic
+from logic.user.app_logic import app_logic
 from src.ui.messages import convert_to_openai_style
 from src.ui.constants import ASSISTANTS_OF_MODE, Modes
 
