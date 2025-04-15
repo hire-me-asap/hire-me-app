@@ -19,6 +19,10 @@
     flex-grow: 1 !important;
 }
 
+#chatbot {
+    overflow: hidden !important;
+}
+
 .contain>*:nth-child(1) {
     gap: 0;
 }
