@@ -1,6 +1,4 @@
-import os
 import re
-import sys
 import gradio as gr
 
 from pathlib import Path
