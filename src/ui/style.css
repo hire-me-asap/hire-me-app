@@ -85,8 +85,6 @@
     }
 }
 
-
-
 .contain>*:nth-child(1),
 
 .tabs,
@@ -95,6 +93,10 @@
 #chatbot-tab>.column>.styler,
 #chatbot {
     flex-grow: 1 !important;
+}
+
+#chatbot {
+    overflow: hidden
 }
 
 .contain>*:nth-child(1) {
@@ -273,7 +275,7 @@ footer {
     margin : 10px 0 0 10px;
 }
 
-.sidebar:nth-of-type(2)>.sidebar-content>.column>*:last-child>.html-container {
+.sidebar:nth-of-type(2)>.sidebar-content>.column .html-container {
     padding: 0;
 }
 
