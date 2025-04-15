@@ -1,4 +1,4 @@
-from typing import List, Optional, TypedDict, Tuple
+from typing import Optional
 from sqlalchemy.orm import Session
 
 from src.models.resume import get_resume_by_id, create_resume, update_resume, delete_resume
