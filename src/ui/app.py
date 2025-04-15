@@ -5,6 +5,7 @@ from pathlib import Path
 from enum import Enum
 
 from ..logic.app_logic import app_logic, AssistantType
+from ..logic.message_converter import convert_to_openai_style
 
 
 class Modes(Enum):
@@ -183,6 +184,8 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=theme) as demo:
                 label=FEATURES[Modes.GENERAL],
                 type='messages',
                 examples=EXAMPLE_MESSAGES[Modes.GENERAL],
+                show_copy_button=True,
+                show_copy_all_button=True
             )
             option_checkboxes = gr.CheckboxGroup(
                 ['📜 이력서 포함시키기', '이런 식으로 체크박스', '여러 개 넣을 수 있어요'],
@@ -308,8 +311,7 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=theme) as demo:
         
         for mode in Modes:
             history = app_logic.get_all_thread_dialogue(app_logic.user_id(), ASSISTANTS_OF_MODE[chat_state['mode']])
-            print(history)
-            chat_state['histories'][mode] = []
+            chat_state['histories'][mode] = list(map(convert_to_openai_style, reversed(history)))
         
         return chat_state, chat_state['histories'][chat_state['mode']]
 
