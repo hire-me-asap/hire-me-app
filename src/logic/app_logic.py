@@ -1,4 +1,4 @@
-from typing import Optional, TypedDict, Tuple
+from typing import Optional, Tuple
 from sqlalchemy.orm import Session
 
 from src.db import Session
