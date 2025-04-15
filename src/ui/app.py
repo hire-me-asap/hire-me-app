@@ -335,8 +335,8 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=theme) as demo:
     course_chat_button.click(select_chat_tab, inputs=[gr.State(Modes.COURSE), chat_state], outputs=[tab_host, main_chatbot, chat_state])
 
     # 로고 이미지 클릭시 메인 챗봇으로 이동 이벤트
-    topbar_logo_image.select(select_chat_tab, inputs=[gr.State(Modes.GENERAL), chat_state], outputs=[tab_host, main_chatbot, chat_state])
-    sidebar_logo_image.select(select_chat_tab, inputs=[gr.State(Modes.GENERAL), chat_state], outputs=[tab_host, main_chatbot, chat_state])
+    topbar_logo_image.select(select_chat_tab, inputs=[gr.State(None), chat_state], outputs=[tab_host, main_chatbot, chat_state])
+    sidebar_logo_image.select(select_chat_tab, inputs=[gr.State(None), chat_state], outputs=[tab_host, main_chatbot, chat_state])
 
     def select_example(selected: gr.SelectData):
         return selected.value['text']
