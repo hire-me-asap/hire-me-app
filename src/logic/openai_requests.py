@@ -175,7 +175,7 @@ def run_message_to_thread(thread_id: str, assistant_id: str, message: str) -> an
     ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT")
     API_KEY = os.getenv("AZURE_OPENAI_API_KEY")
 
-    result = add_user_question_to_thread(ENDPOINT, API_KEY, thread_id, message)
+    result = add_user_question_to_thread(thread_id, message)
     if result.status_code != 200:
         return
 

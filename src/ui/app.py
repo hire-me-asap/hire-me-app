@@ -14,7 +14,16 @@ class Modes(Enum):
     RESUME = "resume"
     ROADMAP = "roadmap"
     COURSE = "course"
-    
+
+
+ASSISTANTS = {
+    Modes.GENERAL: AssistantType.ASSISTANT,
+    Modes.JOB: AssistantType.JOB_RECOMMEND,
+    Modes.RECRUIT: AssistantType.RECRUIT_RECOMMEND,
+    Modes.RESUME: AssistantType.RESUME_REVIEW,
+    Modes.ROADMAP: AssistantType.ROADMAP,
+    Modes.COURSE: AssistantType.FIND_STUDY,
+}
 
 FEATURES = {
     Modes.GENERAL: '무엇이든 물어보세요!',
@@ -326,13 +335,13 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=theme) as demo:
     course_chat_button.click(select_chat_tab, inputs=[gr.State(Modes.COURSE), chat_state], outputs=[tab_host, main_chatbot, chat_state])
 
     # 로고 이미지 클릭시 메인 챗봇으로 이동 이벤트
-    topbar_logo_image.select(lambda: select_chat_tab(Modes.GENERAL, chat_state), outputs=[tab_host, main_chatbot, chat_state])
-    sidebar_logo_image.select(lambda: select_chat_tab(Modes.GENERAL, chat_state), outputs=[tab_host, main_chatbot, chat_state])
+    topbar_logo_image.select(select_chat_tab, inputs=[gr.State(Modes.GENERAL), chat_state], outputs=[tab_host, main_chatbot, chat_state])
+    sidebar_logo_image.select(select_chat_tab, inputs=[gr.State(Modes.GENERAL), chat_state], outputs=[tab_host, main_chatbot, chat_state])
 
     def select_example(selected: gr.SelectData):
         return selected.value['text']
 
-    main_chatbot.select(select_example, outputs=[input_textarea])
+    main_chatbot.example_select(select_example, outputs=[input_textarea])
 
     def queue_message(content, history, chat_state):
         if content.strip():
@@ -344,8 +353,13 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=theme) as demo:
     def wait_message(content, history, chat_state):
         if not content.strip():
             return '', history, chat_state
-       
-        response = {'role': 'assistant', 'content': '임시 응답입니다. 엣취!'}
+        
+        response = app_logic.get_response_from_assistant(
+            app_logic.user_id(),
+            ASSISTANTS[chat_state['mode']],
+            content
+        )
+        response = {'role': 'assistant', 'content': response['text']}        
         chat_state['histories'][chat_state['mode']].append(response)
         history.append(response)
         return '', history, chat_state
