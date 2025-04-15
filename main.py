@@ -2,7 +2,7 @@ from fastapi import FastAPI
 import uvicorn
 import gradio as gr
 from pathlib import Path
-from src.ui.app import demo, sign_in_or_sign_up, AUTH_MESSAGE
+from src.ui import demo, sign_in_or_sign_up, AUTH_MESSAGE
 
 app = FastAPI()
 app = gr.mount_gradio_app(
