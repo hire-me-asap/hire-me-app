@@ -66,4 +66,3 @@ tzdata==2025.2
 urllib3==2.3.0
 uvicorn==0.34.0 ; sys_platform != 'emscripten'
 websockets==15.0.1
-weasyprint>=60.0
