@@ -1,10 +1,3 @@
-"""
-TODO:
-- [ ] 벡터 스토어에서 파일 목록을 가져오는 함수 추가
-- [ ] 벡터 스토어에 파일 업로드하는 함수 추가
-- [ ] 벡터 스토어에서 파일 삭제하는 함수 추가
-"""
-
 import os
 import requests
 from requests import Response
