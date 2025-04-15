@@ -1,6 +1,3 @@
-from sqlalchemy.orm import Session
-from src.models.resume import get_resume_by_id, Resume
-
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
