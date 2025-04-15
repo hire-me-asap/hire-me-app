@@ -1,40 +1,10 @@
-import os
-import time
-import json
-
-from dotenv import load_dotenv
-from typing import List, Optional, TypedDict, Tuple
+from typing import Optional, TypedDict
 from sqlalchemy.orm import Session
-from enum import Enum
 
-from logic.assistant.openai_requests import (
-    upload_vector_store_files,
-    get_vector_store_files_list,
-    delete_vector_store_files,
-    get_vector_store,
-    create_new_thread,
-    add_dialogue_to_thread,
-    run_message_to_thread,
-    is_run_done,
-    get_last_assistant_message,
-    get_all_assistant_response,
-    get_assistant_citations,
-)
-
-from src.models.user import get_user_by_id, update_user, create_user, delete_user
-from src.models.resume import get_resume_by_id, create_resume, update_resume, delete_resume
-from logic.user.generate_id_card import generate_avatar_id_card
-from logic.resume.generate_pdf_resume import generate_pdf_resume
 from src.db import Session
-
-
-class AssistantType(Enum):
-    JOB_RECOMMEND = "job_recommend"
-    RECRUIT_RECOMMEND = "recruit_recommend"
-    ROADMAP = "roadmap"
-    RESUME_REVIEW = "resume_review"
-    FIND_STUDY = "find_study"
-    ASSISTANT = "assistant"
+from src.logic.user.user_logic import UserLogic
+from src.logic.resume.resume_logic import ResumeLogic
+from src.logic.assistant.assistant_logic import AssistantLogic, AssistantType
 
 
 class FileInfo(TypedDict):
@@ -62,45 +32,12 @@ class AppLogic:
     def __init__(self):
         self._signed_in: bool = False
         self._user_id: Optional[str] = None
-        self._vector_store_id: Optional[str] = None
         self.db = Session()
 
-    def upload_user_files(self, *files: str):
-        """파일을 사용자 전용 벡터 스토어에 업로드합니다.
-
-        Args:
-            *files (str): 업로드할 파일의 경로
-        """
-        if not self._signed_in:
-            raise RuntimeError("로그인 정보가 없습니다.")
-        upload_vector_store_files(self._vector_store_id, files)
-
-    def list_user_files(self) -> list[FileInfo]:
-        """사용자 전용 벡터 스토어에 업로드된 모든 파일의 ID 리스트를 반환합니다.
-
-        Returns:
-            list[FileInfo]: 파일 정보가 담긴 리스트입니다.
-        """
-        if not self._signed_in:
-            raise RuntimeError("로그인 정보가 없습니다.")
-
-        files = get_vector_store_files_list(self._vector_store_id)
-        files = [FileInfo(file_id=file.id, file_name=file.filename)
-                 for file in files]
-        return files
-
-    def remove_user_files(self, *file_ids: str) -> bool:
-        """파일을 사용자 전용 벡터 스토어에서 삭제합니다.
-
-        Args:
-            *files_ids (str): 삭제할 파일의 ID
-        """
-        if not self._signed_in:
-            raise RuntimeError("로그인 정보가 없습니다.")
-
-        delete_vector_store_files(
-            vector_store_id=self._vector_store_id, file_ids=file_ids
-        )
+        # 각 로직 클래스 초기화
+        self.user_logic = UserLogic(self.db)
+        self.resume_logic = ResumeLogic(self.db)
+        self.assistant_logic = AssistantLogic(self.db)
 
     def user_id(self):
         """사용자 아이디를 반환합니다.
@@ -119,6 +56,30 @@ class AppLogic:
             bool: 로그인 여부
         """
         return self._signed_in
+
+    def get_user_img(self):
+        """사용자 카드 이미지 주소를 반환합니다."""
+        return self.user_logic.get_user_img()
+
+    def generate_resume_pdf(self):
+        """이력서 PDF를 생성합니다."""
+        return self.resume_logic.generate_pdf_from_resume_id()
+
+    def get_response_from_assistant(self, assistant_type: AssistantType, user_question: str):
+        """AI 도우미를 통해 사용자 질문에 응답합니다."""
+        return self.assistant_logic.get_response_from_assistant(assistant_type, user_question)
+
+    def get_all_thread_dialogue(self, assistant_type: AssistantType):
+        """사용자의 assistant_type에 해당하는 Thread ID를 통해 전체 대화 내역을 반환합니다."""
+        return self.assistant_logic.get_all_thread_dialogue(assistant_type)
+
+    def add_dialogue_thread(self, role: str, message: str):
+        """스레드에 해당 역할에 대한 메세지를 추가합니다."""
+        return self.assistant_logic.add_dialogue_thread(role, message)
+
+    def update_resume_file(self, resume_file_url: str):
+        """유저의 이력서 PDF 파일 URL을 User 테이블 DB에 저장합니다."""
+        return self.user_logic.update_resume_file(resume_file_url)
 
     def __del__(self):
         # 인스턴스 소멸 시 세션 닫기

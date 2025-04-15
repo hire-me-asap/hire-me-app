@@ -1,4 +1,19 @@
+from typing import Optional, Tuple
+from sqlalchemy.orm import Session
+
+from logic.assistant.openai_requests import create_new_thread
+
+from src.models.user import get_user_by_id, update_user, create_user, delete_user
+from logic.user.generate_id_card import generate_avatar_id_card
+from src.db import Session
+
+
 class UserLogic:
+    def __init__(self):
+        self._signed_in: bool = False
+        self._user_id: Optional[str] = None
+        self.db = Session()
+
     def sign_in(self, user_id: str, password: str) -> Tuple[bool, str]:
         """
         사용자 로그인 기능을 수행합니다.
@@ -55,34 +70,10 @@ class UserLogic:
         create_user(self.db, user_id=user_id, password=password)
 
         self.sign_in(user_id, password)
-
-        self._update_vector_store()
         self._update_thread_id()
         self._update_user_img()
 
         return True, "회원가입에 성공했습니다."
-
-    def _update_vector_store(self) -> str:
-        """DB에서 사용자 가져오고, 벡터 스토어가 없으면 새로 생성해서 DB에 업데이트
-        Returns:
-            str: 벡터 스토어 ID
-        """
-        user = get_user_by_id(self.db, user_id=self._user_id)
-
-        if not user:
-            raise ValueError(f"User with id {self._user_id} not found")
-
-        if user.vector_store_id:
-            pass
-            return user.vector_store_id
-        else:
-            # Azure에서 ID 가져오기
-            vector_store_id = get_vector_store(vector_store_name=self._user_id)
-
-            # DB에 업데이트
-            update_user(db=self.db, user_id=self._user_id,
-                        vector_store_id=vector_store_id)
-        return vector_store_id
 
     def _update_thread_id(self) -> None:
         """
@@ -94,7 +85,7 @@ class UserLogic:
         thread_types = ["assistant", "job_recommend",
                         "recruit_recommend", "roadmap", "resume_review", "find_study"]
         thread_ids = {
-            f"thread_id_{thread_type}": create_new_thread(AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_API_KEY)
+            f"thread_id_{thread_type}": create_new_thread()
             for thread_type in thread_types
         }
         update_user(db=self.db, user_id=self._user_id, **thread_ids)
@@ -147,4 +138,22 @@ class UserLogic:
             wanted_position=wanted_position,
             user_img=generate_avatar_id_card(
                 seed=self._user_id, job=wanted_position),
+        )
+
+    def update_resume_file(self, resume_file_url: str) -> None:
+        """
+        유저의 이력서 PDF 파일 URL을 User 테이블 DB에 저장합니다.
+
+        Args:
+            db (Session): SQLAlchemy 세션
+            resume_file_url (str): 업로드된 PDF 파일 경로 또는 URL
+
+        Returns:
+            User: 업데이트된 사용자 객체 또는 None (사용자 미존재 시)
+        """
+
+        update_user(
+            db=self.db,
+            user_id=self._user_id,
+            resume_file=resume_file_url,
         )

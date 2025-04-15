@@ -65,8 +65,6 @@ class AssistantLogic:
 
         Returns:
             dict: 도우미의 응답 메시지를 포함한 딕셔너리
-                roadmap일 경우 {"text": str, "image": Image.Image 또는 str}
-                그 외에는 {"text": str}
         """
         from src.models.user import User
 

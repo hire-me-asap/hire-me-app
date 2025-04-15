@@ -1,8 +1,6 @@
-import os
 import requests
 from requests import Response
 from openai import AzureOpenAI
-from openai.types import VectorStore, FileObject
 
 from src.logic.constants import Constants
 
