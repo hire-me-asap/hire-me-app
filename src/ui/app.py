@@ -187,7 +187,6 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=theme) as demo:
             )
             option_checkboxes = gr.CheckboxGroup(
                 ['📜 이력서 포함시키기'],
-                value=[0],
                 show_label=False,
                 elem_id="custom-checkbox"
             )
