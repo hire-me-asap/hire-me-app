@@ -85,8 +85,6 @@
     }
 }
 
-
-
 .contain>*:nth-child(1),
 
 .tabs,
@@ -95,6 +93,10 @@
 #chatbot-tab>.column>.styler,
 #chatbot {
     flex-grow: 1 !important;
+}
+
+#chatbot {
+    overflow: hidden
 }
 
 .contain>*:nth-child(1) {
