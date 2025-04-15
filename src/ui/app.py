@@ -1,4 +1,5 @@
 import gradio as gr
+from theme import custom_theme
 
 FEATURES = {
     'general': '무엇이든 물어보세요!',
@@ -47,47 +48,10 @@ EXAMPLE_MESSAGES = {
 }
 
 
-theme = gr.themes.Citrus(
-    primary_hue="gray",
-    secondary_hue="slate",
-    neutral_hue=gr.themes.Color(c100="rgba(245.28242295714108, 245.28242295714108, 246.98289794921874, 1)", c200="rgba(238.76776529924842, 238.76776529924842, 242.56387329101562, 1)", c300="rgba(229.3977127245158, 229.3977127245158, 233.04484863281252, 1)", c400="#bbbbc2", c50="#fafafa", c500="#71717a", c600="#52525b", c700="#3f3f46", c800="#27272a", c900="#18181b", c950="#0f0f11"),
-    spacing_size="md",
-).set(
-    body_background_fill='white',
-    body_text_color='*neutral_700',
-    embed_radius='*radius_md',
-    background_fill_secondary_dark='*neutral_800',
-    background_fill_primary_dark='*neutral_900',
-    border_color_primary='*neutral_50',
-    border_color_primary_dark='*neutral_900',
-    color_accent_soft_dark='*neutral_400',
-    block_border_width='1px',
-    block_background_fill='*neutral_50',
-    block_background_fill_dark='*neutral_800',
-    block_radius='*radius_md',
-    block_title_background_fill='*primary_50',
-    block_title_background_fill_dark='*neutral_800',
-    layout_gap='*spacing_xl',
-    checkbox_background_color='*background_fill_secondary',
-    chatbot_text_size='*text_md',
-    checkbox_label_background_fill='*neutral_300',
-    checkbox_label_background_fill_selected='*secondary_300',
-    checkbox_label_border_color_selected='*primary_400',
-    table_radius='*radius_md',
-    button_medium_text_weight='400',
-    button_primary_background_fill='*secondary_200',
-    button_primary_background_fill_dark='*primary_800',
-    button_primary_text_color='*button_primary_border_color',
-    button_primary_text_color_dark='*neutral_300',
-    button_secondary_background_fill='*neutral_200',
-    button_secondary_background_fill_dark='*primary_400',
-    button_secondary_text_color='*primary_500',
-    color_accent_soft='*primary_200'
-)
+with gr.Blocks(css_paths=['src/ui/style.css'], theme=custom_theme) as demo:
+    """ 앱 """    
 
-with gr.Blocks(css_paths=['src/ui/style.css'], theme=theme) as demo:
-    """ 앱 """
-    
+
     history_state = gr.State([])
     """ State로 history 관리 : 세션 단위의 임시 저장소, 
     이걸 안하면 화면 새로고침 해도 history가 누적 저장됨
@@ -95,18 +59,10 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=theme) as demo:
 
     with gr.Sidebar(position='left') as sidebar:
         """ 사이드바 """
-
-        sidebar_logo_image = gr.Image(
-            './resources/logo.png',
-            elem_id='sidebar-logo',
-            elem_classes=['click_to_home'],
-            show_label=False,
-            container=False,
-            show_download_button=False,
-            show_share_button=False,
-            show_fullscreen_button=False,
-        )
-
+        
+        # sidebar logo : button에 css 이용하여 이미지 배경 삽입 (gr.HTML 이용시 탭이동 불가, gr.Image 이용시 다크모드 이미지 변경하려면 js 필요)
+        sidebar_logo_image = gr.Button("", elem_id='sidebar-logo', variant='ghost', size='lg')
+        
         profile_button = gr.Button('이력서 입력하러 가기', variant='primary')
 
         general_chat_button = gr.Button(FEATURES['general'])
@@ -115,21 +71,19 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=theme) as demo:
         gr.Markdown('📊 맞춤 직무 설계', elem_id='small-title')
         with gr.Group(elem_id='custom-group') :
             job_chat_button = gr.Button(FEATURES['job'], size="md")
-            recruit_chat_button = gr.Button(FEATURES['recruit'], size="md")
-            resume_chat_button = gr.Button(FEATURES['resume'], size="md")
             roadmap_chat_button = gr.Button(FEATURES['roadmap'], size="md")
+            recruit_chat_button = gr.Button(FEATURES['recruit'], size="md")
+            resume_chat_button = gr.Button(FEATURES['resume'], size="md")            
             course_chat_button = gr.Button(FEATURES['course'], size="md")
 
-        sidebar_about_image = gr.Image(
-            './resources/about.png',
-            show_label=False,
-            container=False,
-            show_download_button=False,
-            show_share_button=False,
-            show_fullscreen_button=False,
-        )
+        gr.HTML("""
+                <picture id="about_us">
+                <source srcset="https://raw.githubusercontent.com/Bosongsae/hiremeasap/refs/heads/main/about_us_white.png" media="(prefers-color-scheme: dark)">
+                <img src="https://raw.githubusercontent.com/Bosongsae/hiremeasap/refs/heads/main/about_us_black.png" style="width: 100%;">
+                </picture>
+                """)
 
-        gr.Image(
+        sidebar_profile_image = gr.Image(
             './resources/retro_id_card.png',
             elem_id='profile',
             show_label=False,
@@ -141,15 +95,9 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=theme) as demo:
 
     """ 상단 바 """
     with gr.Row(elem_id='topbar-section', visible=False) as topbar:
-        topbar_logo_image = gr.Image(
-            './resources/logo.png',
-            elem_id='topbar-logo',
-            show_label=False,
-            container=False,
-            show_download_button=False,
-            show_share_button=False,
-            show_fullscreen_button=False,
-        )
+        # topbar logo : button에 css 이용하여 이미지 배경 삽입 (gr.HTML 이용시 탭이동 불가, gr.Image 이용시 다크모드 이미지 변경하려면 js 필요)
+        topbar_logo_image = gr.Button("", elem_id='topbar-logo', variant='ghost', size='lg')
+
 
     with gr.Tabs() as tab_host:
         """ 탭 호스트 """
@@ -171,12 +119,14 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=theme) as demo:
             )
             user_input = gr.TextArea(
                 placeholder='❔ 엣취에게 물어보세요',
-                lines=1,
+                elem_id='user-input-txt',  
+                lines=1,              
                 max_lines=5,
                 submit_btn=True,
                 show_label=False
             )
-            gr.Markdown('엣취는 실수를 할 수 있습니다.')
+            gr.Markdown('엣취는 실수를 할 수 있습니다.', elem_id='etch_kawai')
+            
 
         with gr.Tab('프로필', id=1) as profile_tab:
             """ 프로필 탭 """
@@ -242,11 +192,11 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=theme) as demo:
                 gr.Markdown()
                 
                 gr.Markdown('프로필 페이지에 입력된 이력서를 모두 빈칸으로 되돌립니다. 이 작업은 되돌릴 수 없습니다.')                
-                clear_resume_button = gr.Button('이력서 지우기', variant='stop')
+                clear_resume_button = gr.Button('이력서 지우기', elem_classes='red-button')
                 gr.Markdown()
 
                 gr.Markdown('사용자의 모든 대화 기록을 지웁니다. 이 작업은 되돌릴 수 없습니다.')
-                clear_history_button = gr.Button('대화 기록 지우기', variant='stop')
+                clear_history_button = gr.Button('대화 기록 지우기', elem_classes='red-button')
     
     gr.Markdown("""
         <div id="site-footer">
@@ -300,8 +250,8 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=theme) as demo:
     course_chat_button.click(lambda: select_chat_tab('course'), outputs=[tab_host, main_chatbot])
 
     # 로고 이미지 클릭시 메인 챗봇으로 이동 이벤트
-    topbar_logo_image.select(lambda: select_chat_tab('general'), outputs=[tab_host, main_chatbot])
-    sidebar_logo_image.select(lambda: select_chat_tab('general'), outputs=[tab_host, main_chatbot])
+    topbar_logo_image.click(lambda: select_chat_tab('general'), outputs=[tab_host, main_chatbot])    
+    sidebar_logo_image.click(lambda: select_chat_tab('general'), outputs=[tab_host, main_chatbot])    
 
     # chatbot example 함수 및 이벤트   
     def handle_example_click(evt: gr.SelectData):
@@ -310,7 +260,7 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=theme) as demo:
         selected_message = evt.value['text']    
         example_history = []
         example_history.append({"role": "user", "content": selected_message})    
-        result = "좋은 질문이에요! 엣취!🤧 지금 분석 중입니다."  # llm으로부터 답변 획득 
+        result = "좋은 질문이에요! 엣취!🤧 지금 분석 중입니다.\n좋은 질문이에요! 엣취!🤧 지금 분석 중입니다.좋은 질문이에요! 엣취!🤧 \n 좋은 질문이에요! 엣취!🤧 지금 분석 중입니다."  # llm으로부터 답변 획득 
         example_history.append({"role": "assistant", "content": result})       
         
         return example_history, example_history
@@ -334,5 +284,13 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=theme) as demo:
 
     user_input.submit(handle_user_message, inputs=[user_input, user_check, history_state], outputs=[main_chatbot, history_state]).then(clear_user_input, None, user_input)
 
+    # profile 이미지 클릭시 이력서 페이지로 이동 
+    def move_to_profile() :
+        return gr.update(selected=1)
+    
+    sidebar_profile_image.select(move_to_profile, outputs=[tab_host])
 
 demo.launch(share=True)
+
+
+
