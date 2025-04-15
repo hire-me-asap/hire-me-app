@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>이력서</title>
+    <style>
+      body {
+        font-family: "Helvetica Neue", sans-serif;
+        margin: 40px auto;
+        color: #333;
+        width: 210mm; /* A4 용지 가로 크기 고정 */
+        max-width: 210mm;
+        background: #fff;
+      }
+      h1 {
+        font-size: 24px;
+        margin-bottom: 5px;
+      }
+      .contact {
+        font-size: 14px;
+        margin-bottom: 20px;
+      }
+      h2 {
+        font-size: 18px;
+        margin-top: 30px;
+        border-bottom: 1px solid #ccc;
+        padding-bottom: 5px;
+      }
+      .section {
+        margin-bottom: 20px;
+      }
+      .position {
+        font-weight: bold;
+      }
+      .company-date {
+        float: right;
+      }
+      ul {
+        margin-top: 5px;
+        padding-left: 20px;
+      }
+      li {
+        margin-bottom: 5px;
+      }
+      .school {
+        font-weight: bold;
+      }
+      .date {
+        float: right;
+      }
+      .clear {
+        clear: both;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>{{ real_name }}</h1>
+
+    {% if summary %}
+    <div class="section">
+      <h2>PROFESSIONAL SUMMARY</h2>
+      <p>{{ summary }}</p>
+    </div>
+    {% endif %} {% if work_experiences %}
+    <div class="section">
+      <h2>PROFESSIONAL EXPERIENCES</h2>
+      {% for work in work_experiences %}
+      <div class="position">
+        {{ work.position }}
+        class="company-date">{{ work.work_date }}</span>
+      </div>
+      <div class="company">{{ work.company }}</div>
+      <ul>
+        {% for item in work.work_description %}
+        <li>{{ item }}</li>
+        {% endfor %}
+      </ul>
+      <div class="clear"></div>
+      {% endfor %}
+    </div>
+    {% endif %} {% if education %}
+    <div class="section">
+      <h2>EDUCATION</h2>
+      {% for edu in education %}
+      <div class="school">
+        {{ edu.school_name }}
+        class="date">{{ edu.degree_date }}</span>
+      </div>
+      <div>
+        {% if edu.final_degree %} {{ edu.final_degree }} {% endif %} {% if
+        edu.gpa %}
+        "float: right">{{ edu.gpa }}/4.5</span>
+        {% endif %}
+      </div>
+      {% if edu.major %}
+      <div>{{ edu.major }}</div>
+      {% endif %}
+      <div class="clear"></div>
+      {% endfor %}
+    </div>
+    {% endif %} {% if education_and_exp %}
+    <div class="section">
+      <h2>ADDITIONAL EDUCATION & EXPERIENCE</h2>
+      {% for exp in education_and_exp %}
+      <div>
+        {{ exp.edu_exp }}class="date">{{ exp.edu_exp_date }}</span>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %} {% if certificates %}
+    <div class="section">
+      <h2>CERTIFICATES</h2>
+      <ul>
+        {% for cert in certificates %}
+        <li>{{ cert.certificate }} ({{ cert.certificate_date }})</li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %} {% if awards %}
+    <div class="section">
+      <h2>AWARDS</h2>
+      <ul>
+        {% for award in awards %}
+        <li>{{ award.award }} ({{ award.award_date }})</li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %} {% if languages %}
+    <div class="section">
+      <h2>LANGUAGES</h2>
+      <ul>
+        {% for lang in languages %}
+        <li>{{ lang.language }} ({{ lang.language_date }})</li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+  </body>
+</html>
+ 
