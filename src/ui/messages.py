@@ -1,4 +1,6 @@
 import json
+import re
+
 from typing import Tuple
 
 
@@ -12,10 +14,16 @@ def convert_to_openai_style(raw_json_message: dict) -> dict:
     반환값:
         dict: OpenAI 스타일로 변환된 메시지.
     """
+    # 원본 텍스트 가져오기
+    raw_content = raw_json_message['content'][0]['text']['value']
+    # 정규표현식으로 【...】 형식 제거
+    cleaned_content = re.sub(r'【.*?】', '', raw_content)
+
     message = {
         'role': raw_json_message['role'],
-        'content': raw_json_message['content'][0]['text']['value']
+        'content': cleaned_content
     }
+    
     message['raw_message'] = raw_json_message
     return message
 
