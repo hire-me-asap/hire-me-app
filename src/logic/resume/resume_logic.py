@@ -23,24 +23,52 @@ class ResumeLogic:
         **resume_fields
     ) -> None:
         """
-        사용자의 이력 정보를 Resume 테이블에 생성 또는 업데이트합니다.
+        사용자의 이력 정보를 Resume 테이블에 업데이트합니다.
 
         Args:
-            **resume_fields: 업데이트 또는 생성할 이력 정보 필드들 (None 값은 무시됨)
+            **resume_fields: 업데이트할 이력 정보 필드들 (None 값은 무시됨)
         """
-
         existing_resume = get_resume_by_id(self.db, self._user_id)
+
+        if not existing_resume:
+            raise ValueError("이력서를 찾을 수 없습니다. 업데이트를 수행할 수 없습니다.")
 
         # None인 값은 필터링
         filtered_data = {k: v for k,
                          v in resume_fields.items() if v is not None}
-
         filtered_data["user_id"] = self._user_id
 
+        update_resume(db=self.db, **filtered_data)
+
+    def create_resume(
+        self,
+        user_id: str
+    ) -> None:
+        """
+        사용자의 이력 정보를 Resume 테이블에 생성합니다.
+
+        Args:
+            user_id (str): 생성할 사용자의 ID.
+        """
+        existing_resume = get_resume_by_id(self.db, user_id)
+
         if existing_resume:
-            update_resume(db=self.db, **filtered_data)
-        else:
-            create_resume(db=self.db, **filtered_data)
+            raise ValueError("이미 존재하는 이력서가 있습니다. 새로 생성할 수 없습니다.")
+
+        # 기본값으로 None 설정
+        create_resume(
+            db=self.db,
+            user_id=user_id,
+            real_name=None,
+            summary=None,
+            skill_stack=None,
+            work_experiences=None,
+            education=None,
+            education_and_exp=None,
+            certificates=None,
+            awards=None,
+            languages=None
+        )
 
     def generate_pdf_from_resume_id(self) -> str:
         """

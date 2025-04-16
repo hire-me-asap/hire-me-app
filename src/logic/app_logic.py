@@ -89,6 +89,7 @@ class AppLogic:
         self.sign_in(user_id, password)
         self.user_logic.update_thread_id()
         self.user_logic.update_user_img()
+        self.resume_logic.create_resume(user_id=user_id)
 
         return True, "회원가입에 성공했습니다."
 
