@@ -40,7 +40,6 @@ class User(Base):
     thread_id_roadmap = Column(String(64), nullable=True)
     thread_id_resume_review = Column(String(64), nullable=True)
     thread_id_find_study = Column(String(64), nullable=True)
-    vector_store_id = Column(String(64), nullable=True)
     user_img = Column(Text, nullable=True)
     wanted_position = Column(String(256), nullable=True)
     resume_file = Column(Text, nullable=True)
@@ -69,7 +68,6 @@ def create_user(
     thread_id_roadmap: str = None,
     thread_id_resume_review: str = None,
     thread_id_find_study: str = None,
-    vector_store_id: str = None,
     user_img: str = None,
     wanted_position: str = None,
     resume_file: str = None,
@@ -82,7 +80,6 @@ def create_user(
         thread_id_roadmap=thread_id_roadmap,
         thread_id_resume_review=thread_id_resume_review,
         thread_id_find_study=thread_id_find_study,
-        vector_store_id=vector_store_id,
         user_img=user_img,
         wanted_position=wanted_position,
         resume_file=resume_file,
@@ -108,7 +105,6 @@ def update_user(
     thread_id_roadmap: Optional[str] = None,
     thread_id_resume_review: Optional[str] = None,
     thread_id_find_study: Optional[str] = None,
-    vector_store_id: Optional[str] = None,
     user_img: Optional[str] = None,
     wanted_position: Optional[str] = None,
     resume_file: Optional[str] = None,
@@ -125,7 +121,6 @@ def update_user(
         "thread_id_roadmap": thread_id_roadmap,
         "thread_id_resume_review": thread_id_resume_review,
         "thread_id_find_study": thread_id_find_study,
-        "vector_store_id": vector_store_id,
         "user_img": user_img,
         "wanted_position": wanted_position,
         "resume_file": resume_file,

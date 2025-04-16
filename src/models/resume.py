@@ -71,7 +71,7 @@ class Resume(Base):
 
 def create_resume(
     db: Session,
-    id: str,
+    user_id: str,
     real_name: Optional[str] = None,
     summary: Optional[str] = None,
     skill_stack: Optional[List[float]] = None,
@@ -83,7 +83,7 @@ def create_resume(
     languages: Optional[List[dict]] = None
 ):
     resume = Resume(
-        id=id,
+        user_id=user_id,
         real_name=real_name,
         summary=summary,
         skill_stack=skill_stack,
@@ -101,13 +101,13 @@ def create_resume(
     return resume
 
 
-def get_resume_by_id(db: Session, id: str):
-    return db.query(Resume).filter(Resume.id == id).first()
+def get_resume_by_id(db: Session, user_id: str):
+    return db.query(Resume).filter(Resume.user_id == user_id).first()
 
 
 def update_resume(
     db: Session,
-    id: str,
+    user_id: str,
     real_name: Optional[str] = None,
     summary: Optional[str] = None,
     skill_stack: Optional[List[float]] = None,
@@ -118,7 +118,7 @@ def update_resume(
     awards: Optional[List[dict]] = None,
     languages: Optional[List[dict]] = None
 ):
-    resume = db.query(Resume).filter(Resume.id == id).first()
+    resume = db.query(Resume).filter(Resume.user_id == user_id).first()
     if not resume:
         return None
 
@@ -143,8 +143,8 @@ def update_resume(
     return resume
 
 
-def delete_resume(db: Session, id: str):
-    resume = db.query(Resume).filter(Resume.id == id).first()
+def delete_resume(db: Session, user_id: str):
+    resume = db.query(Resume).filter(Resume.user_id == user_id).first()
     if resume:
         db.delete(resume)
         db.commit()
