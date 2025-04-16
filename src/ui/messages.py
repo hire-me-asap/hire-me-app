@@ -12,10 +12,16 @@ def convert_to_openai_style(raw_json_message: dict) -> dict:
     반환값:
         dict: OpenAI 스타일로 변환된 메시지.
     """
-    return {
-        'role': raw_json_message['role'], 
+    message = {
+        'role': raw_json_message['role'],
         'content': raw_json_message['content'][0]['text']['value']
     }
+
+    if 'citations' in raw_json_message:
+        message['citations'] = raw_json_message['citations']
+
+    return message
+
 
 def convert_general_response_to_openai_style(raw_json_message: dict) -> Tuple[dict, dict]:
     """무물 스레드의 메시지를 OpenAI 스타일로 변환하고, 메시지를 json으로 해석해서 dict로 변환한 객체와 함께 반환합니다.
@@ -28,7 +34,7 @@ def convert_general_response_to_openai_style(raw_json_message: dict) -> Tuple[di
     """
     message = convert_to_openai_style(raw_json_message)
     content = message['content'].strip()
-    
+
     if content.startswith('```json\n'):
         try:
             message_json = json.loads(content.strip('`')[5::])

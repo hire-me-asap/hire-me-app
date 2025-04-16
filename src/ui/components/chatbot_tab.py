@@ -40,6 +40,20 @@ class ChatbotTab:
             outputs=[self.input_textarea, self.main_chatbot, chat_state],
             scroll_to_output=True,
             queue=True
-        ).then(
-            lambda _: '', inputs=[self.input_textarea], outputs=[self.input_textarea]
         )
+        
+        # TODO: 기능 구현 후에 아래 이벤트 핸들러는 제거해주세요. 
+        def test_select(select_data: gr.SelectData, chat_state):
+            history = chat_state['histories'][chat_state['mode']]
+            idx = select_data.index
+            
+            if idx >= len(history):
+                return
+            
+            message = history[idx]
+            if 'citations' in message:
+                print(f'@@@ Citational message: {message["citations"]}')
+            else:
+                print('@@@ No citations found.')
+        
+        self.main_chatbot.select(test_select, inputs=[chat_state])
