@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Any, Optional
 import gradio as gr
 
 from src.ui.constants import *
@@ -18,8 +18,9 @@ class RightSidebar:
         self.sidebar.citation = citation
         self.sidebar.citation.contents = contents
     
-    def get_vector_store_file_id_list(annotations: list[dict]) -> Optional[list[str]]:
-        """annotations 의 형식은 다음과 같이 생겼음.\n
+    def get_vector_store_file_id_list(annotations: list[dict[str, Any]]) -> Optional[list[str]]:
+        """annotations 의 형식은 다음과 같이 생겼음.
+        file_citation 의 file_id 값을 리스트 형태로 반환한다.\n
         annotations = [{
             'type': 'file_citation',
             'text': '【4:0†source】',
