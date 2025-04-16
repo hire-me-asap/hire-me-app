@@ -1,6 +1,8 @@
 import gradio as gr
 
 from src.ui.constants import *
+from src.ui.events import add_row
+from src.logic.resume.resume_logic import *
 
 
 class ProfileTab:
@@ -72,6 +74,7 @@ class ProfileTab:
                 headers=['회사명','근무기간 (YYYY.MM - YYYY.MM)' , '직책', '주요 업무'],
                 datatype=['str', 'str', 'str', 'str'],
                 value=[["", "", "", ""]],
+                col_count=(4, "fixed"),
                 interactive=True,
                 key="edu_df"
             )
@@ -83,6 +86,7 @@ class ProfileTab:
                 headers=['자격증명', '취득일 (YYYY.MM.DD)', '발급기관'],
                 datatype=['str', 'str', 'str'],
                 value=[["", "", ""]],
+                col_count=(3, "fixed"),
                 interactive=True,
                 wrap=True
             )
@@ -94,6 +98,7 @@ class ProfileTab:
                 headers=['수상명', '수상일 (YYYY.MM.DD)', '주최기관'],
                 datatype=['str', 'str', 'str'],
                 value=[["", "", ""]],
+                col_count=(3, "fixed"),
                 interactive=True,
                 wrap=True
             )
@@ -105,6 +110,7 @@ class ProfileTab:
                 headers=['언어', '시험/레벨', '취득일 (YYYY.MM.DD)'],
                 datatype=['str', 'str', 'str'],
                 value=[["", "", ""]],
+                col_count=(3, "fixed"),
                 interactive=True,
                 wrap=True
             )
@@ -117,18 +123,18 @@ class ProfileTab:
                 generate_resume_button = gr.Button("이력서 PDF 생성하기", variant="primary")
                 pdf_file_output = gr.File(label="📎 생성된 이력서 PDF")
 
-                # 변경사항 저장하기 (이력서 DB 업데이트)
+                # ✅✅✅  변경사항 저장하기 (이력서 DB 업데이트) (update_resume_info)
                 save_button = gr.Button("변경사항 저장하기", variant="primary")
+                save_button.click(
+                    fn=ResumeLogic.update_resume_info,
+                    # 딕셔너리 형태로 인자 전달
+                    inputs=[
+                        self.real_name, self.summary, self.skill_stack, self.final_degree, self.major, self.school_name, self.gpa, self.egree_date,
+                        self.education_and_exp, self.work_experiences, self.certificates, self.awards, self.languages
+                    ],
+                    outputs=[]
+                )
 
-                # save_button.click(
-                #     fn=call_update_resume_info,
-                #     inputs=[
-                #         real_name, summary, skill_stack, final_degree, major, school_name, gpa, degree_date,
-                #         education_and_exp, work_experiences, certificates, awards, languages
-                #     ],
-                #     outputs=[]
-                # )
-            
                 with gr.Accordion('⚠️ 위험한 기능', open=False):
                     gr.Markdown()
                     
@@ -139,17 +145,19 @@ class ProfileTab:
                     gr.Markdown('사용자의 모든 대화 기록을 지웁니다. 이 작업은 되돌릴 수 없습니다.')
                     clear_history_button = gr.Button('대화 기록 지우기', variant='stop')
 
-    """event"""
+    
     def init_event_handlers(self, app_logic):
     # 기존 인스턴스(app_logic)를 사용하여 원래 함수 호출
         # add 버튼 정의
-        self.add_btn_edu.click(fn=add_row, inputs=, outputs=work_experiences)
-        self.add_btn_work.click(fn=add_row, inputs=work_experiences, outputs=work_experiences)
-        self.add_btn_cert.click(fn=add_row, inputs=certificates, outputs=certificates)
-        self.add_btn_awards.click(fn=add_row, inputs=awards, outputs=awards)
-        self.add_btn_lang.click(fn=add_row, inputs=languages, outputs=languages)
+        self.add_btn_edu.click(fn=add_row, inputs= self.education_and_exp, outputs= self.education_and_exp)
+        self.add_btn_work.click(fn=add_row, inputs=self.work_experiences, outputs=self.work_experiences)
+        self.add_btn_cert.click(fn=add_row, inputs=self.certificates, outputs=self.certificates)
+        self.add_btn_awards.click(fn=add_row, inputs=self.awards, outputs=self.awards)
+        self.add_btn_lang.click(fn=add_row, inputs=self.languages, outputs=self.languages)
 
         
-        app_logic.update_resume_info(**resume_fields)
+    #app_logic.update_resume_info(**resume_fields)
 
-        add_btn.click(fn=add_row, inputs=education_and_exp, outputs=education_and_exp)
+    #add_btn.click(fn=add_row, inputs=education_and_exp, outputs=education_and_exp)
+
+
