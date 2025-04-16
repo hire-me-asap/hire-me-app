@@ -39,8 +39,8 @@ def convert_to_openai_style(raw_json_message: dict) -> dict:
             message['content'] = message['content'].split(
                 RESUME_SEPARATOR)[0] + RESUME_IN_ASSISTANT_MESSAGE
 
-  message['raw_message'] = raw_json_message
-   return message
+    message['raw_message'] = raw_json_message
+    return message
 
 
 def convert_general_response_to_openai_style(raw_json_message: dict) -> Tuple[dict, dict]:
@@ -143,7 +143,6 @@ def convert_roadmap_to_openai_style(raw_json_message: dict) -> dict:
         message['content'] = message_text
 
     return message
-
 
 
 def convert_roadmap_to_openai_style(raw_json_message: dict) -> dict:
