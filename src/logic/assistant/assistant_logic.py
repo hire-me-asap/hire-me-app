@@ -11,6 +11,7 @@ from src.logic.assistant.openai_requests import (
     get_last_assistant_message,
     get_all_assistant_response,
     get_assistant_citations,
+    delete_thread_id,
 )
 
 from src.logic.constants import constants
@@ -152,3 +153,34 @@ class AssistantLogic:
             role=role,
             message=message
         )
+
+    def delete_user_thread_id(self):
+        """
+        사용자의 모든 스레드 ID를 삭제합니다.
+
+        Raises:
+            ValueError: 유효한 사용자 또는 thread_id_assistant가 없을 경우.
+            RuntimeError: 스레드 삭제 중 문제가 발생할 경우.
+        """
+        # 사용자 정보 조회
+        user = self.db.query(User).filter(User.id == self._user_id).first()
+        if not user or not user.thread_id_assistant:
+            raise ValueError("유효한 사용자 또는 thread_id_assistant가 없습니다.")
+
+        # 삭제할 스레드 타입 정의
+        thread_types = ["assistant", "job_recommend",
+                        "recruit_recommend", "roadmap", "resume_review", "find_study"]
+
+        # 각 스레드 타입에 대한 thread_id 가져오기
+        thread_ids = [
+            getattr(user, f"thread_id_{thread_type}", None)
+            for thread_type in thread_types
+        ]
+
+        # 유효한 thread_id만 삭제
+        for thread_id in thread_ids:
+            if thread_id:
+                try:
+                    delete_thread_id(thread_id)
+                except RuntimeError as e:
+                    raise RuntimeError(f"스레드 삭제 중 문제가 발생했습니다: {e}")

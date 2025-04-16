@@ -95,9 +95,6 @@ class AppLogic:
         self.user_logic.update_thread_id()
         self.user_logic.update_user_img()
         self.resume_logic.create_resume(user_id=user_id)
-        self.user_logic.update_thread_id()
-        self.user_logic.update_user_img()
-        self.resume_logic.create_resume(user_id=user_id)
 
         return True, "회원가입에 성공했습니다."
 
@@ -140,6 +137,21 @@ class AppLogic:
     def add_dialogue_thread(self, role: str, message: str) -> None:
         """스레드에 해당 역할에 대한 메세지를 추가합니다."""
         return self.assistant_logic.add_dialogue_thread(role, message)
+
+    def delete_update_user_thread_id(self):
+        """
+        사용자의 모든 thread_id를 삭제하고 새로 생성합니다.
+
+        Raises:
+            RuntimeError: 스레드 삭제 또는 생성 중 문제가 발생할 경우.
+        """
+        try:
+            # 모든 thread_id 삭제
+            self.assistant_logic.delete_user_thread_id()
+            # 새로운 thread_id 생성
+            self.user_logic.update_thread_id()
+        except Exception as e:
+            raise RuntimeError(f"thread_id 삭제 또는 생성 중 문제가 발생했습니다: {e}")
 
     def split_roadmap_text_image(self, roadmap_response: str) -> Tuple[str, str]:
         """

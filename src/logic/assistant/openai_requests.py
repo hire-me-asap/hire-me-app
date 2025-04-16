@@ -36,6 +36,39 @@ def create_new_thread():
     return PERSONAL_THREAD_ID
 
 
+def delete_thread_id(thread_id: str):
+    """
+    Azure OpenAI 서비스에서 특정 스레드를 삭제합니다.
+
+    Args:
+        thread_id (str): 삭제할 스레드의 ID.
+
+    Raises:
+        RuntimeError: 스레드 삭제가 실패한 경우 발생.
+    """
+    DELETE_THREAD_ENDPOINT = (
+        f"https://{constants.AZURE_OPENAI_ENDPOINT}/openai/threads/{thread_id}?api-version=2024-05-01-preview"
+    )
+
+    delete_response = requests.delete(
+        DELETE_THREAD_ENDPOINT,
+        headers={
+            "api-key": constants.AZURE_OPENAI_API_KEY,
+            "Content-Type": "application/json"
+        }
+    )
+
+    # 응답 상태 코드 확인
+    if delete_response.status_code in [200, 204]:
+        print(f"✅ Thread '{thread_id}' has been successfully deleted.")
+    else:
+        error_message = (
+            f"❌ Failed to delete thread '{thread_id}'. "
+            f"Status code: {delete_response.status_code}, Response: {delete_response.text}"
+        )
+        raise RuntimeError(error_message)
+
+
 def add_dialogue_to_thread(
     personal_thread_id, role, message
 ) -> Response:
