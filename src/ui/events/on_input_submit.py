@@ -18,7 +18,8 @@ def wait_message(content, chat_state):
     mode = chat_state['mode']
     if not content.strip():
         return '', chat_state['histories'][mode], chat_state
-
+    chat_state['histories'][mode].pop() # 허리피세요
+    
     # GENERAL 모드일 때만 처리
     if mode == Modes.GENERAL:
         # GENERAL 모드의 기본 응답 처리
