@@ -1,7 +1,7 @@
 import pandas as pd
 import JSON
 
-def remap_dataframe(df : pd.DataFrame , keymap : dict):
+def _remap_dataframe(df : pd.DataFrame , keymap : dict):
     if isinstance(df, pd.DataFrame):
         return [
                 {keymap.get(k, k): v for k, v in row.items()}
@@ -70,10 +70,10 @@ def generate_user_info_json(
         "summary": summary,
         "skill_stack": skill_stack,
         "education": education_json,
-        "education_and_exp": remap_dataframe(education_and_exp_df, education_and_exp_keymap),
-        "work_experiences": remap_dataframe(work_experiences_df, work_experiences_keymap),
-        "certificates": remap_dataframe(certificates_df, certificates_keymap),
-        "awards": remap_dataframe(awards_df, awards_keymap),
-        "languages": remap_dataframe(languages_df, languages_keymap),
+        "education_and_exp": _remap_dataframe(education_and_exp_df, education_and_exp_keymap),
+        "work_experiences": _remap_dataframe(work_experiences_df, work_experiences_keymap),
+        "certificates": _remap_dataframe(certificates_df, certificates_keymap),
+        "awards": _remap_dataframe(awards_df, awards_keymap),
+        "languages": _remap_dataframe(languages_df, languages_keymap),
     }
     return user_info_json  # 이 반환값은 이후 DB 저장 로직이나 PDF 생성으로 전달

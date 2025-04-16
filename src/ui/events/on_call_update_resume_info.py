@@ -3,7 +3,7 @@ import pandas as pd
 from src.logic.app_logic import app_logic
 
 
-def df_to_list(df):
+def _df_to_list(df):
     if isinstance(df, pd.DataFrame):
         return df.to_dict(orient="records")
     return []
@@ -37,11 +37,11 @@ def call_update_resume_info(
             'gpa': gpa
         }],
 
-        'education_and_exp': df_to_list(education_and_exp),
-        'work_experiences': df_to_list(work_experiences),
-        'certificates': df_to_list(certificates),
-        'awards': df_to_list(awards),
-        'languages': df_to_list(languages),
+        'education_and_exp': _df_to_list(education_and_exp),
+        'work_experiences': _df_to_list(work_experiences),
+        'certificates': _df_to_list(certificates),
+        'awards': _df_to_list(awards),
+        'languages': _df_to_list(languages),
     }
 
     # 기존 인스턴스(app_logic)를 사용하여 원래 함수 호출
