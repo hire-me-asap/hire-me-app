@@ -14,6 +14,10 @@ class ChatbotTab:
                 label=FEATURES[Modes.GENERAL],
                 type='messages',
                 examples=EXAMPLE_MESSAGES[Modes.GENERAL],
+                avatar_images=[
+                    "resources/hatching_chick.png",
+                    "resources/icon.png",    
+                ]
             )
             with gr.Group(elem_classes=['user-inputs', 'block', 'svelte-11xb1hd']):
                 with gr.Row(elem_classes=['row-vertical-center']):

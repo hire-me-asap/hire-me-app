@@ -26,8 +26,8 @@ class LeftSidebar:
             # about us : 밝은모드 / 어두운모드 선택시 달라짐 (로컬이미지를 html로 불러오기 힘들어서 github에 이미지 올린 후 링크 따옴)
             gr.HTML("""
                     <picture id="about_us">
-                    <source srcset="https://raw.githubusercontent.com/Bosongsae/hiremeasap/refs/heads/main/about_us_white.png" media="(prefers-color-scheme: dark)">
-                    <img src="https://raw.githubusercontent.com/Bosongsae/hiremeasap/refs/heads/main/about_us_black.png" style="width: 100%;">
+                    <source srcset="/gradio_api/file=resources/about_light.png" media="(prefers-color-scheme: dark)">
+                    <img src="/gradio_api/file=resources/about_dark.png" style="width: 100%;">
                     </picture>
                     """)
 

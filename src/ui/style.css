@@ -9,7 +9,7 @@
 
 @media (prefers-color-scheme: dark) {
     #sidebar-logo {
-        background-image: url("https://raw.githubusercontent.com/Bosongsae/hiremeasap/71a35e2b3b58d38d09d12d08931973e8bdf0eded/etch_white.png");
+        background-image: url("/gradio_api/file=resources/logo_light.png");
         background-size: contain;
         background-repeat: no-repeat;
         background-position: center;
@@ -22,7 +22,7 @@
     }
 
     #topbar-logo {
-        background-image: url("https://raw.githubusercontent.com/Bosongsae/hiremeasap/71a35e2b3b58d38d09d12d08931973e8bdf0eded/etch_white.png");
+        background-image: url("/gradio_api/file=resources/logo_light.png");
         background-size: contain;
         background-repeat: no-repeat;
         background-position: center;
@@ -54,7 +54,7 @@
 
 @media (prefers-color-scheme: light) {
     #sidebar-logo {
-        background-image: url('https://raw.githubusercontent.com/Bosongsae/hiremeasap/71a35e2b3b58d38d09d12d08931973e8bdf0eded/etch_black.png');
+        background-image: url('/gradio_api/file=resources/logo_dark.png');
         background-size: contain;
         background-repeat: no-repeat;
         background-position: center;
@@ -67,7 +67,7 @@
     }
 
     #topbar-logo {
-        background-image: url('https://raw.githubusercontent.com/Bosongsae/hiremeasap/71a35e2b3b58d38d09d12d08931973e8bdf0eded/etch_black.png');
+        background-image: url('/gradio_api/file=resources/logo_dark.png');
         background-size: contain;
         background-repeat: no-repeat;
         background-position: center;
