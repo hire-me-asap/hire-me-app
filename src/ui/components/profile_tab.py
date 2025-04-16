@@ -1,7 +1,7 @@
 import gradio as gr
 
 from src.ui.constants import *
-from src.ui.events import add_row
+from src.ui.events import add_row, generate_user_info_json
 from src.logic.resume.resume_logic import *
 
 
@@ -125,15 +125,7 @@ class ProfileTab:
 
                 # ✅✅✅  변경사항 저장하기 (이력서 DB 업데이트) (update_resume_info)
                 save_button = gr.Button("변경사항 저장하기", variant="primary")
-                save_button.click(
-                    fn=ResumeLogic.update_resume_info,
-                    # 딕셔너리 형태로 인자 전달
-                    inputs=[
-                        self.real_name, self.summary, self.skill_stack, self.final_degree, self.major, self.school_name, self.gpa, self.egree_date,
-                        self.education_and_exp, self.work_experiences, self.certificates, self.awards, self.languages
-                    ],
-                    outputs=[]
-                )
+
 
                 with gr.Accordion('⚠️ 위험한 기능', open=False):
                     gr.Markdown()
@@ -144,6 +136,9 @@ class ProfileTab:
 
                     gr.Markdown('사용자의 모든 대화 기록을 지웁니다. 이 작업은 되돌릴 수 없습니다.')
                     clear_history_button = gr.Button('대화 기록 지우기', variant='stop')
+                
+                resume_info_temp = gr.Textbox(visible=False)
+                    
 
     
     def init_event_handlers(self, app_logic):
@@ -159,5 +154,16 @@ class ProfileTab:
     #app_logic.update_resume_info(**resume_fields)
 
     #add_btn.click(fn=add_row, inputs=education_and_exp, outputs=education_and_exp)
-
-
+        self.save_button.click(
+            fn= generate_user_info_json,
+                    # 딕셔너리 형태로 인자 전달
+                    inputs=[
+                        self.real_name, self.summary, self.skill_stack, self.final_degree, self.major, self.school_name, self.gpa, self.egree_date,
+                        self.education_and_exp, self.work_experiences, self.certificates, self.awards, self.languages
+                    ],
+                    outputs= self.resume_info_temp
+                ).then(
+                    fn=ResumeLogic.update_resume_info,
+                    inputs= self.resume_info_temp,
+                    outputs=None
+                )
