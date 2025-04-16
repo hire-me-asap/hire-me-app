@@ -68,20 +68,6 @@ class AssistantLogic:
 
         return response
 
-    def extract_citations(self, response: dict) -> list:
-        """
-        응답 데이터에서 citations(annotations) 리스트를 추출합니다.
-
-        Args:
-            response (dict): OpenAI API의 응답 데이터.
-
-        Returns:
-            list: 추출된 citations 리스트.
-        """
-        citations = response['content'][0]['text']['annotations']
-
-        return citations
-
     def get_response_from_assistant(
         self, assistant_type: AssistantType, user_question: str
     ) -> Tuple[dict, list]:
@@ -205,8 +191,28 @@ class AssistantLogic:
         if filename.endswith(".txt"):
             filename = filename[:-4]
 
-        # @를 /로 변환 및 기타 변환
-        translation_table = str.maketrans(":/", "!@")  # ':' → '!', '/' → '@'
-        citation_url = filename.translate(translation_table)
+        # '!' → ':', '@' → '/'
+        citation_url = filename.translate(str.maketrans("!@", ":/"))
 
         return citation_url
+
+    def extract_citations_url(self, response: dict) -> list:
+        """
+        응답 데이터에서 citations(annotations) 리스트를 추출합니다.
+
+        Args:
+            response (dict): OpenAI API의 응답 데이터.
+
+        Returns:
+            list: 추출되서 변환된 링크 리스트.
+        """
+        citations_list = response['content'][0]['text']['annotations']
+        # file_id 리스트 추출
+        file_id_list = [citation['file_citation']['file_id']
+                        for citation in citations_list if 'file_citation' in citation]
+
+        # 각 file_id에 대해 get_citation_url 호출
+        citation_url_list = [self.get_citation_url(
+            file_id) for file_id in file_id_list]
+
+        return citation_url_list

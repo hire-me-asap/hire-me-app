@@ -205,13 +205,9 @@ class AppLogic:
         roadmap_text, roadmap_image = split_text_and_json(roadmap_response)
         return roadmap_text, roadmap_image
 
-    def extract_citations(self, response: str) -> list:
-        """응답이 선택됐을 때 그 응답에서 citation(=Anotation 받는 함수) 리스트로 나옴"""
-        return self.assistant_logic.extract_citations(response)
-
-    def get_citation_url(self, file_id: str) -> str:
-        """citations에서 가져온 file_id를 검색해서 file의 제목인 citation_url로 바꾸는 함수"""
-        return self.assistant_logic.get_citation_url(file_id=file_id)
+    def extract_citations_to_url(self, response: str) -> list:
+        """응답이 선택됐을 때 그 응답에서 url 리스트로 나옴"""
+        return self.assistant_logic.extract_citations_url(response)
 
     # ---------------------------------------------------------
     # DB Session 닫기
