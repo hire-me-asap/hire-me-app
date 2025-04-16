@@ -193,6 +193,21 @@ footer {
     font-size : 13px !important;
 }
 
+.user-inputs>.styler {
+    gap: 0;
+}
+
+.user-inputs>.styler>.row {
+    padding: var(--block-padding);
+    align-items: center;
+    background: var(--block-background-fill);
+}
+
+#etch_kawai p{
+    text-align: right;
+    color: #9c9c9c;
+}
+
 /* ---- sidebar 내부 설정 ---- */
 
 #sidebar-logo:hover {
@@ -250,11 +265,6 @@ footer {
     cursor: pointer;   
 }
 
-/* 엣취 카와이 */
-#etch_kawai{
-    margin : 10px 0 0 10px;
-}
-
 #profile:hover {
     cursor: pointer;   
 }
@@ -262,21 +272,11 @@ footer {
     cursor: pointer;   
 }
 
-/* 엣취 카와이 */
-#etch_kawai{
-    margin : 10px 0 0 10px;
-}
-
 #profile:hover {
     cursor: pointer;   
 }
 #profile img:hover {
     cursor: pointer;   
-}
-
-/* 엣취 카와이 */
-#etch_kawai{
-    margin : 10px 0 0 10px;
 }
 
 .sidebar:nth-of-type(2)>.sidebar-content>.column .html-container {

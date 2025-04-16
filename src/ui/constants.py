@@ -85,3 +85,5 @@ ALL_SKILLS = [
 ]
 
 PROFILE_IMAGE_PLACEHOLDER = 'resources/profile-placeholder.png'
+
+INCLUDE_RESUME = '📜 이력서 포함시키기'

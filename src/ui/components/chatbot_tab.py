@@ -14,20 +14,26 @@ class ChatbotTab:
                 type='messages',
                 examples=EXAMPLE_MESSAGES[Modes.GENERAL],
             )
-            self.user_check = gr.CheckboxGroup(
-                ['📜 이력서 포함시키기', '이런 식으로 체크박스', '여러 개 넣을 수 있어요'],
-                show_label=False,
-                elem_id="custom-checkbox"
-            )
-            self.input_textarea = gr.TextArea(
-                placeholder='❔ 엣취에게 물어보세요',
-                elem_id='user-input-txt',
-                lines=1,
-                max_lines=5,
-                submit_btn=True,
-                show_label=False
-            )
-            gr.Markdown('엣취는 실수를 할 수 있습니다.', elem_id='etch_kawai')
+            with gr.Group(elem_classes=['user-inputs', 'block', 'svelte-11xb1hd']):
+                with gr.Row(elem_classes=['row-vertical-center']):
+                    self.user_check = gr.CheckboxGroup(
+                        [INCLUDE_RESUME],
+                        value=[INCLUDE_RESUME],
+                        show_label=False,
+                        elem_id="custom-checkbox",
+                        interactive=True,
+                        container=False
+                    )
+                    gr.Markdown('엣취는 실수를 할 수 있습니다.', elem_id='etch_kawai')
+                
+                self.input_textarea = gr.TextArea(
+                    placeholder='❔ 엣취에게 물어보세요',
+                    elem_id='user-input-txt',
+                    lines=1,
+                    max_lines=5,
+                    submit_btn=True,
+                    show_label=False,
+                )
         
         self.chatbot_tab = chatbot_tab
     
