@@ -1,3 +1,4 @@
+from typing import Optional
 import gradio as gr
 
 from src.ui.constants import *
@@ -16,7 +17,7 @@ class RightSidebar:
         self.sidebar = sidebar
         self.sidebar.citation_contents = citation_contents
     
-    def get_vector_store_file_id_list(annotations: list[dict]) -> list[str]:
+    def get_vector_store_file_id_list(annotations: list[dict]) -> Optional[list[str]]:
         """annotations 의 형식은 다음과 같이 생겼음.\n
         annotations = [{
             'type': 'file_citation',
