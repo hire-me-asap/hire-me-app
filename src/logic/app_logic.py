@@ -200,9 +200,10 @@ class AppLogic:
         Returns:
             Tuple[str, str]: 
                 - 텍스트 부분 (로드맵 설명).
-                - 이미지 경로 (로드맵 이미지 파일 경로).
+                - 이미지 경로 (로드맵 이미지 파일 경로).(세로 / 가로)
         """
-        roadmap_text, roadmap_image = split_text_and_json(roadmap_response)
+        roadmap_text, roadmap_image = split_text_and_json(
+            roadmap_response, user_id=self._user_id)
         return roadmap_text, roadmap_image
 
     def extract_citations_to_url(self, response: str) -> list:
