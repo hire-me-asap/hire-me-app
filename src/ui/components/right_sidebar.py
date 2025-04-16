@@ -14,6 +14,7 @@ class RightSidebar:
                 gr.Chatbot([], type='messages', show_label=False)
         
         self.sidebar = sidebar
+        self.sidebar.citation_contents = citation_contents
     
     def get_vector_store_file_id_list(annotations: list[dict]) -> list[str]:
         """annotations 의 형식은 다음과 같이 생겼음.\n
