@@ -1,6 +1,7 @@
 import gradio as gr
 
 from src.ui.components import ChatbotTab, ProfileTab
+from src.logic.app_logic import app_logic
 
 
 class TabHost:
@@ -10,6 +11,8 @@ class TabHost:
             self.profile_tab_wrapper = ProfileTab()
 
         self.tab_host = tab_host
+        self.app_logic = app_logic
 
-    def init_event_handlers(self, chat_state):
+    def init_event_handlers(self, chat_state, app_logic = self.app_logic):
         self.chatbot_tab_wrapper.init_event_handlers(chat_state)
+        self.profile_tab_wrapper.init_event_handlers(app_logic)

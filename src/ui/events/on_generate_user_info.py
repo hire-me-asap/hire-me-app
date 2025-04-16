@@ -75,4 +75,5 @@ def generate_user_info_json(
         "awards": _remap_dataframe(awards_df, awards_keymap),
         "languages": _remap_dataframe(languages_df, languages_keymap),
     }
+    print(user_info_json)
     return user_info_json  # 이 반환값은 이후 DB 저장 로직이나 PDF 생성으로 전달

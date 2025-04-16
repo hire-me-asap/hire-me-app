@@ -2,7 +2,7 @@ import gradio as gr
 
 from src.ui.constants import *
 from src.ui.events import add_row, generate_user_info_json
-from src.logic.resume.resume_logic import *
+from src.logic.app_logic import app_logic
 
 
 class ProfileTab:
@@ -67,7 +67,7 @@ class ProfileTab:
                     interactive=True,                  
                     key="edu_df"
                 )
-            add_btn_edu = gr.Button("➕ 행 추가")
+            self.add_btn_edu = gr.Button("➕ 행 추가")
 
             gr.Markdown("### 💼 경력사항")
             work_experiences = gr.Dataframe(
@@ -78,7 +78,7 @@ class ProfileTab:
                 interactive=True,
                 key="edu_df"
             )
-            add_btn_work = gr.Button("➕ 행 추가")
+            self.add_btn_work = gr.Button("➕ 행 추가")
             #add_btn.click(fn=add_row, inputs=work_experiences, outputs=work_experiences)
 
             gr.Markdown("### 🏅 자격증" )
@@ -90,7 +90,7 @@ class ProfileTab:
                 interactive=True,
                 wrap=True
             )
-            add_btn_cert = gr.Button("➕ 행 추가")
+            self.add_btn_cert = gr.Button("➕ 행 추가")
             #add_btn.click(fn=add_row, inputs=certificates, outputs=certificates)
         
             gr.Markdown("### 🏆 수상내역" )
@@ -102,7 +102,7 @@ class ProfileTab:
                 interactive=True,
                 wrap=True
             )
-            add_btn_awards = gr.Button("➕ 행 추가")
+            self.add_btn_awards = gr.Button("➕ 행 추가")
             #add_btn.click(fn=add_row, inputs=awards, outputs=awards)
 
             gr.Markdown("### 🌍 어학" )
@@ -114,7 +114,7 @@ class ProfileTab:
                 interactive=True,
                 wrap=True
             )
-            add_btn_lang = gr.Button("➕ 행 추가")
+            self.add_btn_lang = gr.Button("➕ 행 추가")
             #add_btn.click(fn=add_row, inputs=languages, outputs=languages)
 
         with profile_tab:
@@ -140,7 +140,6 @@ class ProfileTab:
                 resume_info_temp = gr.Textbox(visible=False)
                     
 
-    
     def init_event_handlers(self, app_logic):
     # 기존 인스턴스(app_logic)를 사용하여 원래 함수 호출
         # add 버튼 정의
@@ -163,7 +162,7 @@ class ProfileTab:
                     ],
                     outputs= self.resume_info_temp
                 ).then(
-                    fn=ResumeLogic.update_resume_info,
+                    fn=app_logic.update_resume_info,
                     inputs= self.resume_info_temp,
                     outputs=None
                 )
