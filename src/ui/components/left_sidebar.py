@@ -45,14 +45,14 @@ class LeftSidebar:
         
         self.sidebar = sidebar
     
-    def init_event_handlers(self, topbar, tab_host, main_chatbot, chat_state, user_id):
+    def init_event_handlers(self, topbar, tab_host, main_chatbot, chat_state, user_id, user_image):
         # 사이드바 열고 닫을 때
         self.sidebar.expand(lambda: set_topbar_visibility(False), outputs=[topbar])
         self.sidebar.collapse(lambda: set_topbar_visibility(True), outputs=[topbar])
 
         # '프로필 입력하러가기' 버튼 클릭 함수 및 이벤트
-        self.profile_button.click(select_profile_tab, outputs=[tab_host, user_id])
-        self.profile_image.click(select_profile_tab, outputs=[tab_host, user_id])
+        self.profile_button.click(select_profile_tab, outputs=[tab_host, user_id, user_image])
+        self.profile_image.click(select_profile_tab, outputs=[tab_host, user_id, user_image])
 
         # chatbot tab 함수 및 이벤트
         self.general_chat_button.click(

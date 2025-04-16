@@ -23,7 +23,7 @@ class ProfileTab:
                     gr.Button('변경사항 저장하기', variant='primary', elem_classes=['profile-save-button'])
 
                 with gr.Column():
-                    self.profile_image = gr.Image(interactive=False, scale=1)
+                    self.profile_image = gr.HTML("<img id='user_profile_card' src=''>")
 
             gr.Markdown('# 📜 이력서 관리')
             gr.Markdown("### 🥸 개인 정보")

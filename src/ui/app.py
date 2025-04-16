@@ -65,7 +65,8 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=custom_theme) as demo:
         tab_host_wrapper.tab_host,
         tab_host_wrapper.chatbot_tab_wrapper.main_chatbot,
         chat_state,
-        tab_host_wrapper.profile_tab_wrapper.userid_text
+        tab_host_wrapper.profile_tab_wrapper.userid_text,
+        tab_host_wrapper.profile_tab_wrapper.profile_image
     )
     topbar_wrapper.init_event_handler(
         chat_state,
