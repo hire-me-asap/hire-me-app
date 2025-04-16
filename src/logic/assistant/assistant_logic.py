@@ -39,7 +39,7 @@ class AssistantLogic:
         self._user_id: Optional[str] = user_id
         self.db = db
 
-    def _request_assistant_response(self, assistant_id: str, message: str, thread_id: str) -> str:
+    def _request_assistant_response(self, assistant_id: str, message: str, thread_id: str) -> dict:
         """사용자 질문을 스레드에 추가하고, AI 도우미의 응답을 받아옵니다."""
 
         # 1. 메시지를 기반으로 도우미 실행(run)
@@ -70,7 +70,7 @@ class AssistantLogic:
 
     def get_response_from_assistant(
         self, assistant_type: AssistantType, user_question: str
-    ) -> Tuple[dict, list]:
+    ) -> dict:
         """
         유저 질문을 기반으로 특정 Assistant 타입에 맞는 응답을 반환합니다.
 
@@ -79,7 +79,7 @@ class AssistantLogic:
             user_question (str): 유저의 질문 메시지
 
         Returns:
-            dict: 도우미의 응답 메시지 및 참조를 포함한 딕셔너리
+            dict: 특정 기능에 대한 도우미의 응답메세지
         """
         assistant_mapping = {
             AssistantType.ASSISTANT: [constants.ASSISTANT_ID, "thread_id_assistant"],
@@ -140,7 +140,7 @@ class AssistantLogic:
         return message
 
     def add_dialogue_thread(self, role: str, message: str) -> None:
-
+        """스레드에 대화를 넣는 함수.(사용자, 도우미, 시스템 중 하나.)"""
         # 사용자 정보 조회
         user = self.db.query(User).filter(User.id == self._user_id).first()
         if not user or not user.thread_id_assistant:
@@ -185,6 +185,7 @@ class AssistantLogic:
                     raise RuntimeError(f"스레드 삭제 중 문제가 발생했습니다: {e}")
 
     def get_citation_url(self, file_id: str) -> str:
+        """file_id로 불러온 filename을 정리해서 url_list로 반환하는 함수."""
         filename = get_file_id_name(file_id)
 
         # .txt 제거
@@ -201,7 +202,7 @@ class AssistantLogic:
         응답 데이터에서 citations(annotations) 리스트를 추출합니다.
 
         Args:
-            response (dict): OpenAI API의 응답 데이터.
+            response (dict): OpenAI API의 응답 데이터. response['date']까지 들어있음.
 
         Returns:
             list: 추출되서 변환된 링크 리스트.

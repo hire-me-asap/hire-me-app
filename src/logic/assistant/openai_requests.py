@@ -16,10 +16,6 @@ def create_new_thread():
     """
     1. 사용자 개인용 Azure OpenAI Thread를 생성합니다.
 
-    Parameters:
-        azure_openai_endpoint (str): Azure OpenAI 서비스의 엔드포인트 도메인.
-        azure_openai_api_key (str): Azure OpenAI API 인증 키.
-
     Returns:
         str: 생성된 개인 Thread의 ID.
     """
@@ -100,8 +96,6 @@ def _run_thread(personal_thread_id, assistant_id) -> str:
     3. 지정된 Thread에 대해 Assistant 실행을 트리거합니다.
 
     Parameters:
-        azure_openai_endpoint (str): Azure OpenAI 서비스의 엔드포인트 도메인.
-        azure_openai_api_key (str): Azure OpenAI API 인증 키.
         personal_thread_id (str): 사용자 개인 Thread의 ID.
         assistant_id (str): 실행할 Assistant의 ID.
 
@@ -123,7 +117,7 @@ def _run_thread(personal_thread_id, assistant_id) -> str:
     return RUN_ID
 
 
-def run_message_to_thread(thread_id: str, assistant_id: str, role: str, message: str) -> any:
+def run_message_to_thread(thread_id: str, assistant_id: str, role: str, message: str) -> str | None:
     """
     3.1. 지정된 Thread에 메시지를 추가하고 실행을 시작합니다.
 
@@ -150,8 +144,6 @@ def _get_status_of_run(personal_thread_id, run_id) -> str:
     3.2.1. 실행 중인 run의 상태를 확인합니다.
 
     Parameters:
-        azure_openai_endpoint (str): Azure OpenAI 서비스의 엔드포인트 도메인.
-        azure_openai_api_key (str): Azure OpenAI API 인증 키.
         personal_thread_id (str): 사용자 개인 Thread의 ID.
         run_id (str): 실행 중인 run의 ID.
 
@@ -187,7 +179,7 @@ def is_run_done(thread_id: str, run_id: str) -> bool:
     )
 
 
-def get_all_assistant_message(personal_thread_id: str) -> str | None:
+def get_all_assistant_message(personal_thread_id: str) -> dict | None:
     """
     4. 특정 Thread에서 최신 Assistant의 응답 메시지를 가져옵니다.
 
@@ -195,7 +187,7 @@ def get_all_assistant_message(personal_thread_id: str) -> str | None:
         personal_thread_id (str): 사용자 개인 Thread의 ID.
 
     Returns:
-        str | None: 가장 최근 Assistant의 텍스트 응답. 없으면 None.
+        dict | None: 가장 최근 Assistant의 텍스트 응답. 없으면 None.
     """
     USER_QUESTION_ENDPOINT = f"https://{constants.AZURE_OPENAI_ENDPOINT}/openai/threads/{personal_thread_id}/messages?api-version=2024-05-01-preview"
 
@@ -213,7 +205,7 @@ def get_all_assistant_message(personal_thread_id: str) -> str | None:
     return messages
 
 
-def get_last_assistant_message_one(thread_id: str) -> str | None:
+def get_last_assistant_message_one(thread_id: str) -> dict | None:
     """
     4.2.2 환경변수에 설정된 엔드포인트를 이용하여 특정 Thread에서 가장 마지막 Assistant 응답을 가져옴.
 

@@ -120,7 +120,7 @@ class AppLogic:
 
     # ---------------------------------------------------------
     # USER 로직
-    def get_user_img(self):
+    def get_user_img(self) -> str:
         """사용자 카드 이미지 주소를 반환합니다."""
         return self.user_logic.get_user_img()
 
@@ -143,7 +143,7 @@ class AppLogic:
         """
         return self.resume_logic.update_resume_info(resume_fields)
 
-    def reset_resume_info(self):
+    def reset_resume_info(self) -> None:
         """
         이력서 DB를 초기화합니다.(key값인 user_id 제외)
         - 이력서 지우기 버튼 눌렀을 경우, 실행
@@ -161,8 +161,8 @@ class AppLogic:
 
     # ---------------------------------------------------------
     # ASSISTANT 로직
-    def get_response_from_assistant(self, assistant_type: AssistantType, user_question: str) -> Tuple[dict, list]:
-        """AI 도우미를 통해 사용자 질문에 응답합니다. 여기에 citation도 있음."""
+    def get_response_from_assistant(self, assistant_type: AssistantType, user_question: str) -> dict:
+        """AI 도우미를 통해 사용자 질문에 응답합니다"""
         response_message = self.assistant_logic.get_response_from_assistant(
             assistant_type, user_question)
         return response_message
@@ -175,7 +175,7 @@ class AppLogic:
         """스레드에 해당 역할에 대한 메세지를 추가합니다."""
         return self.assistant_logic.add_dialogue_thread(role, message)
 
-    def delete_update_user_thread_id(self):
+    def delete_update_user_thread_id(self) -> None:
         """
         사용자의 모든 thread_id를 삭제하고 새로 생성합니다.
 
