@@ -136,10 +136,6 @@ class AppLogic:
         """사용자의 assistant_type에 해당하는 Thread ID를 통해 전체 대화 내역(어시스턴트 응답, 참조 조합)을 반환합니다."""
         return self.assistant_logic.get_all_thread_dialogue(assistant_type)
 
-    def get_citations_from_assistant(self, assistant_type: AssistantType, assistant_response: str) -> dict:
-        """"""
-        return ""
-
     def add_dialogue_thread(self, role: str, message: str) -> None:
         """스레드에 해당 역할에 대한 메세지를 추가합니다."""
         return self.assistant_logic.add_dialogue_thread(role, message)
