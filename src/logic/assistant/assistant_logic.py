@@ -54,7 +54,7 @@ class AssistantLogic:
 
         # 2. 도우미가 응답을 완료할 때까지 대기
         polling_interval = 1
-        max_wait_time = 30
+        max_wait_time = 120
         elapsed_time = 0
         while not is_run_done(thread_id, run_id):
             if elapsed_time >= max_wait_time:
