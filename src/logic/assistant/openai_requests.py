@@ -1,6 +1,7 @@
 import requests
 from requests import Response
 from openai import AzureOpenAI
+from openai.types import VectorStore, FileObject
 
 from src.logic.constants import constants
 
@@ -186,49 +187,7 @@ def is_run_done(thread_id: str, run_id: str) -> bool:
     )
 
 
-def _get_assistant_citation(personal_thread_id: str, run_id: str) -> dict | None:
-    """
-    3.2.3. 주어진 Run ID의 실행 결과 JSON을 반환합니다.
-
-    Parameters:
-        personal_thread_id (str): 사용자 고유 Thread ID
-        run_id (str): Run ID
-
-    Returns:
-        dict | None: Run 결과 JSON (성공 시), None (실패 시)
-    """
-    RUN_ENDPOINT = f"https://{constants.AZURE_OPENAI_ENDPOINT}/openai/threads/{personal_thread_id}/runs/{run_id}?api-version=2024-05-01-preview"
-
-    headers = {
-        "api-key": constants.AZURE_OPENAI_API_KEY,
-        "Content-Type": "application/json"
-    }
-
-    response = requests.get(RUN_ENDPOINT, headers=headers)
-
-    if response.status_code == 200:
-        return response.json()
-    else:
-        print(
-            f"Failed to get run details: {response.status_code}, {response.text}")
-        return None
-
-
-def get_assistant_citations(thread_id: str, run_id: str) -> dict | None:
-    """
-    3.2.4. 주어진 Run ID의 실행 결과 JSON을 반환합니다.
-
-    Parameters:
-        thread_id (str): 사용자 개인 Thread의 ID.
-        run_id: (str) : 실행 중인 Thread의 run ID
-
-    Returns:
-        dict | None: Run 결과 JSON (성공 시), None (실패 시)
-    """
-    return _get_assistant_citation(thread_id, run_id)
-
-
-def get_all_assistant_response(personal_thread_id: str) -> str | None:
+def get_all_assistant_message(personal_thread_id: str) -> str | None:
     """
     4. 특정 Thread에서 최신 Assistant의 응답 메시지를 가져옵니다.
 
@@ -254,9 +213,9 @@ def get_all_assistant_response(personal_thread_id: str) -> str | None:
     return messages
 
 
-def get_last_assistant_message(thread_id: str) -> str | None:
+def get_last_assistant_message_one(thread_id: str) -> str | None:
     """
-    4.2.2 환경변수에 설정된 엔드포인트를 이용하여 특정 Thread에서 가장 마지막 Assistant 응답을 가져옵니다.
+    4.2.2 환경변수에 설정된 엔드포인트를 이용하여 특정 Thread에서 가장 마지막 Assistant 응답 및 annotations를 가져옵니다.
 
     Parameters:
         thread_id (str): 사용자 개인 Thread의 ID.
@@ -264,7 +223,8 @@ def get_last_assistant_message(thread_id: str) -> str | None:
     Returns:
         dict | None: 가장 최근 Assistant의 응답. 실패 시 None.
     """
-    messages = get_all_assistant_response(thread_id)
+    messages = get_all_assistant_message(thread_id)
+
     for message in messages:
         if message["role"] == "assistant":
             return message

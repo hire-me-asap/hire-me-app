@@ -1,16 +1,15 @@
 import time
 
 from enum import Enum
-from typing import Optional
+from typing import Optional, Tuple
 from sqlalchemy.orm import Session
 
 from src.logic.assistant.openai_requests import (
     add_dialogue_to_thread,
     run_message_to_thread,
     is_run_done,
-    get_last_assistant_message,
-    get_all_assistant_response,
-    get_assistant_citations,
+    get_last_assistant_message_one,
+    get_all_assistant_message,
     delete_thread_id,
 )
 
@@ -39,8 +38,8 @@ class AssistantLogic:
         self._user_id: Optional[str] = user_id
         self.db = db
 
-    def _request_assistant_response(self, assistant_id: str, message: str, thread_id: str) -> tuple[str, str]:
-        """사용자 질문을 스레드에 추가하고, AI 도우미의 응답과 run_id를 받아옵니다."""
+    def _request_assistant_response(self, assistant_id: str, message: str, thread_id: str) -> str:
+        """사용자 질문을 스레드에 추가하고, AI 도우미의 응답을 받아옵니다."""
 
         # 1. 메시지를 기반으로 도우미 실행(run)
         run_id = run_message_to_thread(
@@ -64,13 +63,34 @@ class AssistantLogic:
             elapsed_time += polling_interval
 
         # 3. 도우미의 최종 응답 메시지 반환
-        response = get_last_assistant_message(thread_id)
+        response = get_last_assistant_message_one(thread_id)
 
-        return response, run_id
+        return response
+
+    def extract_citations(self, response: dict) -> list:
+        """
+        응답 데이터에서 citations(annotations)를 추출합니다.
+
+        Args:
+            response (dict): OpenAI API의 응답 데이터.
+
+        Returns:
+            list: 추출된 citations 리스트.
+        """
+        messages = response.get("data", [])
+        citations = []
+
+        for message in messages:
+            # 메시지의 content 필드에서 annotations 추출
+            for content in message.get("content", []):
+                annotations = content.get("text", {}).get("annotations", [])
+                citations.extend(annotations)
+
+        return citations
 
     def get_response_from_assistant(
         self, assistant_type: AssistantType, user_question: str
-    ) -> dict:
+    ) -> Tuple[dict, list]:
         """
         유저 질문을 기반으로 특정 Assistant 타입에 맞는 응답을 반환합니다.
 
@@ -97,16 +117,15 @@ class AssistantLogic:
         personal_thread_id = getattr(user, thread_column_name)
 
         # 도우미 응답 텍스트 받아오기
-        response, run_id = self._request_assistant_response(
+        response = self._request_assistant_response(
             assistant_id=assistant_id,
             message=user_question,
             thread_id=personal_thread_id,
         )
 
-        citations = get_assistant_citations(personal_thread_id, run_id)
+        citations = self.extract_citations(response)
 
-        response['citations'] = citations
-        return response
+        return response, citations
 
     def get_all_thread_dialogue(self, assistant_type: AssistantType) -> dict:
         """
@@ -138,7 +157,10 @@ class AssistantLogic:
             raise RuntimeError(
                 "해당 assistant_type에 대한 thread_id가 존재하지 않습니다.", thread_id_map, thread_id)
 
-        return get_all_assistant_response(thread_id)
+        message = get_all_assistant_message(thread_id)
+        citations = self.extract_citations(message)
+
+        return message, citations
 
     def add_dialogue_thread(self, role: str, message: str) -> None:
 
