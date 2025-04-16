@@ -62,7 +62,7 @@ fsspec==2025.3.2
     # via
     #   gradio-client
     #   huggingface-hub
-gradio==5.23.3
+gradio==5.25.2
     # via hire-me-app
 gradio-client==1.8.0
     # via gradio

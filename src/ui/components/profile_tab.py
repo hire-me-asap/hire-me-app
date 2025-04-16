@@ -3,7 +3,7 @@ import tempfile
 
 from pathlib import Path
 from src.ui.constants import *
-from src.ui.events import add_row, generate_user_info_json
+from src.ui.events import add_row, generate_user_info_json_korean
 from src.logic.app_logic import app_logic
 
 
@@ -60,18 +60,20 @@ class ProfileTab:
         
             gr.Markdown("### 📘 교육 및 기타 경험")
             self.education_and_exp = gr.Dataframe(
-                    headers=['교육명', '기간 (YYYY.MM - YYYY.MM)'],
-                    datatype=['str', 'str'],
-                    value=[["", ""]], 
-                    row_count='dynamic',              # ✅ 직접 빈 행 초기화
-                    col_count=(2, "fixed"),
-                    interactive=True,                  
-                    key="edu_df"
+                type="pandas",
+                headers=['교육명', '기간 (YYYY.MM - YYYY.MM)'],
+                datatype=['str', 'str'],
+                value=[["", ""]], 
+                row_count='dynamic',              # ✅ 직접 빈 행 초기화
+                col_count=(2, "fixed"),
+                interactive=True,                  
+                key="edu_df"
                 )
             self.add_btn_edu = gr.Button("➕ 행 추가")
 
             gr.Markdown("### 💼 경력사항")
             self.work_experiences = gr.Dataframe(
+                type="pandas",
                 headers=['회사명','근무기간 (YYYY.MM - YYYY.MM)' , '직책', '주요 업무'],
                 datatype=['str', 'str', 'str', 'str'],
                 value=[["", "", "", ""]],
@@ -84,6 +86,7 @@ class ProfileTab:
 
             gr.Markdown("### 🏅 자격증" )
             self.certificates = gr.Dataframe(
+                type="pandas",
                 headers=['자격증명', '취득일 (YYYY.MM.DD)'],
                 datatype=['str', 'str'],
                 value=[["", ""]],
@@ -96,6 +99,7 @@ class ProfileTab:
         
             gr.Markdown("### 🏆 수상내역" )
             self.awards = gr.Dataframe(
+                type="pandas",
                 headers=['수상명', '수상일 (YYYY.MM.DD)'],
                 datatype=['str', 'str'],
                 value=[["", ""]],
@@ -108,6 +112,7 @@ class ProfileTab:
 
             gr.Markdown("### 🌍 어학" )
             self.languages = gr.Dataframe(
+                type="pandas",
                 headers=['어학시험/점수', '취득일 (YYYY.MM.DD)'],
                 datatype=['str', 'str'],
                 value=[["", ""]],
@@ -132,11 +137,11 @@ class ProfileTab:
                     gr.Markdown()
                     
                     gr.Markdown('프로필 페이지에 입력된 이력서를 모두 빈칸으로 되돌립니다. 이 작업은 되돌릴 수 없습니다.')                
-                    self.clear_resume_button = gr.Button('이력서 지우기', variant='stop')
+                    self.clear_resume_button = gr.Button('이력서 지우기', elem_classes='red_button')
                     gr.Markdown()
 
                     gr.Markdown('사용자의 모든 대화 기록을 지웁니다. 이 작업은 되돌릴 수 없습니다.')
-                    self.clear_history_button = gr.Button('대화 기록 지우기', variant='stop')
+                    self.clear_history_button = gr.Button('대화 기록 지우기', elem_classes='red_button')
                 
                 self.resume_info_temp = gr.State({})
                     
@@ -155,7 +160,7 @@ class ProfileTab:
     #add_btn.click(fn=add_row, inputs=education_and_exp, outputs=education_and_exp)
 
         self.save_button.click(
-            fn= generate_user_info_json,
+            fn=generate_user_info_json_korean,
                     # 딕셔너리 형태로 인자 전달
                     inputs=[
                         self.real_name, self.summary, self.skill_stack, self.final_degree, self.major, self.school_name, self.gpa, self.degree_date,

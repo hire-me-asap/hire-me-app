@@ -5,22 +5,24 @@ from reportlab.lib.pagesizes import A4
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.enums import TA_LEFT
 from reportlab.lib.units import mm
+import platform, os
+
 
 # Malgun Gothic 폰트 등록.
 # 이것도 아마 폰트 추가하거나 하는 게 있을 것 같은데 한번 찾아보세요.
 # ✅ OS에 따른 기본 한글 폰트 경로
-def register_korean_font():
+def _register_korean_font():
     system_name = platform.system()
 
     if system_name == "Windows":
         font_path = r"C:\Windows\Fonts\malgun.ttf"
-        font_name = "MalgunGothic"
+        font_name = "Malgun Gothic"
     elif system_name == "Darwin":  # MacOS
         font_path = "/System/Library/Fonts/AppleSDGothicNeo.ttc"
         font_name = "AppleGothic"
     else:  # Linux or unknown
         font_path = "/usr/share/fonts/truetype/nanum/NanumGothic.ttf"  # 예시: Ubuntu용
-        font_name = "NanumGothic"
+        font_name = "Nanum Gothic"
 
     # 경로 존재 여부 확인 후 등록
     if os.path.exists(font_path):
@@ -95,7 +97,7 @@ def generate_pdf_resume(output_path: str, user_info: dict):
     예외:
     - user_info에 필요한 필드가 부족할 경우, 이력서 생성에 실패할 수 있습니다.
     """
-
+    font_name = _register_korean_font()
     # PDF 문서 생성 설정
     doc = SimpleDocTemplate(output_path, pagesize=A4,
                             rightMargin=20*mm, leftMargin=20*mm,
@@ -105,7 +107,7 @@ def generate_pdf_resume(output_path: str, user_info: dict):
 
     # 제목 스타일 정의
     styles.add(ParagraphStyle(name='TitleKorean',
-                              fontName='MalgunGothic',
+                              fontName=font_name,
                               fontSize=20,
                               leading=24,
                               spaceAfter=14,
@@ -113,7 +115,7 @@ def generate_pdf_resume(output_path: str, user_info: dict):
 
     # 소제목 스타일 정의
     styles.add(ParagraphStyle(name='SubtitleKorean',
-                              fontName='MalgunGothic',
+                              fontName=font_name,
                               fontSize=14,
                               leading=18,
                               spaceAfter=8,
@@ -121,7 +123,7 @@ def generate_pdf_resume(output_path: str, user_info: dict):
 
     # 본문 스타일 정의
     styles.add(ParagraphStyle(name='NormalKorean',
-                              fontName='MalgunGothic',
+                              fontName=font_name,
                               fontSize=11,
                               leading=15,
                               spaceAfter=4))
@@ -145,8 +147,8 @@ def generate_pdf_resume(output_path: str, user_info: dict):
         story.append(Paragraph("경력", styles['SubtitleKorean']))
         for exp in user_info['work_experiences']:
             story.append(Paragraph(
-                f"{exp['work_date']} - {exp['company']} ({exp['position']})", styles['NormalKorean']))
-            for task in exp['work_description']:
+                f"{exp['근무기간 (YYYY.MM - YYYY.MM)']} - {exp['회사명']} ({exp['직책']})", styles['NormalKorean']))
+            for task in exp['주요 업무']:
                 story.append(Paragraph(f"- {task}", styles['NormalKorean']))
 
     # 학력 추가 (소제목 + 본문)
@@ -161,30 +163,32 @@ def generate_pdf_resume(output_path: str, user_info: dict):
         story.append(Paragraph("교육 이수 및 기타 경험", styles['SubtitleKorean']))
         for edu_exp in user_info['education_and_exp']:
             story.append(Paragraph(
-                f"{edu_exp['edu_exp_date']} - {edu_exp['edu_exp']}", styles['NormalKorean']))
+                f"{edu_exp['기간 (YYYY.MM - YYYY.MM)']} - {edu_exp['교육명']}", styles['NormalKorean']))
 
     # 자격증 추가 (소제목 + 본문)
     if user_info['certificates']:
         story.append(Paragraph("자격증", styles['SubtitleKorean']))
         for cert in user_info['certificates']:
             story.append(Paragraph(
-                f"{cert['certificate_date']} - {cert['certificate']}", styles['NormalKorean']))
+                f"{cert['취득일 (YYYY.MM.DD)']} - {cert['자격증명']}", styles['NormalKorean']))
 
     # 수상 이력 추가 (소제목 + 본문)
     if user_info['awards']:
         story.append(Paragraph("수상 이력", styles['SubtitleKorean']))
         for award in user_info['awards']:
             story.append(
-                Paragraph(f"{award['award_date']} - {award['award']}", styles['NormalKorean']))
+                Paragraph(f"{award['수상일 (YYYY.MM.DD)']} - {award['수상명']}", styles['NormalKorean']))
 
     # 언어 능력 추가 (소제목 + 본문)
     if user_info['languages']:
         story.append(Paragraph("언어 능력", styles['SubtitleKorean']))
         for lang in user_info['languages']:
             story.append(Paragraph(
-                f"{lang['language_date']} - {lang['language']}", styles['NormalKorean']))
+                f"{lang['취득일 (YYYY.MM.DD)']} - {lang['어학시험/점수']}", styles['NormalKorean']))
 
     # PDF 빌드
     doc.build(story)
+
+    
     # PDF 저장 완료 로그
     # print(f"✅ PDF 저장 완료: {output_path}")

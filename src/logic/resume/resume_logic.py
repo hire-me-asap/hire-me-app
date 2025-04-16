@@ -60,10 +60,10 @@ class ResumeLogic:
         """
         # 이력서 정보 조회
         resume = get_resume_by_id(db=self.db, user_id=self._user_id)
+        
 
-        if not resume:
-            raise ValueError(
-                f"Resume for user_id '{self._user_id}' not found.")
+        # if not resume:
+        #     return False
 
         # 이력서 정보를 딕셔너리로 반환
         return {
@@ -128,7 +128,8 @@ class ResumeLogic:
         """
         resume = get_resume_by_id(db=self.db, user_id=self._user_id)
         # 저장 원하는 위치로 수정 가능.
-        output_path = r"src/tmp/outputs/resume.pdf"
+        user_id = self._user_id
+        output_path = f"static/pdf/{user_id}_resume.pdf"
 
         if not resume:
             raise ValueError("이력서를 찾을 수 없습니다.")
@@ -148,4 +149,5 @@ class ResumeLogic:
             "awards": safe_data(resume.awards, []),
             "languages": safe_data(resume.languages, [])
         }
-        return generate_pdf_resume(output_path, user_info)
+        generate_pdf_resume(output_path, user_info)
+        return output_path

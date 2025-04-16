@@ -7,3 +7,5 @@ from .on_add_row import add_row
 from .on_call_update_resume_info import call_update_resume_info
 from .on_generate_user_info import generate_user_info_json
 from .on_checkbox_change import toggle_resume_usage
+from .on_json_to_user_component import json_to_user_component
+from .on_generate_user_info_korean import generate_user_info_json_korean 

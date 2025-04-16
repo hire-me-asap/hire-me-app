@@ -6,7 +6,7 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "alembic>=1.15.2",
-    "gradio>=5.23.3",
+    "gradio>=5.25.2",
     "graphviz>=0.20.3",
     "passlib[bcrypt]>=1.7.4",
     "openai>=1.72.0",

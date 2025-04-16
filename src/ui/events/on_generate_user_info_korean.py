@@ -33,11 +33,11 @@ def generate_user_info_json_korean(
         "summary": summary,
         "skill_stack": skill_stack,
         "education": education_json,
-        "education_and_exp": education_and_exp_df,
-        "work_experiences": work_experiences_df,
-        "certificates": certificates_df,
-        "awards": awards_df,
-        "languages": languages_df,
+        "education_and_exp": education_and_exp_df.to_dict(orient='records'),
+        "work_experiences": work_experiences_df.to_dict(orient='records'),
+        "certificates": certificates_df.to_dict(orient='records'),
+        "awards": awards_df.to_dict(orient='records'),
+        "languages": languages_df.to_dict(orient='records'),
     }
     print(user_info_json)
     return user_info_json  # 이 반환값은 이후 DB 저장 로직이나 PDF 생성으로 전달

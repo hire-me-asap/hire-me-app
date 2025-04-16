@@ -1,8 +1,8 @@
 import gradio as gr
 
 from src.ui.constants import *
-from src.ui.events import select_chat_tab, select_profile_tab, set_topbar_visibility
-
+from src.ui.events import select_chat_tab, select_profile_tab, set_topbar_visibility, json_to_user_component
+from src.logic.app_logic import app_logic
 
 class LeftSidebar:
     def __init__(self):
@@ -42,18 +42,26 @@ class LeftSidebar:
             )
 
             self.profile_image = gr.HTML("<img id='profile' src='/gradio_api/file=resources/profile-placeholder.png'>")
-        
+            
         self.sidebar = sidebar
-    
-    def init_event_handlers(self, topbar, tab_host, main_chatbot, chat_state, user_id, user_image):
+        self.user_input_components = gr.State({})
+
+    def init_event_handlers(self, topbar, tab_host, main_chatbot, chat_state, user_id, user_image, real_name, summary, skill_stack, final_degree, major, school_name, gpa, degree_date, education_exp, work_experiences, cerificates, awards, languages):
         # 사이드바 열고 닫을 때
         self.sidebar.expand(lambda: set_topbar_visibility(False), outputs=[topbar])
         self.sidebar.collapse(lambda: set_topbar_visibility(True), outputs=[topbar])
 
-        # '프로필 입력하러가기' 버튼 클릭 함수 및 이벤트
-        self.profile_button.click(select_profile_tab, outputs=[tab_host, user_id, user_image])
-        self.profile_image.click(select_profile_tab, outputs=[tab_host, user_id, user_image])
-
+        # '프로필 입력하러가기' 버튼 클릭 함수 및 이벤트   json_to_user_component_first, json_to_user_component_second, json_to_user_component_third, json_to_user_component_exp, json_to_user_component_work, json_to_user_component_award, json_to_user_component_cert, json_to_user_component_lang
+        self.profile_button.click(select_profile_tab, outputs=[tab_host, user_id, user_image]).then(app_logic.get_resume_info, outputs=[self.user_input_components]).then(
+            json_to_user_component, inputs=[self.user_input_components], 
+            outputs=[real_name, summary, skill_stack, final_degree, major, school_name, gpa, 
+                     degree_date, education_exp, work_experiences, cerificates, awards, languages])
+        
+        self.profile_image.click(select_profile_tab, outputs=[tab_host, user_id, user_image]).then(app_logic.get_resume_info, outputs=[self.user_input_components]).then(
+            json_to_user_component, inputs=[self.user_input_components], 
+            outputs=[real_name, summary, skill_stack, final_degree, major, school_name, gpa, 
+                     degree_date, education_exp, work_experiences, cerificates, awards, languages])
+        
         # chatbot tab 함수 및 이벤트
         self.general_chat_button.click(
             select_chat_tab, 
