@@ -31,6 +31,8 @@ class AppLogic:
         self.resume_logic = ResumeLogic(self.db, self._user_id)
         self.assistant_logic = AssistantLogic(self.db, self._user_id)
 
+    # ---------------------------------------------------------
+    # 기본 로그인/회원가입 구현
     def sign_in(self, user_id: str, password: str) -> Tuple[bool, str]:
         """
         사용자 로그인 기능을 수행합니다.
@@ -116,7 +118,8 @@ class AppLogic:
         """
         return self._signed_in
 
-    # USER
+    # ---------------------------------------------------------
+    # USER 로직
     def get_user_img(self):
         """사용자 카드 이미지 주소를 반환합니다."""
         return self.user_logic.get_user_img()
@@ -125,7 +128,39 @@ class AppLogic:
         """유저의 이력서 PDF 파일 URL을 User 테이블 DB에 저장합니다."""
         return self.user_logic.update_resume_file(resume_file_url)
 
-    # ASSISTANT
+    # ---------------------------------------------------------
+    # RESUME 로직
+    def generate_resume_pdf(self):
+        """이력서 PDF를 생성합니다."""
+        return self.resume_logic.generate_pdf_from_resume_id()
+
+    def update_resume_info(self, **resume_fields: dict[str, Any]) -> None:
+        """
+        사용자 페이지의 resume 입력 정보를 Resume 테이블 DB에 저장합니다.
+
+        Args:
+            resume_fields (Dict[str, Any]): 업데이트할 이력서 정보 필드들.
+        """
+        return self.resume_logic.update_resume_info(**resume_fields)
+
+    def reset_resume_info(self):
+        """
+        이력서 DB를 초기화합니다.(key값인 user_id 제외)
+        - 이력서 지우기 버튼 눌렀을 경우, 실행
+        """
+        return self.resume_logic.reset_resume_info()
+
+    def get_resume_info(self) -> dict:
+        """
+        이력서 DB를 불러옵니다.
+        - 처음 사용자 페이지를 눌렀을 때
+        - 변경 취소하기 버튼 눌렀을 때
+        - 저장버튼 누른 뒤에도 update_resume_info 실행 후 → 불러와야 함
+        """
+        return self.resume_logic.get_resume_info()
+
+    # ---------------------------------------------------------
+    # ASSISTANT 로직
     def get_response_from_assistant(self, assistant_type: AssistantType, user_question: str) -> Tuple[dict, list]:
         """AI 도우미를 통해 사용자 질문에 응답합니다. 여기에 citation도 있음."""
         response_message, citations = self.assistant_logic.get_response_from_assistant(
@@ -170,36 +205,12 @@ class AppLogic:
         roadmap_text, roadmap_image = split_text_and_json(roadmap_response)
         return roadmap_text, roadmap_image
 
-    # RESUME
-    def generate_resume_pdf(self):
-        """이력서 PDF를 생성합니다."""
-        return self.resume_logic.generate_pdf_from_resume_id()
+    def get_citation_url(self, file_id: str) -> str:
+        """citations에서 가져온 file_id를 검색해서 file의 제목인 citation_url로 바꾸는 함수"""
+        return self.assistant_logic.get_citation_url(file_id=file_id)
 
-    def update_resume_info(self, **resume_fields: dict[str, Any]) -> None:
-        """
-        사용자 페이지의 resume 입력 정보를 Resume 테이블 DB에 저장합니다.
-
-        Args:
-            resume_fields (Dict[str, Any]): 업데이트할 이력서 정보 필드들.
-        """
-        return self.resume_logic.update_resume_info(**resume_fields)
-
-    def reset_resume_info(self):
-        """
-        이력서 DB를 초기화합니다.(key값인 user_id 제외)
-        - 이력서 지우기 버튼 눌렀을 경우, 실행
-        """
-        return self.resume_logic.reset_resume_info()
-
-    def get_resume_info(self) -> dict:
-        """
-        이력서 DB를 불러옵니다.
-        - 처음 사용자 페이지를 눌렀을 때
-        - 변경 취소하기 버튼 눌렀을 때
-        - 저장버튼 누른 뒤에도 update_resume_info 실행 후 → 불러와야 함
-        """
-        return self.resume_logic.get_resume_info()
-
+    # ---------------------------------------------------------
+    # DB Session 닫기
     def __del__(self):
         # 인스턴스 소멸 시 세션 닫기
         if hasattr(self, "db"):

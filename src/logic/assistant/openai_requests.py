@@ -228,3 +228,10 @@ def get_last_assistant_message_one(thread_id: str) -> str | None:
     for message in messages:
         if message["role"] == "assistant":
             return message
+
+
+def get_file_id_name(file_id: str) -> str:
+    """파일 아이디를 입력받은 경우, 파일명을 전송"""
+    file_info = AZURE_OPENAI_CLIENT.files.retrieve(file_id)
+    filename = file_info.filename
+    return filename

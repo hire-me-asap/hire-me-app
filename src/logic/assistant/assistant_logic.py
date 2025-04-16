@@ -11,6 +11,7 @@ from src.logic.assistant.openai_requests import (
     get_last_assistant_message_one,
     get_all_assistant_message,
     delete_thread_id,
+    get_file_id_name,
 )
 
 from src.logic.constants import constants
@@ -206,3 +207,14 @@ class AssistantLogic:
                     delete_thread_id(thread_id)
                 except RuntimeError as e:
                     raise RuntimeError(f"스레드 삭제 중 문제가 발생했습니다: {e}")
+
+    def get_citation_url(self, file_id: str) -> str:
+        filename = get_file_id_name(file_id)
+        # .txt 제거
+        if filename.endswith(".txt"):
+            filename = filename[:-4]
+
+        # @를 /로 변환. TODO 확정되면 수정.
+        citation_url = filename.replace("@", "/")
+
+        return citation_url
