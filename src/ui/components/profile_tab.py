@@ -11,9 +11,9 @@ class ProfileTab:
             """ 프로필 탭 """
             with gr.Row():
                 with gr.Column(scale=4):
-                    self.username_text = gr.Text(
-                        label='사용자 이름', 
-                        placeholder='사용자 ID가 표시됩니다', 
+                    self.userid_text = gr.Text(
+                        label='사용자 ID', 
+                        value='', 
                         interactive=False
                     )
                     self.preferred_job = gr.Text(
@@ -164,5 +164,4 @@ class ProfileTab:
                 ).then(
                     fn=app_logic.update_resume_info,
                     inputs= self.resume_info_temp,
-                    outputs=None
-                )
+                    outputs=None)

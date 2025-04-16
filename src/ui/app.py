@@ -6,7 +6,7 @@ from pathlib import Path
 from src.ui.theme import custom_theme
 from src.ui.events import load_histories, update_sidebar_profile_image
 from src.ui.constants import *
-from src.ui.components import LeftSidebar, RightSidebar, Topbar, TabHost
+from src.ui.components import LeftSidebar, RightSidebar, Topbar, TabHost, ProfileTab
 
 
 gr.set_static_paths(paths=[
@@ -64,7 +64,8 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=custom_theme) as demo:
         topbar_wrapper.topbar,
         tab_host_wrapper.tab_host,
         tab_host_wrapper.chatbot_tab_wrapper.main_chatbot,
-        chat_state
+        chat_state,
+        tab_host_wrapper.profile_tab_wrapper.userid_text
     )
     topbar_wrapper.init_event_handler(
         chat_state,
