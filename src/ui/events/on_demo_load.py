@@ -2,7 +2,7 @@ import gradio as gr
 
 from src.ui.constants import ASSISTANTS_OF_MODE, Modes
 from src.logic.app_logic import app_logic
-from src.ui.messages import convert_to_openai_style, convert_general_response_to_openai_style
+from src.ui.messages import convert_to_openai_style, convert_general_response_to_openai_style, convert_roadmap_to_openai_style
 
 
 def update_sidebar_profile_image(current):
@@ -25,7 +25,10 @@ def load_histories(chat_state):
         history = app_logic.get_all_thread_dialogue(
             ASSISTANTS_OF_MODE[mode])
         if mode == Modes.GENERAL:
-            converter = lambda r: convert_general_response_to_openai_style(r)[0]
+            def converter(
+                r): return convert_general_response_to_openai_style(r)[0]
+        elif mode == Modes.ROADMAP:
+            converter = convert_roadmap_to_openai_style
         else:
             converter = convert_to_openai_style
         chat_state['histories'][mode] = list(map(converter, reversed(history)))

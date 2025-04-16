@@ -53,7 +53,7 @@ def _get_assistant_response(content: str, mode: Modes, chat_state):
         message_text, roadmap_image = app_logic.split_roadmap_text_image(
             message['content'])
         message_image = f"/gradio_api/file=static/roadmap/{roadmap_image.split('/')[-1]}"
-        message_text += f"<br><img src='{message_image}' alt='Roadmap Image' width='100%'/>"
+        message_text += f"\n---\n<img src='{message_image}' alt='Roadmap Image' width='100%'/>"
         message['content'] = message_text
         chat_state['histories'][mode].append(message)
         yield message, response

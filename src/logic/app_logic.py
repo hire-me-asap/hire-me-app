@@ -190,21 +190,22 @@ class AppLogic:
         except Exception as e:
             raise RuntimeError(f"thread_id 삭제 또는 생성 중 문제가 발생했습니다: {e}")
 
-    def split_roadmap_text_image(self, roadmap_response: str) -> Tuple[str, str]:
+    def split_roadmap_text_image(self, roadmap_response: str, message_id: str) -> Tuple[str, str]:
         """
         로드맵 응답 데이터를 텍스트와 이미지 경로로 분리합니다.
 
         Args:
             roadmap_response (str): 로드맵 기능에서 출력된 응답 데이터 (JSON 형식의 문자열).
+            message_id (str): message_id
 
         Returns:
             Tuple[str, str]: 
                 - 텍스트 부분 (로드맵 설명).
                 - 이미지 경로 (로드맵 이미지 파일 경로).(세로 / 가로)
         """
-        roadmap_text, roadmap_image = split_text_and_json(
-            roadmap_response, user_id=self._user_id)
-        return roadmap_text, roadmap_image
+        roadmap_text, roadmap_image_path = split_text_and_json(
+            roadmap_response, user_id=self._user_id, message_id=message_id)
+        return roadmap_text, roadmap_image_path
 
     def extract_citations_to_url(self, response: str) -> list:
         """응답이 선택됐을 때 그 응답에서 url 리스트로 나옴"""
