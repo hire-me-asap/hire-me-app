@@ -42,7 +42,7 @@ class ChatbotTab:
         
         self.chatbot_tab = chatbot_tab
     
-    def init_event_handlers(self, chat_state):
+    def init_event_handlers(self, chat_state, citation_contents):
         self.main_chatbot.example_select(select_example, outputs=[self.input_textarea])
         
         self.input_textarea.submit(
@@ -68,4 +68,32 @@ class ChatbotTab:
             # else:
             #     print('@@@ No citations found.')
         
-        self.main_chatbot.select(test_select, inputs=[chat_state])
+        def update_citation(select_data: gr.SelectData, chat_state):
+            history = chat_state['histories'][chat_state['mode']]
+            idx = select_data.index
+            
+            if idx >= len(history):
+                return
+            
+            message = history[idx]
+
+            # print(f'message type : {type(message)}')
+            # print(f'keys : {message.keys()}')
+            # print(message)
+            # message['raw_message'] 는 dict
+
+            if 'raw_message' in message and message['raw_message']:
+                # print(message['raw_message'])
+                citation_url_list = app_logic.extract_citations_to_url(message['raw_message'])
+                # print(citation_url_list)
+                if citation_url_list:               
+                    # Markdown 형식으로 참조 문헌 목록 생성
+                    markdown_content = "## 참조 문헌 목록\n\n"
+                    for idx, item in enumerate(citation_url_list, 1):
+                        markdown_content += f"{idx}. {item}\n"
+                    
+                    return markdown_content
+            
+            return '선택한 항목에 대한 참조 목록이 없습니다.'
+
+        self.main_chatbot.select(update_citation, inputs=[chat_state], outputs=[citation_contents])

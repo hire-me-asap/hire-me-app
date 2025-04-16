@@ -73,4 +73,4 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=custom_theme) as demo:
         tab_host_wrapper.tab_host,
         tab_host_wrapper.chatbot_tab_wrapper.main_chatbot
     )
-    tab_host_wrapper.init_event_handlers(chat_state)
+    tab_host_wrapper.init_event_handlers(chat_state, right_sidebar_wrapper.sidebar.citation.contents)
