@@ -41,16 +41,13 @@ def generate_user_info_json(
     certificates_keymap = {
         "자격증명": "certificate",
         "취득일 (YYYY.MM.DD)": "certificate_date",
-        "발급기관": "certificate_org"
     }
     awards_keymap = {
         "수상명": "award",
         "수상일 (YYYY.MM.DD)": "award_date",
-        "주최기관": "award_org"
     }
     languages_keymap = {
         "언어": "language",
-        "시험/레벨": "language_level",
         "취득일 (YYYY.MM.DD)": "language_date"
     }
 

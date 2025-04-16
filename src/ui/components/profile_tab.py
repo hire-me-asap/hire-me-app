@@ -1,8 +1,11 @@
 import gradio as gr
+import tempfile
 
+from pathlib import Path
 from src.ui.constants import *
 from src.ui.events import add_row, generate_user_info_json
 from src.logic.app_logic import app_logic
+from src.logic.resume import *
 
 
 class ProfileTab:
@@ -14,6 +17,9 @@ class ProfileTab:
                     self.userid_text = gr.Text(
                         label='사용자 ID', 
                         value='', 
+                    self.username_text = gr.Text(
+                        label='사용자 ID', 
+                        placeholder= "사용자ID를 입력하세요",
                         interactive=False
                     )
                     self.preferred_job = gr.Text(
@@ -83,10 +89,10 @@ class ProfileTab:
 
             gr.Markdown("### 🏅 자격증" )
             self.certificates = gr.Dataframe(
-                headers=['자격증명', '취득일 (YYYY.MM.DD)', '발급기관'],
-                datatype=['str', 'str', 'str'],
-                value=[["", "", ""]],
-                col_count=(3, "fixed"),
+                headers=['자격증명', '취득일 (YYYY.MM.DD)'],
+                datatype=['str', 'str'],
+                value=[["", ""]],
+                col_count=(2, "fixed"),
                 interactive=True,
                 wrap=True
             )
@@ -95,10 +101,10 @@ class ProfileTab:
         
             gr.Markdown("### 🏆 수상내역" )
             self.awards = gr.Dataframe(
-                headers=['수상명', '수상일 (YYYY.MM.DD)', '주최기관'],
-                datatype=['str', 'str', 'str'],
-                value=[["", "", ""]],
-                col_count=(3, "fixed"),
+                headers=['수상명', '수상일 (YYYY.MM.DD)'],
+                datatype=['str', 'str'],
+                value=[["", ""]],
+                col_count=(2, "fixed"),
                 interactive=True,
                 wrap=True
             )
@@ -107,10 +113,10 @@ class ProfileTab:
 
             gr.Markdown("### 🌍 어학" )
             self.languages = gr.Dataframe(
-                headers=['언어', '시험/레벨', '취득일 (YYYY.MM.DD)'],
-                datatype=['str', 'str', 'str'],
-                value=[["", "", ""]],
-                col_count=(3, "fixed"),
+                headers=['언어', '취득일 (YYYY.MM.DD)'],
+                datatype=['str', 'str'],
+                value=[["", ""]],
+                col_count=(2, "fixed"),
                 interactive=True,
                 wrap=True
             )
@@ -140,6 +146,19 @@ class ProfileTab:
                 self.resume_info_temp = gr.State({})
                     
 
+
+    def generate_pdf_and_return_file(self,user_info: dict):
+        # 임시 PDF 경로 생성
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
+            output_path = tmp.name
+
+        # 실제 PDF 생성 함수 호출
+        generate_pdf_resume(output_path, user_info)
+
+        # Gradio File 컴포넌트에 리턴할 파일 경로
+        return Path(output_path)
+
+
     def init_event_handlers(self):
     # 기존 인스턴스(app_logic)를 사용하여 원래 함수 호출
         # add 버튼 정의
@@ -149,10 +168,10 @@ class ProfileTab:
         self.add_btn_awards.click(fn=add_row, inputs=self.awards, outputs=self.awards)
         self.add_btn_lang.click(fn=add_row, inputs=self.languages, outputs=self.languages)
 
-        
     #app_logic.update_resume_info(**resume_fields)
 
     #add_btn.click(fn=add_row, inputs=education_and_exp, outputs=education_and_exp)
+
         self.save_button.click(
             fn= generate_user_info_json,
                     # 딕셔너리 형태로 인자 전달
@@ -164,4 +183,11 @@ class ProfileTab:
                 ).then(
                     fn=app_logic.update_resume_info,
                     inputs= self.resume_info_temp,
-                    outputs=None)
+                    outputs=None
+                )
+
+        self.generate_resume_button.click(
+            fn=self.generate_pdf_and_return_file,
+            inputs=self.resume_info_temp,
+            outputs=self.pdf_file_output
+            )
