@@ -137,11 +137,11 @@ class ProfileTab:
                     gr.Markdown()
                     
                     gr.Markdown('프로필 페이지에 입력된 이력서를 모두 빈칸으로 되돌립니다. 이 작업은 되돌릴 수 없습니다.')                
-                    self.clear_resume_button = gr.Button('이력서 지우기', elem_classes='red_button')
+                    self.clear_resume_button = gr.Button('이력서 지우기', elem_classes='red-button')
                     gr.Markdown()
 
                     gr.Markdown('사용자의 모든 대화 기록을 지웁니다. 이 작업은 되돌릴 수 없습니다.')
-                    self.clear_history_button = gr.Button('대화 기록 지우기', elem_classes='red_button')
+                    self.clear_history_button = gr.Button('대화 기록 지우기', elem_classes='red-button')
                 
                 self.resume_info_temp = gr.State({})
                     
