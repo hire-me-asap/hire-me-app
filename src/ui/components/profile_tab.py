@@ -137,7 +137,7 @@ class ProfileTab:
                     gr.Markdown('사용자의 모든 대화 기록을 지웁니다. 이 작업은 되돌릴 수 없습니다.')
                     self.clear_history_button = gr.Button('대화 기록 지우기', variant='stop')
                 
-                self.resume_info_temp = gr.Textbox(visible=False)
+                self.resume_info_temp = gr.State({})
                     
 
     def init_event_handlers(self):

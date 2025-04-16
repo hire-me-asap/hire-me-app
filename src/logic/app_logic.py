@@ -134,14 +134,14 @@ class AppLogic:
         """이력서 PDF를 생성합니다."""
         return self.resume_logic.generate_pdf_from_resume_id()
 
-    def update_resume_info(self, **resume_fields: dict[str, Any]) -> None:
+    def update_resume_info(self, resume_fields: dict[str, Any]) -> None:
         """
         사용자 페이지의 resume 입력 정보를 Resume 테이블 DB에 저장합니다.
 
         Args:
             resume_fields (Dict[str, Any]): 업데이트할 이력서 정보 필드들.
         """
-        return self.resume_logic.update_resume_info(**resume_fields)
+        return self.resume_logic.update_resume_info(resume_fields)
 
     def reset_resume_info(self):
         """

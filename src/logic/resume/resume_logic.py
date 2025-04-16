@@ -80,7 +80,7 @@ class ResumeLogic:
 
     def update_resume_info(
         self,
-        **resume_fields
+        resume_fields
     ) -> None:
         """
         사용자의 이력 정보를 Resume 테이블에 업데이트합니다.
@@ -91,7 +91,7 @@ class ResumeLogic:
         existing_resume = get_resume_by_id(db=self.db, user_id=self._user_id)
 
         if not existing_resume:
-            raise ValueError("이력서를 찾을 수 없습니다. 업데이트를 수행할 수 없습니다.")
+            create_resume(self._user_id)
 
         # None인 값은 필터링
         filtered_data = {k: v for k,
