@@ -20,6 +20,7 @@
         padding-top: 0px;
         padding-right: 0px;
     }
+
     #topbar-logo {
         background-image: url("https://raw.githubusercontent.com/Bosongsae/hiremeasap/71a35e2b3b58d38d09d12d08931973e8bdf0eded/etch_white.png");
         background-size: contain;
@@ -44,6 +45,11 @@
         box-shadow : 0px 5px 0px 0px #FFA09B !important;
         color : white !important;
     }
+
+    #site-footer a {
+        color: #9af4ff;
+        text-decoration: none;
+    }
 }
 
 @media (prefers-color-scheme: light) {
@@ -59,6 +65,7 @@
         padding-top: 0px;
         padding-right: 0px;
     }
+
     #topbar-logo {
         background-image: url('https://raw.githubusercontent.com/Bosongsae/hiremeasap/71a35e2b3b58d38d09d12d08931973e8bdf0eded/etch_black.png');
         background-size: contain;
@@ -79,9 +86,15 @@
         box-shadow : 0px 3px 0px 0px #FFCFCF !important;
         color : white !important;
     }
+
     .red-button:hover {
         box-shadow : 0px 5px 0px 0px #FFCFCF !important;
         color : white !important;
+    }
+
+    #site-footer a {
+        color: #11909d;
+        text-decoration: none;
     }
 }
 
@@ -181,7 +194,7 @@ footer {
     align-items: top;
     justify-content: center; /* 가로 방향 가운데 */    
     padding : 2px;
-    }
+}
 
 .example-text-content.svelte-9pi8y1{    
     text-align: center;
@@ -254,13 +267,16 @@ footer {
     background: var(--block-background-fill) !important;
 }
 
-.sidebar:nth-of-type(2)>.sidebar-content>.column>*:last-child {
+.sidebar:nth-of-type(2)>.sidebar-content>.column>*:nth-last-child(2) {
     margin-top: auto;
+    display: flex;
+    flex-direction: column;
 }
 
 #profile:hover {
     cursor: pointer;   
 }
+
 #profile img:hover {
     cursor: pointer;   
 }
@@ -303,29 +319,11 @@ footer {
 /* site 하단 footer */
 #site-footer {
     display: flex;
-    flex-wrap: wrap; /* 줄바꿈 허용 */
-    justify-content: center;
-    align-items: center;
-    gap: 6px;  /* 요소 간 간격 */
-
-    white-space: nowrap;
-    position: static;    
-    width: 100%;
-    height: auto; /* 높이는 내용에 맞게 자동 */
-    background: transparent;
-    -webkit-backdrop-filter: blur(3px);
-    backdrop-filter: blur(3px);
-    border-top: 0px solid rgba(255,255,255,0.1);
-    text-align: center;
-    font-size: 10px;
-    padding: 8px 0;
-    box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.1);    
-    color: #d5d5d5;
+    flex-direction: column;
 }
 
-#site-footer a {
-    color: #d5d5d5;
-    text-decoration: none;
+#site-footer div {
+    text-align: center;
 }
 
 /* 창 너비가 500px 이하일 때 세로 정렬 */

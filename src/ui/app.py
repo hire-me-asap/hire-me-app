@@ -25,15 +25,6 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=custom_theme) as demo:
     topbar_wrapper = Topbar()
     tab_host_wrapper = TabHost()
 
-    gr.Markdown("""
-        <div id="site-footer">
-            © 2025 hire me ASAP Inc. ·
-            ✉️ contact@hiremeasap.com ·
-            <a href="https://github.com/hire-me-asap" target="_blank" style="color:#d5d5d5;">github.com/hire-me-asap</a> ·
-            <a href="#" style="color:#d5d5d5;">Privacy Policy</a>
-        </div>
-    """)
-
     """
     상태 변수
     """
