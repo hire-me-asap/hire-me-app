@@ -1,7 +1,7 @@
 import gradio as gr
 
 from src.ui.constants import *
-from src.ui.events import select_example, queue_message, wait_message
+from src.ui.events import select_example, process_user_message
 
 
 class ChatbotTab:
@@ -35,12 +35,11 @@ class ChatbotTab:
         self.main_chatbot.example_select(select_example, outputs=[self.input_textarea])
         
         self.input_textarea.submit(
-            queue_message,
-            inputs=[self.input_textarea, chat_state],
-            outputs=[self.main_chatbot, chat_state]
-        ).then(
-            wait_message,
+            process_user_message,
             inputs=[self.input_textarea, chat_state],
             outputs=[self.input_textarea, self.main_chatbot, chat_state],
-            scroll_to_output=True
+            scroll_to_output=True,
+            queue=True
+        ).then(
+            lambda _: '', inputs=[self.input_textarea], outputs=[self.input_textarea]
         )
