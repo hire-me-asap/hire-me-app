@@ -200,11 +200,13 @@ class AssistantLogic:
 
     def get_citation_url(self, file_id: str) -> str:
         filename = get_file_id_name(file_id)
+
         # .txt 제거
         if filename.endswith(".txt"):
             filename = filename[:-4]
 
-        # @를 /로 변환. TODO 확정되면 수정.
-        citation_url = filename.replace("@", "/")
+        # @를 /로 변환 및 기타 변환
+        translation_table = str.maketrans(":/", "!@")  # ':' → '!', '/' → '@'
+        citation_url = filename.translate(translation_table)
 
         return citation_url
