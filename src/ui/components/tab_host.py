@@ -13,6 +13,6 @@ class TabHost:
         self.tab_host = tab_host
         self.app_logic = app_logic
 
-    def init_event_handlers(self, chat_state, app_logic = self.app_logic):
+    def init_event_handlers(self, chat_state):
         self.chatbot_tab_wrapper.init_event_handlers(chat_state)
-        self.profile_tab_wrapper.init_event_handlers(app_logic)
+        self.profile_tab_wrapper.init_event_handlers()
