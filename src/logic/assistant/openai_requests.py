@@ -215,7 +215,7 @@ def get_all_assistant_message(personal_thread_id: str) -> str | None:
 
 def get_last_assistant_message_one(thread_id: str) -> str | None:
     """
-    4.2.2 환경변수에 설정된 엔드포인트를 이용하여 특정 Thread에서 가장 마지막 Assistant 응답 및 annotations를 가져옵니다.
+    4.2.2 환경변수에 설정된 엔드포인트를 이용하여 특정 Thread에서 가장 마지막 Assistant 응답을 가져옴.
 
     Parameters:
         thread_id (str): 사용자 개인 Thread의 ID.

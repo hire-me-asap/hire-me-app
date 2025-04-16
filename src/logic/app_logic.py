@@ -163,15 +163,12 @@ class AppLogic:
     # ASSISTANT 로직
     def get_response_from_assistant(self, assistant_type: AssistantType, user_question: str) -> Tuple[dict, list]:
         """AI 도우미를 통해 사용자 질문에 응답합니다. 여기에 citation도 있음."""
-        # response_message, citations = self.assistant_logic.get_response_from_assistant(
-        #     assistant_type, user_question)
-        # return response_message, citations
         response_message = self.assistant_logic.get_response_from_assistant(
             assistant_type, user_question)
         return response_message
 
     def get_all_thread_dialogue(self, assistant_type: AssistantType) -> dict:
-        """사용자의 assistant_type에 해당하는 Thread ID를 통해 전체 대화 내역(어시스턴트 응답, 참조 조합)을 반환합니다."""
+        """사용자의 assistant_type에 해당하는 Thread ID를 통해 전체 대화 내역"""
         return self.assistant_logic.get_all_thread_dialogue(assistant_type)
 
     def add_dialogue_thread(self, role: str, message: str) -> None:
@@ -207,6 +204,10 @@ class AppLogic:
         """
         roadmap_text, roadmap_image = split_text_and_json(roadmap_response)
         return roadmap_text, roadmap_image
+
+    def extract_citations(self, response: str) -> list:
+        """응답이 선택됐을 때 그 응답에서 citation(=Anotation 받는 함수) 리스트로 나옴"""
+        return self.assistant_logic.extract_citations(response)
 
     def get_citation_url(self, file_id: str) -> str:
         """citations에서 가져온 file_id를 검색해서 file의 제목인 citation_url로 바꾸는 함수"""

@@ -70,7 +70,7 @@ class AssistantLogic:
 
     def extract_citations(self, response: dict) -> list:
         """
-        응답 데이터에서 citations(annotations)를 추출합니다.
+        응답 데이터에서 citations(annotations) 리스트를 추출합니다.
 
         Args:
             response (dict): OpenAI API의 응답 데이터.
@@ -78,14 +78,7 @@ class AssistantLogic:
         Returns:
             list: 추출된 citations 리스트.
         """
-        messages = response["data"]
-        citations = []
-
-        for message in messages:
-            # 메시지의 content 필드에서 annotations 추출
-            for content in message["content"]:
-                annotations = content["text"]["annotations"]
-                citations.extend(annotations)
+        citations = response['content'][0]['text']['annotations']
 
         return citations
 
@@ -124,9 +117,6 @@ class AssistantLogic:
             thread_id=personal_thread_id,
         )
 
-        # TODO 이거 아직 어떻게 받을지 안함.
-        # citations = self.extract_citations(response)
-
         return response
 
     def get_all_thread_dialogue(self, assistant_type: AssistantType) -> dict:
@@ -160,8 +150,6 @@ class AssistantLogic:
                 "해당 assistant_type에 대한 thread_id가 존재하지 않습니다.", thread_id_map, thread_id)
 
         message = get_all_assistant_message(thread_id)
-        # TODO 이거 citations를 어떻게 받아야 할 지 모르겠네...
-        # citations = self.extract_citations(message)
 
         return message
 
