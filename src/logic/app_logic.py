@@ -1,4 +1,4 @@
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Any
 from sqlalchemy.orm import Session
 
 from src.db import Session
@@ -132,9 +132,18 @@ class AppLogic:
         """스레드에 해당 역할에 대한 메세지를 추가합니다."""
         return self.assistant_logic.add_dialogue_thread(role, message)
 
-    def update_resume_file(self, resume_file_url: str) -> None:
+    def update_user_resume_file(self, resume_file_url: str) -> None:
         """유저의 이력서 PDF 파일 URL을 User 테이블 DB에 저장합니다."""
         return self.user_logic.update_resume_file(resume_file_url)
+
+    def update_resume_info(self, **resume_fields: dict[str, Any]) -> None:
+        """
+        사용자 페이지의 resume 입력 정보를 Resume 테이블 DB에 저장합니다.
+
+        Args:
+            resume_fields (Dict[str, Any]): 업데이트할 이력서 정보 필드들.
+        """
+        return self.resume_logic.update_resume_info(**resume_fields)
 
     def split_roadmap_text_image(self, roadmap_response: str) -> Tuple[str, str]:
         """
