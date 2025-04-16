@@ -1,7 +1,7 @@
 from typing import Optional
 from sqlalchemy.orm import Session
 
-from src.models.resume import get_resume_by_id, create_resume, update_resume, delete_resume
+from src.models.resume import get_resume_by_id, create_resume, update_resume, delete_resume, reset_resume
 from src.logic.resume.generate_pdf_resume import generate_pdf_resume
 
 
@@ -18,28 +18,6 @@ class ResumeLogic:
         self._user_id: Optional[str] = user_id
         self.db = db
 
-    def update_resume_info(
-        self,
-        **resume_fields
-    ) -> None:
-        """
-        사용자의 이력 정보를 Resume 테이블에 업데이트합니다.
-
-        Args:
-            **resume_fields: 업데이트할 이력 정보 필드들 (None 값은 무시됨)
-        """
-        existing_resume = get_resume_by_id(self.db, self._user_id)
-
-        if not existing_resume:
-            raise ValueError("이력서를 찾을 수 없습니다. 업데이트를 수행할 수 없습니다.")
-
-        # None인 값은 필터링
-        filtered_data = {k: v for k,
-                         v in resume_fields.items() if v is not None}
-        filtered_data["user_id"] = self._user_id
-
-        update_resume(db=self.db, **filtered_data)
-
     def create_resume(
         self,
         user_id: str
@@ -50,7 +28,7 @@ class ResumeLogic:
         Args:
             user_id (str): 생성할 사용자의 ID.
         """
-        existing_resume = get_resume_by_id(self.db, user_id)
+        existing_resume = get_resume_by_id(db=self.db, user_id=self._user_id)
 
         if existing_resume:
             raise ValueError("이미 존재하는 이력서가 있습니다. 새로 생성할 수 없습니다.")
@@ -69,6 +47,74 @@ class ResumeLogic:
             awards=None,
             languages=None
         )
+
+    def get_resume_info(self) -> dict:
+        """
+        resume 테이블의 정보를 불러옵니다.
+
+        Returns:
+            dict: 이력서 정보가 담긴 딕셔너리.
+
+        Raises:
+            ValueError: 해당 사용자의 이력서가 존재하지 않을 경우.
+        """
+        # 이력서 정보 조회
+        resume = get_resume_by_id(db=self.db, user_id=self._user_id)
+
+        if not resume:
+            raise ValueError(
+                f"Resume for user_id '{self._user_id}' not found.")
+
+        # 이력서 정보를 딕셔너리로 반환
+        return {
+            "real_name": resume.real_name,
+            "summary": resume.summary,
+            "skill_stack": resume.skill_stack,
+            "work_experiences": resume.work_experiences,
+            "education": resume.education,
+            "education_and_exp": resume.education_and_exp,
+            "certificates": resume.certificates,
+            "awards": resume.awards,
+            "languages": resume.languages
+        }
+
+    def update_resume_info(
+        self,
+        **resume_fields
+    ) -> None:
+        """
+        사용자의 이력 정보를 Resume 테이블에 업데이트합니다.
+
+        Args:
+            **resume_fields: 업데이트할 이력 정보 필드들 (None 값은 무시됨)
+        """
+        existing_resume = get_resume_by_id(db=self.db, user_id=self._user_id)
+
+        if not existing_resume:
+            raise ValueError("이력서를 찾을 수 없습니다. 업데이트를 수행할 수 없습니다.")
+
+        # None인 값은 필터링
+        filtered_data = {k: v for k,
+                         v in resume_fields.items() if v is not None}
+        filtered_data["user_id"] = self._user_id
+
+        update_resume(db=self.db, **filtered_data)
+
+    def reset_resume_info(self):
+        """
+        사용자의 이력서 데이터를 초기화합니다.
+
+        Returns:
+            Resume: 초기화된 이력서 객체.
+
+        Raises:
+            ValueError: 해당 사용자의 이력서가 존재하지 않을 경우.
+        """
+        try:
+            reset_resume(db=self.db, user_id=self._user_id)
+        except ValueError as e:
+            print(f"❌ 이력서 초기화에 실패했습니다. (user_id: {self._user_id}): {e}")
+            raise
 
     def generate_pdf_from_resume_id(self) -> str:
         """

@@ -3,9 +3,9 @@ from sqlalchemy.orm import Session
 
 from src.db import Session
 from src.logic.user.user_logic import UserLogic
-from src.logic.user.generate_roadmap_img import split_text_and_json
 from src.logic.resume.resume_logic import ResumeLogic
 from src.logic.assistant.assistant_logic import AssistantLogic, AssistantType
+from src.logic.assistant.generate_roadmap_img import split_text_and_json
 
 from src.models.user import create_user
 from src.models.user import User
@@ -119,14 +119,16 @@ class AppLogic:
         """
         return self._signed_in
 
+    # USER
     def get_user_img(self):
         """사용자 카드 이미지 주소를 반환합니다."""
         return self.user_logic.get_user_img()
 
-    def generate_resume_pdf(self):
-        """이력서 PDF를 생성합니다."""
-        return self.resume_logic.generate_pdf_from_resume_id()
+    def update_user_resume_file(self, resume_file_url: str) -> None:
+        """유저의 이력서 PDF 파일 URL을 User 테이블 DB에 저장합니다."""
+        return self.user_logic.update_resume_file(resume_file_url)
 
+    # ASSISTANT
     def get_response_from_assistant(self, assistant_type: AssistantType, user_question: str) -> dict:
         """AI 도우미를 통해 사용자 질문에 응답합니다."""
         return self.assistant_logic.get_response_from_assistant(assistant_type, user_question)
@@ -138,19 +140,6 @@ class AppLogic:
     def add_dialogue_thread(self, role: str, message: str) -> None:
         """스레드에 해당 역할에 대한 메세지를 추가합니다."""
         return self.assistant_logic.add_dialogue_thread(role, message)
-
-    def update_user_resume_file(self, resume_file_url: str) -> None:
-        """유저의 이력서 PDF 파일 URL을 User 테이블 DB에 저장합니다."""
-        return self.user_logic.update_resume_file(resume_file_url)
-
-    def update_resume_info(self, **resume_fields: dict[str, Any]) -> None:
-        """
-        사용자 페이지의 resume 입력 정보를 Resume 테이블 DB에 저장합니다.
-
-        Args:
-            resume_fields (Dict[str, Any]): 업데이트할 이력서 정보 필드들.
-        """
-        return self.resume_logic.update_resume_info(**resume_fields)
 
     def split_roadmap_text_image(self, roadmap_response: str) -> Tuple[str, str]:
         """
@@ -166,6 +155,36 @@ class AppLogic:
         """
         roadmap_text, roadmap_image = split_text_and_json(roadmap_response)
         return roadmap_text, roadmap_image
+
+    # RESUME
+    def generate_resume_pdf(self):
+        """이력서 PDF를 생성합니다."""
+        return self.resume_logic.generate_pdf_from_resume_id()
+
+    def update_resume_info(self, **resume_fields: dict[str, Any]) -> None:
+        """
+        사용자 페이지의 resume 입력 정보를 Resume 테이블 DB에 저장합니다.
+
+        Args:
+            resume_fields (Dict[str, Any]): 업데이트할 이력서 정보 필드들.
+        """
+        return self.resume_logic.update_resume_info(**resume_fields)
+
+    def reset_resume_info(self):
+        """
+        이력서 DB를 초기화합니다.(key값인 user_id 제외)
+        - 이력서 지우기 버튼 눌렀을 경우, 실행
+        """
+        return self.resume_logic.reset_resume_info()
+
+    def get_resume_info(self) -> dict:
+        """
+        이력서 DB를 불러옵니다.
+        - 처음 사용자 페이지를 눌렀을 때
+        - 변경 취소하기 버튼 눌렀을 때
+        - 저장버튼 누른 뒤에도 update_resume_info 실행 후 → 불러와야 함
+        """
+        return self.resume_logic.get_resume_info()
 
     def __del__(self):
         # 인스턴스 소멸 시 세션 닫기

@@ -151,3 +151,32 @@ def delete_resume(db: Session, user_id: str):
         db.commit()
         return True
     return False
+
+
+def reset_resume(db: Session, user_id: str) -> Resume:
+    # Resume 객체 조회
+    resume = db.query(Resume).filter(Resume.user_id == user_id).first()
+    if not resume:
+        raise ValueError(f"Resume for user_id '{user_id}' not found.")
+
+    # 초기화할 필드
+    fields_to_reset = [
+        "real_name",
+        "summary",
+        "skill_stack",
+        "work_experiences",
+        "education",
+        "education_and_exp",
+        "certificates",
+        "awards",
+        "languages"
+    ]
+
+    # 각 필드를 None으로 초기화
+    for field in fields_to_reset:
+        setattr(resume, field, None)
+
+    # 데이터베이스 커밋 및 객체 갱신
+    db.commit()
+    db.refresh(resume)
+    return resume
