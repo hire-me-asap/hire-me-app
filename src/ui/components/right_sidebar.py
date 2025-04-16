@@ -8,14 +8,14 @@ class RightSidebar:
     def __init__(self):
         with gr.Sidebar(position='right') as sidebar:
             with gr.Accordion('참조 문헌') as citation:
-                citation_contents = gr.Markdown('참조문헌 목록')
+                contents = gr.Markdown('참조문헌 목록')
             with gr.Accordion('이력서 미리보기') as resume_preview:
                 gr.Markdown('👀👀👀👀👀👀👀')
             with gr.Accordion('아카이브') as archive:
                 gr.Chatbot([], type='messages', show_label=False)
         
         self.sidebar = sidebar
-        self.sidebar.citation_contents = citation_contents
+        self.sidebar.citation.contents = contents
     
     def get_vector_store_file_id_list(annotations: list[dict]) -> Optional[list[str]]:
         """annotations 의 형식은 다음과 같이 생겼음.\n
