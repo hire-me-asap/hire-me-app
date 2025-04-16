@@ -163,9 +163,12 @@ class AppLogic:
     # ASSISTANT 로직
     def get_response_from_assistant(self, assistant_type: AssistantType, user_question: str) -> Tuple[dict, list]:
         """AI 도우미를 통해 사용자 질문에 응답합니다. 여기에 citation도 있음."""
-        response_message, citations = self.assistant_logic.get_response_from_assistant(
+        # response_message, citations = self.assistant_logic.get_response_from_assistant(
+        #     assistant_type, user_question)
+        # return response_message, citations
+        response_message = self.assistant_logic.get_response_from_assistant(
             assistant_type, user_question)
-        return response_message, citations
+        return response_message
 
     def get_all_thread_dialogue(self, assistant_type: AssistantType) -> dict:
         """사용자의 assistant_type에 해당하는 Thread ID를 통해 전체 대화 내역(어시스턴트 응답, 참조 조합)을 반환합니다."""
