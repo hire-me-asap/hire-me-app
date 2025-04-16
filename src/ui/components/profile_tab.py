@@ -7,7 +7,7 @@ class ProfileTab:
     def __init__(self):
         with gr.Tab('프로필', id=1) as profile_tab:
             """ 프로필 탭 """
-            with gr.Group():
+            with gr.Row():
                 with gr.Column(scale=4):
                     username_text = gr.Text(
                         label='사용자 이름', 
@@ -68,7 +68,7 @@ class ProfileTab:
                         key="edu_df"
                     )
                 add_btn = gr.Button("➕ 행 추가")
-                add_btn.click(fn=add_row, inputs=education_and_exp, outputs=education_and_exp)
+
             with gr.Group():     
                 gr.Markdown("### 💼 경력사항")
                 work_experiences = gr.Dataframe(
@@ -79,7 +79,7 @@ class ProfileTab:
                     key="edu_df"
                 )
                 add_btn = gr.Button("➕ 행 추가")
-                add_btn.click(fn=add_row, inputs=work_experiences, outputs=work_experiences)
+                #add_btn.click(fn=add_row, inputs=work_experiences, outputs=work_experiences)
             with gr.Group():     
                 gr.Markdown("### 🏅 자격증" )
                 certificates = gr.Dataframe(
@@ -90,7 +90,7 @@ class ProfileTab:
                     wrap=True
                 )
                 add_btn = gr.Button("➕ 행 추가")
-                add_btn.click(fn=add_row, inputs=certificates, outputs=certificates)
+                #add_btn.click(fn=add_row, inputs=certificates, outputs=certificates)
             
             with gr.Group():   
                 gr.Markdown("### 🏆 수상내역" )
@@ -102,7 +102,7 @@ class ProfileTab:
                     wrap=True
                 )
                 add_btn = gr.Button("➕ 행 추가")
-                add_btn.click(fn=add_row, inputs=awards, outputs=awards)
+                #add_btn.click(fn=add_row, inputs=awards, outputs=awards)
 
             with gr.Group():   
                 gr.Markdown("### 🌍 어학" )
@@ -114,7 +114,7 @@ class ProfileTab:
                     wrap=True
                 )
                 add_btn = gr.Button("➕ 행 추가")
-                add_btn.click(fn=add_row, inputs=languages, outputs=languages)
+                #add_btn.click(fn=add_row, inputs=languages, outputs=languages)
 
         with profile_tab:
                 gr.Markdown("### 📄 이력서 PDF로 저장하고 싶으신가요?")
@@ -125,15 +125,14 @@ class ProfileTab:
                 # 변경사항 저장하기 (이력서 DB 업데이트)
                 save_button = gr.Button("변경사항 저장하기", variant="primary")
 
-               
-                save_button.click(
-                    fn=call_update_resume_info,
-                    inputs=[
-                        real_name, summary, skill_stack, final_degree, major, school_name, gpa, degree_date,
-                        education_and_exp, work_experiences, certificates, awards, languages
-                    ],
-                    outputs=[]
-                )
+                # save_button.click(
+                #     fn=call_update_resume_info,
+                #     inputs=[
+                #         real_name, summary, skill_stack, final_degree, major, school_name, gpa, degree_date,
+                #         education_and_exp, work_experiences, certificates, awards, languages
+                #     ],
+                #     outputs=[]
+                # )
             
                 with gr.Accordion('⚠️ 위험한 기능', open=False):
                     gr.Markdown()
@@ -144,7 +143,6 @@ class ProfileTab:
 
                     gr.Markdown('사용자의 모든 대화 기록을 지웁니다. 이 작업은 되돌릴 수 없습니다.')
                     clear_history_button = gr.Button('대화 기록 지우기', variant='stop')
-
 
 """함수"""
 
@@ -246,4 +244,6 @@ def call_update_resume_info(
 
     # 기존 인스턴스(app_logic)를 사용하여 원래 함수 호출
     app_logic.update_resume_info(**resume_fields)
+
+add_btn.click(fn=add_row, inputs=education_and_exp, outputs=education_and_exp)
 """
