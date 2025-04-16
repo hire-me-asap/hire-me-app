@@ -5,7 +5,6 @@ from pathlib import Path
 from src.ui.constants import *
 from src.ui.events import add_row, generate_user_info_json
 from src.logic.app_logic import app_logic
-from src.logic.resume import *
 
 
 class ProfileTab:
@@ -16,11 +15,7 @@ class ProfileTab:
                 with gr.Column(scale=4):
                     self.userid_text = gr.Text(
                         label='사용자 ID', 
-                        value='', 
-                    self.username_text = gr.Text(
-                        label='사용자 ID', 
-                        placeholder= "사용자ID를 입력하세요",
-                        interactive=False
+                        value=''
                     )
                     self.preferred_job = gr.Text(
                         label='희망 직무', 
@@ -113,7 +108,7 @@ class ProfileTab:
 
             gr.Markdown("### 🌍 어학" )
             self.languages = gr.Dataframe(
-                headers=['언어', '취득일 (YYYY.MM.DD)'],
+                headers=['어학시험/점수', '취득일 (YYYY.MM.DD)'],
                 datatype=['str', 'str'],
                 value=[["", ""]],
                 col_count=(2, "fixed"),
@@ -146,19 +141,6 @@ class ProfileTab:
                 self.resume_info_temp = gr.State({})
                     
 
-
-    def generate_pdf_and_return_file(self,user_info: dict):
-        # 임시 PDF 경로 생성
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
-            output_path = tmp.name
-
-        # 실제 PDF 생성 함수 호출
-        generate_pdf_resume(output_path, user_info)
-
-        # Gradio File 컴포넌트에 리턴할 파일 경로
-        return Path(output_path)
-
-
     def init_event_handlers(self):
     # 기존 인스턴스(app_logic)를 사용하여 원래 함수 호출
         # add 버튼 정의
@@ -185,9 +167,8 @@ class ProfileTab:
                     inputs= self.resume_info_temp,
                     outputs=None
                 )
-
         self.generate_resume_button.click(
-            fn=self.generate_pdf_and_return_file,
-            inputs=self.resume_info_temp,
-            outputs=self.pdf_file_output
-            )
+            fn=app_logic.generate_resume_pdf,
+            inputs=[],  # 입력 없음! (user_id는 내부적으로 self._user_id로 처리되니까)
+            outputs=self.pdf_file_output  # 파일 컴포넌트로 연결
+        )
