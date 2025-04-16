@@ -1,5 +1,4 @@
 import pandas as pd
-import JSON
 
 def _remap_dataframe(df : pd.DataFrame , keymap : dict):
     if isinstance(df, pd.DataFrame):
@@ -26,7 +25,7 @@ def generate_user_info_json(
                     certificates_df: pd.DataFrame, 
                     awards_df: pd.DataFrame, 
                     languages_df: pd.DataFrame,
-                    ) -> JSON :
+                    ) -> dict :
     
     # ✅ 그라디오 헤더 → 실제 저장 키 이름 매핑
     education_and_exp_keymap = {
