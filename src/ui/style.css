@@ -109,7 +109,7 @@
 }
 
 #chatbot {
-    overflow: hidden
+    overflow: hidden !important;
 }
 
 .contain>*:nth-child(1) {
