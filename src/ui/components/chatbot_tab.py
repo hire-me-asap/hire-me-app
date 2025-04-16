@@ -2,6 +2,7 @@ import gradio as gr
 
 from src.ui.constants import *
 from src.ui.events import select_example, process_user_message
+from src.logic.app_logic import app_logic
 
 
 class ChatbotTab:
@@ -57,9 +58,10 @@ class ChatbotTab:
                 return
             
             message = history[idx]
-            if 'citations' in message:
-                print(f'@@@ Citational message: {message["citations"]}')
-            else:
-                print('@@@ No citations found.')
+            
+            # if 'citations' in message:
+            #     print(f'@@@ Citational message: {message["citations"]}')
+            # else:
+            #     print('@@@ No citations found.')
         
         self.main_chatbot.select(test_select, inputs=[chat_state])

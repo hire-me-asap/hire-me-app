@@ -16,10 +16,7 @@ def convert_to_openai_style(raw_json_message: dict) -> dict:
         'role': raw_json_message['role'],
         'content': raw_json_message['content'][0]['text']['value']
     }
-
-    if 'citations' in raw_json_message:
-        message['citations'] = raw_json_message['citations']
-
+    message['raw_message'] = raw_json_message
     return message
 
 
