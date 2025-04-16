@@ -8,7 +8,27 @@ from reportlab.lib.units import mm
 
 # Malgun Gothic 폰트 등록.
 # 이것도 아마 폰트 추가하거나 하는 게 있을 것 같은데 한번 찾아보세요.
-pdfmetrics.registerFont(TTFont('MalgunGothic', r'C:\Windows\Fonts\malgun.ttf'))
+# ✅ OS에 따른 기본 한글 폰트 경로
+def register_korean_font():
+    system_name = platform.system()
+
+    if system_name == "Windows":
+        font_path = r"C:\Windows\Fonts\malgun.ttf"
+        font_name = "MalgunGothic"
+    elif system_name == "Darwin":  # MacOS
+        font_path = "/System/Library/Fonts/AppleSDGothicNeo.ttc"
+        font_name = "AppleGothic"
+    else:  # Linux or unknown
+        font_path = "/usr/share/fonts/truetype/nanum/NanumGothic.ttf"  # 예시: Ubuntu용
+        font_name = "NanumGothic"
+
+    # 경로 존재 여부 확인 후 등록
+    if os.path.exists(font_path):
+        pdfmetrics.registerFont(TTFont(font_name, font_path))
+        print(f"✅ 한글 폰트 '{font_name}' 등록 완료!")
+        return font_name
+    else:
+        raise FileNotFoundError(f"❌ 폰트 파일을 찾을 수 없습니다: {font_path}")
 
 # 사용자 정보 <- 이런 식으로 들어오니까 디자인할 때 참고용으로 계속 둘게요.
 # user_info_use = {

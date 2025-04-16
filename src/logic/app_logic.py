@@ -1,8 +1,9 @@
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Any
 from sqlalchemy.orm import Session
 
 from src.db import Session
 from src.logic.user.user_logic import UserLogic
+from src.logic.user.generate_roadmap_img import split_text_and_json
 from src.logic.resume.resume_logic import ResumeLogic
 from src.logic.assistant.assistant_logic import AssistantLogic, AssistantType
 
@@ -61,6 +62,10 @@ class AppLogic:
         self.user_logic = UserLogic(self.db, self._user_id)
         self.resume_logic = ResumeLogic(self.db, self._user_id)
         self.assistant_logic = AssistantLogic(self.db, self._user_id)
+
+        self.user_logic = UserLogic(self.db, self._user_id)
+        self.resume_logic = ResumeLogic(self.db, self._user_id)
+        self.assistant_logic = AssistantLogic(self.db, self._user_id)
         return True, "로그인 성공"
 
     def sign_up(
@@ -87,6 +92,9 @@ class AppLogic:
         create_user(self.db, user_id=user_id, password=password)
 
         self.sign_in(user_id, password)
+        self.user_logic.update_thread_id()
+        self.user_logic.update_user_img()
+        self.resume_logic.create_resume(user_id=user_id)
         self.user_logic.update_thread_id()
         self.user_logic.update_user_img()
         self.resume_logic.create_resume(user_id=user_id)
@@ -123,17 +131,41 @@ class AppLogic:
         """AI 도우미를 통해 사용자 질문에 응답합니다."""
         return self.assistant_logic.get_response_from_assistant(assistant_type, user_question)
 
-    def get_all_thread_dialogue(self, assistant_type: AssistantType):
+    def get_all_thread_dialogue(self, assistant_type: AssistantType) -> dict:
         """사용자의 assistant_type에 해당하는 Thread ID를 통해 전체 대화 내역을 반환합니다."""
         return self.assistant_logic.get_all_thread_dialogue(assistant_type)
 
-    def add_dialogue_thread(self, role: str, message: str):
+    def add_dialogue_thread(self, role: str, message: str) -> None:
         """스레드에 해당 역할에 대한 메세지를 추가합니다."""
         return self.assistant_logic.add_dialogue_thread(role, message)
 
-    def update_resume_file(self, resume_file_url: str):
+    def update_user_resume_file(self, resume_file_url: str) -> None:
         """유저의 이력서 PDF 파일 URL을 User 테이블 DB에 저장합니다."""
         return self.user_logic.update_resume_file(resume_file_url)
+
+    def update_resume_info(self, **resume_fields: dict[str, Any]) -> None:
+        """
+        사용자 페이지의 resume 입력 정보를 Resume 테이블 DB에 저장합니다.
+
+        Args:
+            resume_fields (Dict[str, Any]): 업데이트할 이력서 정보 필드들.
+        """
+        return self.resume_logic.update_resume_info(**resume_fields)
+
+    def split_roadmap_text_image(self, roadmap_response: str) -> Tuple[str, str]:
+        """
+        로드맵 응답 데이터를 텍스트와 이미지 경로로 분리합니다.
+
+        Args:
+            roadmap_response (str): 로드맵 기능에서 출력된 응답 데이터 (JSON 형식의 문자열).
+
+        Returns:
+            Tuple[str, str]: 
+                - 텍스트 부분 (로드맵 설명).
+                - 이미지 경로 (로드맵 이미지 파일 경로).
+        """
+        roadmap_text, roadmap_image = split_text_and_json(roadmap_response)
+        return roadmap_text, roadmap_image
 
     def __del__(self):
         # 인스턴스 소멸 시 세션 닫기
