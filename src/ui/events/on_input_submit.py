@@ -1,7 +1,7 @@
 import gradio as gr
 
 from src.logic.app_logic import app_logic
-from src.ui.messages import convert_to_openai_style, convert_general_response_to_openai_style
+from src.ui.messages import convert_to_openai_style, convert_general_response_to_openai_style, RESUME_SEPARATOR, RESUME_IN_USER_MESSAGE
 from src.ui.constants import ASSISTANTS_OF_MODE, Modes
 
 
@@ -17,6 +17,12 @@ def process_user_message(content, chat_state):
         return
 
     message = {'role': 'user', 'content': content}
+    
+    if chat_state['use_resume']:
+        # TODO 실제 이력서 데이터가 json이나 markdown 문자열 들어가야 합니다.
+        message['content'] += RESUME_IN_USER_MESSAGE
+        content += RESUME_SEPARATOR + '{}'
+    
     chat_state['histories'][mode].append(message)
     chat_state['histories'][mode].append(PROGRESS_MESSAGE)
 
@@ -63,9 +69,14 @@ def _get_assistant_response(content: str, mode: Modes, chat_state):
     for mode in Modes:
         query = json_message.get(mode.value, '')
         if query:
-            chat_state['histories'][mode].append(
-                {'role': 'user', 'content': content})
-
+            message = {'role': 'user', 'content': query}
+            
+            if chat_state['use_resume']:
+                # TODO 실제 이력서 데이터가 json이나 markdown 문자열 들어가야 합니다.
+                message['content'] += RESUME_IN_USER_MESSAGE
+                query += RESUME_SEPARATOR + '{}'
+                
+            chat_state['histories'][mode].append(message)
             chat_state['histories'][Modes.GENERAL].append(PROGRESS_MESSAGE)
             yield
             chat_state['histories'][Modes.GENERAL].pop()

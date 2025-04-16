@@ -38,7 +38,8 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=custom_theme) as demo:
             Modes.RESUME: [],
             Modes.ROADMAP: [],
             Modes.COURSE: [],
-        }
+        },
+        'use_resume': True
     })
 
     """

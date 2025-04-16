@@ -4,6 +4,11 @@ import re
 from typing import Tuple
 
 
+RESUME_SEPARATOR = '\n---resume start---\n'
+RESUME_IN_USER_MESSAGE = '\n---\n📜 *질문에 이력서가 포함되어있습니다.*'
+RESUME_IN_ASSISTANT_MESSAGE = '\n---\n📝 *답변에 이력서가 포함되어있습니다.*'
+
+
 def convert_to_openai_style(raw_json_message: dict) -> dict:
     """
     raw JSON 메시지를 OpenAI 스타일로 변환합니다.
@@ -24,6 +29,12 @@ def convert_to_openai_style(raw_json_message: dict) -> dict:
         'content': cleaned_content
     }
     
+    if RESUME_SEPARATOR in message['content']:
+        if message['role'] == 'user':
+            message['content'] = message['content'].split(RESUME_SEPARATOR)[0] + RESUME_IN_USER_MESSAGE
+        else:
+            message['content'] = message['content'].split(RESUME_SEPARATOR)[0] + RESUME_IN_ASSISTANT_MESSAGE
+
     message['raw_message'] = raw_json_message
     return message
 

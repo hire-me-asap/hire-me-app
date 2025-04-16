@@ -1,7 +1,7 @@
 import gradio as gr
 
 from src.ui.constants import *
-from src.ui.events import select_example, process_user_message
+from src.ui.events import select_example, process_user_message, toggle_resume_usage
 from src.logic.app_logic import app_logic
 
 
@@ -97,3 +97,9 @@ class ChatbotTab:
             return '선택한 항목에 대한 참조 목록이 없습니다.'
 
         self.main_chatbot.select(update_citation, inputs=[chat_state], outputs=[citation_contents])
+        
+        self.user_check.change(
+            toggle_resume_usage,
+            inputs=[self.user_check, chat_state],
+            outputs=[chat_state],
+        )

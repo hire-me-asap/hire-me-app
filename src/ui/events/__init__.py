@@ -6,3 +6,4 @@ from .on_tab_change_required import select_profile_tab, select_chat_tab
 from .on_add_row import add_row 
 from .on_call_update_resume_info import call_update_resume_info
 from .on_generate_user_info import generate_user_info_json
+from .on_checkbox_change import toggle_resume_usage
