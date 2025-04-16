@@ -67,4 +67,21 @@ EXAMPLE_MESSAGES = {
     ]
 }
 
+# 원티드 전체 기술스택 리스트 (내림차순 89개)
+ALL_SKILLS = [
+    "Python", "AWS", "Git", "JavaScript", "React", "TypeScript", "Java",
+    "Docker", "MySQL", "GitHub", "Linux", "C++", "Kubernetes", "Spring Framework",
+    "Kotlin", "Node.js", "SQL", "PyTorch", "Spring Boot", "Next.js", "C",
+    "HTML", "C / C++", "PostgreSQL", "iOS", "Redis", "Django", "React Native",
+    "Android", "Nest.js", "React.js", "JIRA", "MongoDB", "Go", "Tensorflow",
+    "Notion", "JPA", "Restful API", "Slack", "Flutter", "C#", "Vue.js",
+    "Swift", "FastAPI", "GCP", "RDBMS", "NoSQL", "CSS", "Rust", "PHP",
+    "Oracle", "Golang", "Azure", "Jenkins", "GraphQL", "CUDA", "ElasticSearch",
+    "ML", "Figma", "GitLab", "OpenCV", "Flask", "Spark", "Confluence",
+    "HTML5", "DevOps", "Terraform", "ExpressJS", "QA 엔지니어링", "API",
+    "jQuery", "Angular", "딥 러닝", "ROS", "Ubuntu", "펌웨어", "Scikit-Learn",
+    "Hadoop", "Redux", "Scala", "NLP", "NumPy", "Nginx", "ORCAD", "SASS",
+    "FPGA", "VueJS", "MS 오피스", "Qt"
+]
+
 PROFILE_IMAGE_PLACEHOLDER = 'resources/profile-placeholder.png'
