@@ -118,9 +118,10 @@ def update_resume(
     awards: Optional[List[dict]] = None,
     languages: Optional[List[dict]] = None
 ):
+    # Resume 객체 조회
     resume = db.query(Resume).filter(Resume.user_id == user_id).first()
     if not resume:
-        return None
+        raise ValueError(f"Resume for user_id '{user_id}' not found.")
 
     updates = {
         "real_name": real_name,
