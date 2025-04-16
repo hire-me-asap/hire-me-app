@@ -163,6 +163,10 @@ footer {
     margin-left: var(--spacing-xl);    
 }
 
+#chatbot .icon-button-wrapper {
+    display: none;
+}
+
 /* chatbot 내부 예시 영역 설정 */
 .examples.svelte-9pi8y1{
     display: grid;
