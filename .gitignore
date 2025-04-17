@@ -185,6 +185,9 @@ test.py
 # gradio 환경 추가 
 .gradio/
 
+# 
+.cspell/
+
 # 맥용 DS_Store 파일 추가
 .DS_Store
 
