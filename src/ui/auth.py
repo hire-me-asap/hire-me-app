@@ -17,10 +17,15 @@ AUTH_MESSAGE = (
 
 account_pattern = re.compile(r'^[A-Za-z\d_]{4,}$')
 
-def get_current_session_id():
-    import starlette_context
-    request = starlette_context.request
-    return request.cookies.get("session_id")
+def get_current_session_id(request: Request) -> str | None:
+    # return request.cookies.get("session_id")
+    session_id = request.cookies.get("session_id")
+    if not session_id:
+        session_id = str(uuid.uuid4())
+        sessions[session_id] = {"created": True}
+    elif session_id not in sessions:
+        sessions[session_id] = {"internal": True}
+    return session_id
 
 def sign_in_or_sign_up(user_id: str, password: str) -> bool:
     if not account_pattern.fullmatch(user_id) or not account_pattern.fullmatch(password):
@@ -45,7 +50,7 @@ def sign_in_or_sign_up(user_id: str, password: str) -> bool:
 sessions: dict[str, dict] = {}
 
 # 세션 관리 함수
-def get_session_id(request: Request):
+def get_session_id(request: Request) -> str:
     session_id = request.cookies.get("session_id")
     if session_id:
         # 세션이 존재하지 않아도, 비어 있는 세션 dict을 만들어줌 (Gradio가 내부 요청 시 필요)
