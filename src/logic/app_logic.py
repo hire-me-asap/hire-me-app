@@ -1,3 +1,5 @@
+import os
+
 from typing import Optional, Tuple, Any
 from sqlalchemy.orm import Session
 
@@ -128,11 +130,11 @@ class AppLogic:
     def update_user_wanted(self, wanted_position) -> None:
         """희망직무를 업데이트 합니다. 업데이트 된 경우, 자동으로 새로운 사용자 카드를 만듭니다."""
         return self.user_logic.update_wanted_position(wanted_position)
-    
-    def return_user_wanted(self, user_id) :
+
+    def return_user_wanted(self, user_id):
         existing_user = self.db.query(User).filter(User.id == user_id).first()
         return existing_user.wanted_position
-    
+
     # ---------------------------------------------------------
     # RESUME 로직
     def generate_resume_pdf(self):
@@ -190,6 +192,18 @@ class AppLogic:
         try:
             # 모든 thread_id 삭제
             self.assistant_logic.delete_user_thread_id()
+            # 로드맵 이미지 파일 삭제
+            roadmap_image_files = self.get_roadmap_image_list()
+            for image_file in roadmap_image_files:
+                try:
+                    if os.path.exists(image_file):
+                        os.remove(image_file)
+                        print(f"로드맵 이미지 삭제: {image_file}")
+                    else:
+                        print(f"이미지 파일이 존재하지 않습니다: {image_file}")
+                except Exception as e:
+                    print(f"로드맵 이미지 삭제 중 문제가 발생했습니다: {e}")
+
             # 새로운 thread_id 생성
             self.user_logic.update_thread_id()
         except Exception as e:

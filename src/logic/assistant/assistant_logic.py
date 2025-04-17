@@ -16,7 +16,7 @@ from src.logic.assistant.openai_requests import (
 )
 
 from src.logic.constants import constants
-from src.models.user import User
+from src.models.user import User, update_user
 
 
 class AssistantType(Enum):
@@ -183,7 +183,14 @@ class AssistantLogic:
                 try:
                     delete_thread_id(thread_id)
                 except RuntimeError as e:
-                    raise RuntimeError(f"스레드 삭제 중 문제가 발생했습니다: {e}")
+                    print(f"스레드 삭제 중 문제가 발생했습니다: {e}")
+
+        # DB에서 모든 thread_id 필드를 None으로 초기화
+        update_user(
+            db=self.db,
+            user_id=self._user_id,
+            **{f"thread_id_{thread_type}": None for thread_type in thread_types}
+        )
 
     def get_citation_url(self, file_id: str) -> str:
         """file_id로 불러온 filename을 정리해서 url_list로 반환하는 함수."""
