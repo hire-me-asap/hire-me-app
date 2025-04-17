@@ -214,7 +214,8 @@ class AppLogic:
 
     def get_roadmap_image_list(self) -> list[str]:
         """user_id 기반으로 roadmap 이미지 주소 전체 리스트로 불러오기"""
-        roadmap_image_files = self.assistant_logic.get_roadmap_image_list()
+        roadmap_image_files = self.assistant_logic.get_roadmap_image_list(
+            user_id=self._user_id)
         return roadmap_image_files
 
     # ---------------------------------------------------------

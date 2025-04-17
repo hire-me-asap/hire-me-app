@@ -219,16 +219,15 @@ class AssistantLogic:
 
         return citation_url_list
 
-    def get_roadmap_image_list(self) -> list[str]:
+    def get_roadmap_image_list(self, user_id) -> list[str]:
         """사용자의 모든 roadmap 이미지 리스트로 받아오기"""
-        roadmap_folder = os.path.join("static", "roadmap")
+        roadmap_folder = "static/roadmap"
         try:
-            roadmap_image_files = [
-                os.path.join(roadmap_folder, file)
+            image_files = [
+                f"{roadmap_folder}/{file}"
                 for file in os.listdir(roadmap_folder)
-                if file.startswith(f"{self._user_id}_")
+                if file.startswith(f"{user_id}")
             ]
+            return image_files
         except FileNotFoundError:
-            raise ValueError(f"로드맵 폴더({roadmap_folder})가 존재하지 않습니다.")
-
-        return roadmap_image_files
+            return []
