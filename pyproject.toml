@@ -18,6 +18,7 @@ dependencies = [
     "pip>=25.0.1",
     "reportlab>=4.3.1",
     "bcrypt==4.0.1",
+    "starlette-context>=0.4.0",
 ]
 
 [dependency-groups]

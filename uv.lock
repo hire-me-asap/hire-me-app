@@ -468,6 +468,7 @@ dependencies = [
     { name = "reportlab" },
     { name = "requests" },
     { name = "sqlalchemy-utils" },
+    { name = "starlette-context" },
 ]
 
 [package.dev-dependencies]
@@ -490,6 +491,7 @@ requires-dist = [
     { name = "reportlab", specifier = ">=4.3.1" },
     { name = "requests", specifier = "==2.32.3" },
     { name = "sqlalchemy-utils", specifier = ">=0.41.2" },
+    { name = "starlette-context", specifier = ">=0.4.0" },
 ]
 
 [package.metadata.requires-dev]
@@ -1451,6 +1453,18 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/04/1b/52b27f2e13ceedc79a908e29eac426a63465a1a01248e5f24aa36a62aeb3/starlette-0.46.1.tar.gz", hash = "sha256:3c88d58ee4bd1bb807c0d1acb381838afc7752f9ddaec81bbe4383611d833230", size = 2580102 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/a0/4b/528ccf7a982216885a1ff4908e886b8fb5f19862d1962f56a3fce2435a70/starlette-0.46.1-py3-none-any.whl", hash = "sha256:77c74ed9d2720138b25875133f3a2dae6d854af2ec37dceb56aef370c1d8a227", size = 71995 },
+]
+
+[[package]]
+name = "starlette-context"
+version = "0.4.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "starlette" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/50/a2/42e29208fea21d03e6487d3ae4b6f1a5bd21cf762b8b7eef95041e8c08ff/starlette_context-0.4.0.tar.gz", hash = "sha256:3242417c9354c067a4ac5009aff762dc0b322074216f664825d5d127108553be", size = 9131 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/98/ec/90a4479bc3e307f3ff0b56165d70e1b01cf10882872823b27984bda375e2/starlette_context-0.4.0-py3-none-any.whl", hash = "sha256:dbcc11006587f901edd3d0a989a69a628fccf9d00c1ca3c28fab23ab88bd0093", size = 12273 },
 ]
 
 [[package]]
