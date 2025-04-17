@@ -64,6 +64,8 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=custom_theme) as demo:
         inputs=[],
         outputs=[right_sidebar_wrapper.archive_gallery]
     )
+
+    
     # 각 컴포넌트의 이벤트 핸들러 초기화
     left_sidebar_wrapper.init_event_handlers(
         topbar_wrapper.topbar,
