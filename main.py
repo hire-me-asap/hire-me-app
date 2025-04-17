@@ -20,7 +20,7 @@ app.add_middleware(
 )
 
 # 세션 쿠키 설정 미들웨어
-@app.middleware("http")
+# @app.middleware("http")
 async def session_middleware(request: Request, call_next):
     session_id = get_session_id(request)
     response = await call_next(request)

@@ -9,7 +9,7 @@ def update_sidebar_profile_image(current, request: gr.Request):
     if not app_logic.signed_in():
         return gr.update()
     
-    on_login_success(app_logic.user_id(), request)
+    # on_login_success(app_logic.user_id(), request)
 
     if not current.endswith("profile-placeholder.png'>"):
         return gr.update()

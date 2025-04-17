@@ -37,14 +37,14 @@ def sign_in_or_sign_up(user_id: str, password: str) -> bool:
     logged_in, message = app_logic.sign_in(user_id, password)
     if logged_in:
         # 로그인 후, 현재 세션 ID에 인증 표시
-        current_session_id = get_current_session_id()
-        sessions[current_session_id] = {"username": user_id, "logged_in": True}
+        # current_session_id = get_current_session_id()
+        # sessions[current_session_id] = {"username": user_id, "logged_in": True}
         return True
 
     if message == '아이디가 존재하지 않습니다.':
         app_logic.sign_up(user_id, password)
-        current_session_id = get_current_session_id()
-        sessions[current_session_id] = {"username": user_id, "logged_in": True}
+        # current_session_id = get_current_session_id()
+        # sessions[current_session_id] = {"username": user_id, "logged_in": True}
         return True
 
     return False
