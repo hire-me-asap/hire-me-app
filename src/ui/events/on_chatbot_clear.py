@@ -1,5 +1,6 @@
-import gradio as gr 
+import gradio as gr
 from src.ui.constants import *
+
 
 def clear_history():
     initial_chat_state = {
@@ -14,4 +15,4 @@ def clear_history():
         },
         'use_resume': True
     }
-    return gr.update(value=initial_chat_state['histories'][Modes.GENERAL]), gr.update(value=initial_chat_state['histories'][Modes.GENERAL])
+    return gr.update(value=initial_chat_state['histories'][Modes.GENERAL]), initial_chat_state
