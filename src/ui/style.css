@@ -127,7 +127,8 @@
 }
 
 .no-gap,
-.no-gap>.styler {
+.no-gap>.styler,
+.no-gap>.form {
     gap: 0;
 }
 
