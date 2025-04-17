@@ -17,6 +17,9 @@ AUTH_MESSAGE = (
 
 account_pattern = re.compile(r'^[A-Za-z\d_]{4,}$')
 
+# 세션 저장소
+sessions: dict[str, dict] = {}
+
 def get_current_session_id(request: Request) -> str | None:
     # return request.cookies.get("session_id")
     session_id = request.cookies.get("session_id")
@@ -45,9 +48,6 @@ def sign_in_or_sign_up(user_id: str, password: str) -> bool:
         return True
 
     return False
-
-# 세션 저장소
-sessions: dict[str, dict] = {}
 
 # 세션 관리 함수
 def get_session_id(request: Request) -> str:
