@@ -65,9 +65,6 @@ class AppLogic:
         self.resume_logic = ResumeLogic(self.db, self._user_id)
         self.assistant_logic = AssistantLogic(self.db, self._user_id)
 
-        self.user_logic = UserLogic(self.db, self._user_id)
-        self.resume_logic = ResumeLogic(self.db, self._user_id)
-        self.assistant_logic = AssistantLogic(self.db, self._user_id)
         return True, "로그인 성공"
 
     def sign_up(
@@ -214,6 +211,11 @@ class AppLogic:
     def extract_citations_to_url(self, response: str) -> list:
         """응답이 선택됐을 때 그 응답에서 url 리스트로 나옴"""
         return self.assistant_logic.extract_citations_url(response)
+
+    def roadmap_gallery(self) -> list:
+        """user_id 기반으로 roadmap 이미지 주소 전체 리스트로 불러오기"""
+
+        return ""
 
     # ---------------------------------------------------------
     # DB Session 닫기

@@ -17,12 +17,12 @@ def process_user_message(content, chat_state):
         return
 
     message = {'role': 'user', 'content': content}
-    
+
     if chat_state['use_resume']:
         # TODO 실제 이력서 데이터가 json이나 markdown 문자열 들어가야 합니다.
         message['content'] += RESUME_IN_USER_MESSAGE
         content += RESUME_SEPARATOR + '{}'
-    
+
     chat_state['histories'][mode].append(message)
     chat_state['histories'][mode].append(PROGRESS_MESSAGE)
 
@@ -50,8 +50,9 @@ def _get_assistant_response(content: str, mode: Modes, chat_state):
 
     if mode == Modes.ROADMAP:
         message = convert_to_openai_style(response)
+        message_id = message['raw_message']['id']
         message_text, roadmap_image = app_logic.split_roadmap_text_image(
-            message['content'])
+            message['content'], message_id)
         message_image = f"/gradio_api/file=static/roadmap/{roadmap_image.split('/')[-1]}"
         message_text += f"\n---\n<img src='{message_image}' alt='Roadmap Image' width='100%'/>"
         message['content'] = message_text
@@ -70,12 +71,12 @@ def _get_assistant_response(content: str, mode: Modes, chat_state):
         query = json_message.get(mode.value, '')
         if query:
             message = {'role': 'user', 'content': query}
-            
+
             if chat_state['use_resume']:
                 # TODO 실제 이력서 데이터가 json이나 markdown 문자열 들어가야 합니다.
                 message['content'] += RESUME_IN_USER_MESSAGE
                 query += RESUME_SEPARATOR + '{}'
-                
+
             chat_state['histories'][mode].append(message)
             chat_state['histories'][Modes.GENERAL].append(PROGRESS_MESSAGE)
             yield

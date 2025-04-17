@@ -102,3 +102,7 @@ class UserLogic:
             user_id=self._user_id,
             resume_file=resume_file_url,
         )
+
+    def get_roadmap_image_list(self) -> None:
+        """사용자의 모든 roadmap 이미지 리스트로 받아오기"""
+        # user
