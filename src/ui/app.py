@@ -64,10 +64,12 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=custom_theme) as demo:
     ).then(
         load_archive_images,
         inputs=[],
-        outputs=[right_sidebar_wrapper.archive_gallery]
-    ).then(app_logic.get_resume_info, outputs=[user_input_components]).then(
-            json_to_user_component, inputs=[user_input_components], 
-            outputs=[tab_host_wrapper.profile_tab_wrapper.real_name,
+        outputs=[right_sidebar_wrapper.archive_gallery, right_sidebar_wrapper.archive_accordian]
+    ).then(
+        app_logic.get_resume_info, outputs=[user_input_components]
+    ).then(
+        json_to_user_component, inputs=[user_input_components], 
+        outputs=[tab_host_wrapper.profile_tab_wrapper.real_name,
         tab_host_wrapper.profile_tab_wrapper.summary,
         tab_host_wrapper.profile_tab_wrapper.skill_stack,
         tab_host_wrapper.profile_tab_wrapper.final_degree,
@@ -116,6 +118,7 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=custom_theme) as demo:
         tab_host_wrapper.chatbot_tab_wrapper.main_chatbot,
         left_sidebar_wrapper.profile_image,
         right_sidebar_wrapper.archive_gallery,
-        right_sidebar_wrapper.sidebar.citation
+        right_sidebar_wrapper.sidebar.citation,
+        right_sidebar_wrapper.archive_accordian,
     )
     right_sidebar_wrapper.init_event_handlers()

@@ -42,7 +42,7 @@ class ChatbotTab:
 
         self.chatbot_tab = chatbot_tab
 
-    def init_event_handlers(self, chat_state, citation_contents, archive_gallery, resume_state, citation_accordian):
+    def init_event_handlers(self, chat_state, citation_contents, archive_gallery, resume_state, citation_accordian, archive_accordian):
         self.main_chatbot.example_select(
             select_example, outputs=[self.input_textarea])
 
@@ -55,7 +55,7 @@ class ChatbotTab:
         ).then(
             load_archive_images,
             inputs=[],
-            outputs=[archive_gallery]
+            outputs=[archive_gallery, archive_accordian]
         )
 
         def update_citation(select_data: gr.SelectData, chat_state):

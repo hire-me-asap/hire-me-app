@@ -26,6 +26,7 @@ class RightSidebar:
         self.sidebar = sidebar
         self.sidebar.citation = citation
         self.sidebar.citation.contents = contents
+        self.archive_accordian = archive
 
     def init_event_handlers(self):
         """
