@@ -51,7 +51,12 @@ class AssistantLogic:
             message=message
         )
         if not run_id:
-            raise Exception("Failed to start run for the thread.")
+            # 문제 발생 시 사용자에게 메시지 반환
+            return {
+                "data": {
+                    "text": "죄송합니다. 다시 한 번 질문해주세요."
+                }
+            }
 
         # 2. 도우미가 응답을 완료할 때까지 대기
         polling_interval = 1
