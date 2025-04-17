@@ -148,14 +148,15 @@ class AppLogic:
         이력서 DB를 초기화합니다.(key값인 user_id 제외)
         - 이력서 지우기 버튼 눌렀을 경우, 실행
         """
-        return self.resume_logic.reset_resume_info()
+        self.resume_logic.reset_resume_info()
+        
 
     def get_resume_info(self) -> dict:
         """
         이력서 DB를 불러옵니다.
-        - 처음 사용자 페이지를 눌렀을 때
-        - 변경 취소하기 버튼 눌렀을 때
-        - 저장버튼 누른 뒤에도 update_resume_info 실행 후 → 불러와야 함
+        - 처음 사용자 페이지를 눌렀을 때 v
+        - 변경 취소하기 버튼 눌렀을 때 ? 
+        - 저장버튼 누른 뒤에도 update_resume_info 실행 후 → 불러와야 함 v
         """
         return self.resume_logic.get_resume_info()
 

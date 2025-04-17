@@ -87,4 +87,17 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=custom_theme) as demo:
         tab_host_wrapper.tab_host,
         tab_host_wrapper.chatbot_tab_wrapper.main_chatbot
     )
-    tab_host_wrapper.init_event_handlers(chat_state, right_sidebar_wrapper.sidebar.citation.contents)
+    tab_host_wrapper.init_event_handlers(chat_state, right_sidebar_wrapper.sidebar.citation.contents, 
+        tab_host_wrapper.profile_tab_wrapper.real_name, 
+        tab_host_wrapper.profile_tab_wrapper.summary, 
+        tab_host_wrapper.profile_tab_wrapper.skill_stack, 
+        tab_host_wrapper.profile_tab_wrapper.final_degree, 
+        tab_host_wrapper.profile_tab_wrapper.major, 
+        tab_host_wrapper.profile_tab_wrapper.school_name, 
+        tab_host_wrapper.profile_tab_wrapper.gpa, 
+        tab_host_wrapper.profile_tab_wrapper.degree_date, 
+        tab_host_wrapper.profile_tab_wrapper.education_and_exp, 
+        tab_host_wrapper.profile_tab_wrapper.work_experiences, 
+        tab_host_wrapper.profile_tab_wrapper.certificates,
+        tab_host_wrapper.profile_tab_wrapper.awards, 
+        tab_host_wrapper.profile_tab_wrapper.languages)

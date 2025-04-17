@@ -3,8 +3,9 @@ import tempfile
 
 from pathlib import Path
 from src.ui.constants import *
-from src.ui.events import add_row, generate_user_info_json_korean
+from src.ui.events import add_row, generate_user_info_json_korean, json_to_user_component
 from src.logic.app_logic import app_logic
+
 
 
 class ProfileTab:
@@ -144,10 +145,11 @@ class ProfileTab:
                     self.clear_history_button = gr.Button('대화 기록 지우기', elem_classes='red-button')
                 
                 self.resume_info_temp = gr.State({})
-                    
+                self.user_input_components = gr.State({})
 
-    def init_event_handlers(self):
-    # 기존 인스턴스(app_logic)를 사용하여 원래 함수 호출
+    def init_event_handlers(self, real_name, summary, skill_stack, final_degree, major, school_name, gpa, 
+                     degree_date, education_exp, work_experiences, cerificates, awards, languages):
+        # 기존 인스턴스(app_logic)를 사용하여 원래 함수 호출
         # add 버튼 정의
         self.add_btn_edu.click(fn=add_row, inputs= self.education_and_exp, outputs= self.education_and_exp)
         self.add_btn_work.click(fn=add_row, inputs=self.work_experiences, outputs=self.work_experiences)
@@ -171,9 +173,15 @@ class ProfileTab:
                     fn=app_logic.update_resume_info,
                     inputs= self.resume_info_temp,
                     outputs=None
-                )
+                ).then(app_logic.get_resume_info, outputs=[self.user_input_components]
+                ).then(json_to_user_component, inputs=[self.user_input_components], 
+                        outputs=[real_name, summary, skill_stack, final_degree, major, school_name, gpa, 
+                        degree_date, education_exp, work_experiences, cerificates, awards, languages])
+        
         self.generate_resume_button.click(
             fn=app_logic.generate_resume_pdf,
             inputs=[],  # 입력 없음! (user_id는 내부적으로 self._user_id로 처리되니까)
             outputs=self.pdf_file_output  # 파일 컴포넌트로 연결
         )
+
+        self.clear_resume_button.click(app_logic.reset_resume_info)
