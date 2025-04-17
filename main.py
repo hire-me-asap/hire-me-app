@@ -24,7 +24,7 @@ app.add_middleware(
 async def session_middleware(request: Request, call_next):
     session_id = get_session_id(request)
     response = await call_next(request)
-    response.set_cookie(key="session_id", value=session_id, secure=True, httponly=True, samesite="None")
+    response.set_cookie(key="session_id", value=session_id, secure=True, httponly=True, samesite="Lax")
     return response
 
 # FastAPI 엔드포인트로 세션 정보 확인

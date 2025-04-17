@@ -38,9 +38,15 @@ sessions: dict[str, dict] = {}
 # 세션 관리 함수
 def get_session_id(request: Request):
     session_id = request.cookies.get("session_id")
-    if not session_id or session_id not in sessions:
-        session_id = str(uuid.uuid4())
-        sessions[session_id] = {"created": True}
+    if session_id:
+        # 세션이 존재하지 않아도, 비어 있는 세션 dict을 만들어줌 (Gradio가 내부 요청 시 필요)
+        if session_id not in sessions:
+            sessions[session_id] = {"internal": True}
+        return session_id
+
+    # 쿠키가 없으면 새로 생성
+    session_id = str(uuid.uuid4())
+    sessions[session_id] = {"created": True}
     return session_id
 
 # Gradio 함수들
