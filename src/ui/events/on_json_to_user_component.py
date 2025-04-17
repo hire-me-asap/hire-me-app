@@ -4,12 +4,12 @@ import pandas as pd
 
 def json_to_user_component(user_db) :    
     
-    if user_db['real_name'] :
+    if user_db.get('real_name') :
         real_name = user_db['real_name']
     else :
         real_name = ""
     
-    if user_db['summary'] :
+    if user_db.get('summary') :
         summary = user_db['summary']
     else :
         summary = ""

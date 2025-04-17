@@ -67,6 +67,7 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=custom_theme) as demo:
         tab_host_wrapper.chatbot_tab_wrapper.main_chatbot,
         chat_state,
         tab_host_wrapper.profile_tab_wrapper.userid_text,
+        tab_host_wrapper.profile_tab_wrapper.wanted_job,
         tab_host_wrapper.profile_tab_wrapper.profile_image,
         tab_host_wrapper.profile_tab_wrapper.real_name,
         tab_host_wrapper.profile_tab_wrapper.summary,
@@ -101,5 +102,8 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=custom_theme) as demo:
         tab_host_wrapper.profile_tab_wrapper.work_experiences,
         tab_host_wrapper.profile_tab_wrapper.certificates,
         tab_host_wrapper.profile_tab_wrapper.awards,
-        tab_host_wrapper.profile_tab_wrapper.languages)
-    right_sidebar_wrapper.init_event_handlers()
+        tab_host_wrapper.profile_tab_wrapper.languages,        
+        tab_host_wrapper.chatbot_tab_wrapper.main_chatbot,
+        left_sidebar_wrapper.profile_image)
+    right_sidebar_wrapper.init_event_handlers(
+        )

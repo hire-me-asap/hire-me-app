@@ -46,18 +46,18 @@ class LeftSidebar:
         self.sidebar = sidebar
         self.user_input_components = gr.State({})
 
-    def init_event_handlers(self, topbar, tab_host, main_chatbot, chat_state, user_id, user_image, real_name, summary, skill_stack, final_degree, major, school_name, gpa, degree_date, education_exp, work_experiences, cerificates, awards, languages):
+    def init_event_handlers(self, topbar, tab_host, main_chatbot, chat_state, user_id, user_wanted, user_image, real_name, summary, skill_stack, final_degree, major, school_name, gpa, degree_date, education_exp, work_experiences, cerificates, awards, languages):
         # 사이드바 열고 닫을 때
         self.sidebar.expand(lambda: set_topbar_visibility(False), outputs=[topbar])
         self.sidebar.collapse(lambda: set_topbar_visibility(True), outputs=[topbar])
 
         # '프로필 입력하러가기' 버튼 클릭 함수 및 이벤트   json_to_user_component_first, json_to_user_component_second, json_to_user_component_third, json_to_user_component_exp, json_to_user_component_work, json_to_user_component_award, json_to_user_component_cert, json_to_user_component_lang
-        self.profile_button.click(select_profile_tab, outputs=[tab_host, user_id, user_image]).then(app_logic.get_resume_info, outputs=[self.user_input_components]).then(
+        self.profile_button.click(select_profile_tab, outputs=[tab_host, user_id, user_wanted, user_image]).then(app_logic.get_resume_info, outputs=[self.user_input_components]).then(
             json_to_user_component, inputs=[self.user_input_components], 
             outputs=[real_name, summary, skill_stack, final_degree, major, school_name, gpa, 
                      degree_date, education_exp, work_experiences, cerificates, awards, languages])
         
-        self.profile_image.click(select_profile_tab, outputs=[tab_host, user_id, user_image]).then(app_logic.get_resume_info, outputs=[self.user_input_components]).then(
+        self.profile_image.click(select_profile_tab, outputs=[tab_host, user_id, user_wanted, user_image]).then(app_logic.get_resume_info, outputs=[self.user_input_components]).then(
             json_to_user_component, inputs=[self.user_input_components], 
             outputs=[real_name, summary, skill_stack, final_degree, major, school_name, gpa, 
                      degree_date, education_exp, work_experiences, cerificates, awards, languages])

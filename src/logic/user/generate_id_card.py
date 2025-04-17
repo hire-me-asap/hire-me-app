@@ -4,7 +4,7 @@ import os
 import requests
 from typing import Optional
 from PIL import Image, ImageDraw, ImageFont
-
+import time 
 
 def generate_avatar_id_card(
     seed: str, job: Optional[str], font_path: str = "NeoDunggeunmoPro-Regular.ttf"
@@ -59,7 +59,10 @@ def generate_avatar_id_card(
     )
 
     card_path = os.path.join(card_dir, f"{seed}.png")
+    if os.path.exists(card_path):
+        os.remove(card_path)
+
     card.save(card_path)
 
     # 반환용: 웹에서 접근 가능한 경로
-    return f"/static/ID_Card/{seed}.png"
+    return f"/static/ID_Card/{seed}.png?nocache={int(time.time())}"

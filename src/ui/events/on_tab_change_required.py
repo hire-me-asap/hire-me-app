@@ -5,7 +5,7 @@ from src.ui.constants import EXAMPLE_MESSAGES, FEATURES, Modes
 
 
 def select_profile_tab():
-    return gr.update(selected=1), gr.update(value=app_logic.user_id()), gr.HTML(f"<img id='user_profile_card' src='/gradio_api/file={app_logic.get_user_img()[1:]}'>")
+    return gr.update(selected=1), gr.update(value=app_logic.user_id()), gr.update(value=app_logic.return_user_wanted(app_logic.user_id())), gr.HTML(f"<img id='user_profile_card' src='/gradio_api/file={app_logic.get_user_img()[1:]}'>")
 
 
 def select_chat_tab(mode: Optional[Modes], chat_state):

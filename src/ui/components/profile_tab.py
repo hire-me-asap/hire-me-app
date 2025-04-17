@@ -3,7 +3,7 @@ import tempfile
 
 from pathlib import Path
 from src.ui.constants import *
-from src.ui.events import add_row, generate_user_info_json_korean, json_to_user_component
+from src.ui.events import add_row, generate_user_info_json_korean, json_to_user_component, clear_history, id_card_update
 from src.logic.app_logic import app_logic
 
 
@@ -18,11 +18,11 @@ class ProfileTab:
                         label='사용자 ID', 
                         value=''
                     )
-                    self.preferred_job = gr.Text(
+                    self.wanted_job = gr.Text(
                         label='희망 직무', 
                         placeholder='희망하는 직무를 입력해보세요'
                     )
-                    gr.Button('변경사항 저장하기', variant='primary', elem_classes=['profile-save-button'])
+                    self.user_info_save_btn = gr.Button('변경사항 저장하기', variant='primary', elem_classes=['profile-save-button'])
 
                 with gr.Column():
                     self.profile_image = gr.HTML("<img id='user_profile_card' src=''>")
@@ -147,20 +147,20 @@ class ProfileTab:
                 self.resume_info_temp = gr.State({})
                 self.user_input_components = gr.State({})
 
-    def init_event_handlers(self, real_name, summary, skill_stack, final_degree, major, school_name, gpa, 
-                     degree_date, education_exp, work_experiences, cerificates, awards, languages):
+    def init_event_handlers(self, chat_state, real_name, summary, skill_stack, final_degree, major, school_name, gpa, 
+                     degree_date, education_exp, work_experiences, cerificates, awards, languages, main_chatbot, sidebarprofile):
         # 기존 인스턴스(app_logic)를 사용하여 원래 함수 호출
-        # add 버튼 정의
+        # 각 입력칸 별로 add 버튼 정의
         self.add_btn_edu.click(fn=add_row, inputs= self.education_and_exp, outputs= self.education_and_exp)
         self.add_btn_work.click(fn=add_row, inputs=self.work_experiences, outputs=self.work_experiences)
         self.add_btn_cert.click(fn=add_row, inputs=self.certificates, outputs=self.certificates)
         self.add_btn_awards.click(fn=add_row, inputs=self.awards, outputs=self.awards)
         self.add_btn_lang.click(fn=add_row, inputs=self.languages, outputs=self.languages)
 
-    #app_logic.update_resume_info(**resume_fields)
+        # 유저 인포 저장 버튼 -> 새 프로필 카드 생성 -> 프로필탭, 사이드바 이미지 새로고침  
+        self.user_info_save_btn.click(app_logic.update_user_wanted, inputs=self.wanted_job).then(id_card_update, outputs=[self.profile_image, sidebarprofile])
 
-    #add_btn.click(fn=add_row, inputs=education_and_exp, outputs=education_and_exp)
-
+        # 이력서 저장 버튼 -> db에 저장 -> db 내용 불러오기 -> 불러온 내용 화면에 출력 (새로고침과 비슷한 효과)
         self.save_button.click(
             fn=generate_user_info_json_korean,
                     # 딕셔너리 형태로 인자 전달
@@ -177,14 +177,19 @@ class ProfileTab:
                 ).then(json_to_user_component, inputs=[self.user_input_components], 
                         outputs=[real_name, summary, skill_stack, final_degree, major, school_name, gpa, 
                         degree_date, education_exp, work_experiences, cerificates, awards, languages])
-        
+
+        # 이력서 생성(pdf) 버튼 -> static 폴더에 저장된 파일을 출력  
         self.generate_resume_button.click(
             fn=app_logic.generate_resume_pdf,
             inputs=[],  # 입력 없음! (user_id는 내부적으로 self._user_id로 처리되니까)
             outputs=self.pdf_file_output  # 파일 컴포넌트로 연결
         )
 
+        # (red) 이력서 내용 전부 지우기 버튼 -> db 클리어 -> db 내용 불러오기 -> 불러온 내용 화면에 출력 (새로고침과 비슷한 효과)
         self.clear_resume_button.click(app_logic.reset_resume_info).then(app_logic.get_resume_info, outputs=[self.user_input_components]
                 ).then(json_to_user_component, inputs=[self.user_input_components], 
                         outputs=[real_name, summary, skill_stack, final_degree, major, school_name, gpa, 
                         degree_date, education_exp, work_experiences, cerificates, awards, languages])
+        
+        # (red) chatbot 내용 지우기 버튼 
+        self.clear_history_button.click(app_logic.delete_update_user_thread_id).then(clear_history, outputs=[main_chatbot, chat_state])

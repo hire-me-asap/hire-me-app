@@ -128,7 +128,11 @@ class AppLogic:
     def update_user_wanted(self, wanted_position) -> None:
         """희망직무를 업데이트 합니다. 업데이트 된 경우, 자동으로 새로운 사용자 카드를 만듭니다."""
         return self.user_logic.update_wanted_position(wanted_position)
-
+    
+    def return_user_wanted(self, user_id) :
+        existing_user = self.db.query(User).filter(User.id == user_id).first()
+        return existing_user.wanted_position
+    
     # ---------------------------------------------------------
     # RESUME 로직
     def generate_resume_pdf(self):

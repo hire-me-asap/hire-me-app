@@ -9,3 +9,5 @@ from .on_generate_user_info import generate_user_info_json
 from .on_checkbox_change import toggle_resume_usage
 from .on_json_to_user_component import json_to_user_component
 from .on_generate_user_info_korean import generate_user_info_json_korean 
+from .on_chatbot_clear import clear_history
+from .on_user_idcard_update import id_card_update
