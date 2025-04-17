@@ -7,7 +7,8 @@ from src.ui.constants import ASSISTANTS_OF_MODE, Modes
 
 
 PROGRESS_MESSAGE = {'role': 'assistant',
-                    'content': '🤧💭 엣취가 답변을 생각하고 있습니다. *허리를 쭉 피세요!!!*'}
+                    'content': '🤧💭 엣취가 답변을 생각하고 있습니다. *허리를 쭉 피세요!!!*',
+                    'pop_this': None}
 
 
 def process_user_message(content, chat_state, resume_state):
@@ -28,12 +29,7 @@ def process_user_message(content, chat_state, resume_state):
 
     yield '', chat_state['histories'][chat_state['mode']], chat_state
 
-    popped = False
-
     for _ in _get_assistant_response(content, mode, chat_state, resume_state):
-        if not popped:
-            chat_state['histories'][mode].pop()  # 허리피세요
-            popped = True
         yield '', chat_state['histories'][chat_state['mode']], chat_state
 
 
@@ -44,6 +40,9 @@ def _get_assistant_response(content: str, mode: Modes, chat_state, resume_state)
         ASSISTANTS_OF_MODE[mode],
         content
     )
+    
+    while 'pop_this' in chat_state['histories'][mode][-1]:
+        chat_state['histories'][mode].pop()
 
     if mode not in [Modes.GENERAL, Modes.ROADMAP]:
         message = convert_to_openai_style(response)
@@ -82,13 +81,8 @@ def _get_assistant_response(content: str, mode: Modes, chat_state, resume_state)
             chat_state['histories'][mode].append(message)
             chat_state['histories'][Modes.GENERAL].append(PROGRESS_MESSAGE)
             yield
-            popped = False
-            
 
             for message, response in _get_assistant_response(query, mode, chat_state, resume_state):
-                if not popped:
-                    chat_state['histories'][Modes.GENERAL].pop()
-                    popped = True
                 message['content'] = '\n---\n' + message['content']
                 chat_state['histories'][Modes.GENERAL].append(message)
                 app_logic.add_dialogue_thread(
