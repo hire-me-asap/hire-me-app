@@ -53,5 +53,6 @@ if __name__ == "__main__":
         allowed_paths=[
             Path.cwd().absolute()/"resources",
             Path.cwd().absolute()/"static",
-        ]
+        ],
+        favicon_path='resources/icon.png'
     )

@@ -14,7 +14,7 @@ gr.set_static_paths(paths=[
     Path.cwd().absolute()/"static",
 ])
 
-with gr.Blocks(css_paths=['src/ui/style.css'], theme=custom_theme) as demo:
+with gr.Blocks(css_paths=['src/ui/style.css'], theme=custom_theme, title='엣취 - 엣지있게 취업하기') as demo:
 
     """ 
     컴포넌트 배치
