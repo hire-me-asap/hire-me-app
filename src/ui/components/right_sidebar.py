@@ -8,11 +8,11 @@ from src.logic.app_logic import app_logic
 class RightSidebar:
     def __init__(self):
         with gr.Sidebar(position='right') as sidebar:
-            with gr.Accordion('참조 문헌') as citation:
-                contents = gr.Markdown('참조 문헌 목록')
-            with gr.Accordion('이력서 미리보기') as resume_preview:
-                gr.Markdown('👀👀👀👀👀👀👀')
-            with gr.Accordion('아카이브') as archive:
+            with gr.Accordion('참조 문헌', open=False) as citation:
+                contents = gr.Markdown()
+            # with gr.Accordion('이력서 미리보기', open=False) as resume_preview:
+            #     gr.Markdown('👀👀👀👀👀👀👀')
+            with gr.Accordion('아카이브', open=False) as archive:
                 # gr.Chatbot([], type='messages', show_label=False)
                 # 갤러리 요소 추가
                 self.archive_gallery = gr.Gallery(

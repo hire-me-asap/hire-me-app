@@ -112,6 +112,7 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=custom_theme) as demo:
         tab_host_wrapper.profile_tab_wrapper.languages,
         tab_host_wrapper.chatbot_tab_wrapper.main_chatbot,
         left_sidebar_wrapper.profile_image,
-        right_sidebar_wrapper.archive_gallery
+        right_sidebar_wrapper.archive_gallery,
+        right_sidebar_wrapper.sidebar.citation
     )
     right_sidebar_wrapper.init_event_handlers()

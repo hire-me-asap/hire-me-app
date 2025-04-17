@@ -42,7 +42,7 @@ class ChatbotTab:
 
         self.chatbot_tab = chatbot_tab
 
-    def init_event_handlers(self, chat_state, citation_contents, archive_gallery, resume_state):
+    def init_event_handlers(self, chat_state, citation_contents, archive_gallery, resume_state, citation_accordian):
         self.main_chatbot.example_select(
             select_example, outputs=[self.input_textarea])
 
@@ -57,21 +57,6 @@ class ChatbotTab:
             inputs=[],
             outputs=[archive_gallery]
         )
-
-        # TODO: 기능 구현 후에 아래 이벤트 핸들러는 제거해주세요.
-        def test_select(select_data: gr.SelectData, chat_state):
-            history = chat_state['histories'][chat_state['mode']]
-            idx = select_data.index
-
-            if idx >= len(history):
-                return
-
-            message = history[idx]
-
-            # if 'citations' in message:
-            #     print(f'@@@ Citational message: {message["citations"]}')
-            # else:
-            #     print('@@@ No citations found.')
 
         def update_citation(select_data: gr.SelectData, chat_state):
             history = chat_state['histories'][chat_state['mode']]
@@ -94,16 +79,16 @@ class ChatbotTab:
                 # print(citation_url_list)
                 if citation_url_list:
                     # Markdown 형식으로 참조 문헌 목록 생성
-                    markdown_content = "## 참조 문헌 목록\n\n"
+                    markdown_content = ""
                     for idx, item in enumerate(citation_url_list, 1):
                         markdown_content += f"{idx}. {item}\n"
 
-                    return markdown_content
+                    return markdown_content, gr.update(open=True)
 
-            return '선택한 항목에 대한 참조 목록이 없습니다.'
+            return '선택한 항목에 대한 참조 목록이 없습니다.', gr.update(open=False)
 
         self.main_chatbot.select(update_citation, inputs=[
-                                 chat_state], outputs=[citation_contents])
+                                 chat_state], outputs=[citation_contents, citation_accordian])
 
         self.user_check.change(
             toggle_resume_usage,
