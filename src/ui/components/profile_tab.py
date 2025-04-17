@@ -53,25 +53,27 @@ class ProfileTab:
                 choices=ALL_SKILLS,
                 multiselect=True,
                 filterable=True,
-                label = '본인의 기술 스택을 선택해 주세요',
+                label = '다룰 수 있는 기술들을 선택해 주세요',
                 value=[]
                 )
 
             gr.Markdown('&#8203;')
             gr.Markdown("### 🎓 학력 정보")
-            with gr.Row():
-                self.final_degree = gr.Dropdown(
-                    ['초등학교 졸업', '중학교 졸업', '고등학교 졸업', '검정고시 합격', '학사 학위', '석사 학위', '박사 학위'],
-                    label='최종 학력',
-                    value=[]
-                )
-                self.major = gr.Textbox(label='전공', placeholder='전공명을 입력하세요')
+            
+            with gr.Group(elem_classes='no-gap'):
+                with gr.Row(elem_classes='no-gap'):
+                    self.final_degree = gr.Dropdown(
+                        ['초등학교 졸업', '중학교 졸업', '고등학교 졸업', '검정고시 합격', '학사 학위', '석사 학위', '박사 학위'],
+                        label='최종 학력',
+                        value=[]
+                    )
+                    self.major = gr.Textbox(label='전공', placeholder='전공명을 입력하세요')
 
-            with gr.Row():
-                self.school_name = gr.Textbox(label='학교명')
-                self.gpa = gr.Textbox(label='학점', placeholder='예: 4.0 / 4.3')
+                with gr.Row(elem_classes='no-gap'):
+                    self.school_name = gr.Textbox(label='학교명')
+                    self.gpa = gr.Textbox(label='학점', placeholder='예: 4.0 / 4.3')
 
-            self.degree_date = gr.Textbox(label='입학-졸업 YYYY.MM', placeholder='YYYY.MM - YYYY.MM')
+                self.degree_date = gr.Textbox(label='입학-졸업 YYYY.MM', placeholder='YYYY.MM - YYYY.MM')
         
             gr.Markdown('&#8203;')
             gr.Markdown("### 📘 교육 및 기타 경험")
