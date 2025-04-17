@@ -17,7 +17,7 @@ def json_to_user_component(user_db) :
     if user_db.get('skill_stack') :
         skill_stack = user_db['skill_stack']
     else :
-        skill_stack = ""
+        skill_stack = []
 
     if user_db.get('education') :
         final_degree = user_db['education'][0]['final_degree']
@@ -26,7 +26,7 @@ def json_to_user_component(user_db) :
         gpa = user_db['education'][0]['gpa']
         degree_date = user_db['education'][0]['degree_date']        
     else :
-        final_degree = ""
+        final_degree = []
         major = ""
         school_name = ""
         gpa = ""
@@ -58,3 +58,4 @@ def json_to_user_component(user_db) :
         languages = pd.DataFrame(columns=['어학시험/점수', '취득일 (YYYY.MM.DD)']) 
 
     return gr.update(value=real_name), gr.update(value=summary), gr.update(value=skill_stack), gr.update(value=final_degree), gr.update(value=major), gr.update(value=school_name), gr.update(value=gpa), gr.update(value=degree_date), gr.update(value=education_exp), gr.update(value=work_experiences), gr.update(value=cerificates), gr.update(value=awards), gr.update(value=languages)
+

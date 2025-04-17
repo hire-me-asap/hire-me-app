@@ -25,7 +25,7 @@ class ProfileTab:
                         placeholder='희망하는 직무를 입력해보세요'
                     )
                     with gr.Row(elem_classes='compact-container'):
-                        self.user_info_reload_btn = gr.Button('프로필 변경사항 되돌리기', elem_classes=['compact-button'])
+                        # self.user_info_reload_btn = gr.Button('프로필 변경사항 되돌리기', elem_classes=['compact-button'])
                         self.user_info_save_btn = gr.Button('프로필 변경사항 저장하기', variant='primary', elem_classes=['compact-button'])
 
                 with gr.Column(elem_classes='no-gap'):
@@ -36,7 +36,7 @@ class ProfileTab:
             
             # ✅✅✅  변경사항 저장하기 (이력서 DB 업데이트) (update_resume_info)
             with gr.Row(elem_classes='compact-container'):
-                self.save_button = gr.Button("이력서 변경사항 취소하기", elem_classes=['compact-button'])
+                # self.save_button = gr.Button("이력서 변경사항 취소하기", elem_classes=['compact-button'])
                 self.save_button = gr.Button("이력서 변경사항 저장하기", variant="primary", elem_classes=['compact-button'])
 
             gr.Markdown('&#8203;')
@@ -53,7 +53,8 @@ class ProfileTab:
                 choices=ALL_SKILLS,
                 multiselect=True,
                 filterable=True,
-                label = '본인의 기술 스택을 선택해 주세요'
+                label = '본인의 기술 스택을 선택해 주세요',
+                value=[]
                 )
 
             gr.Markdown('&#8203;')
@@ -61,7 +62,8 @@ class ProfileTab:
             with gr.Row():
                 self.final_degree = gr.Dropdown(
                     ['초등학교 졸업', '중학교 졸업', '고등학교 졸업', '검정고시 합격', '학사 학위', '석사 학위', '박사 학위'],
-                    label='최종 학력'
+                    label='최종 학력',
+                    value=[]
                 )
                 self.major = gr.Textbox(label='전공', placeholder='전공명을 입력하세요')
 
