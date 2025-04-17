@@ -1,3 +1,6 @@
+from fastapi import Request
+import uuid
+import gradio as gr
 import re
 
 from src.logic.app_logic import app_logic
@@ -28,3 +31,27 @@ def sign_in_or_sign_up(user_id: str, password: str) -> bool:
         return True
 
     return False
+
+# 세션 저장소
+sessions: dict[str, dict] = {}
+
+# 세션 관리 함수
+def get_session_id(request: Request):
+    session_id = request.cookies.get("session_id")
+    if not session_id or session_id not in sessions:
+        session_id = str(uuid.uuid4())
+        sessions[session_id] = {"created": True}
+    return session_id
+
+# Gradio 함수들
+def on_login_success(username, request: gr.Request):
+    # 쿠키에서 세션 ID 가져오기
+    session_id = request.cookies.get("session_id")
+    if session_id and session_id in sessions:
+        sessions[session_id]["username"] = username
+        sessions[session_id]["logged_in"] = True
+        # return f"{username}님 로그인 성공!"
+        print(f"{username}님 로그인 성공!")
+        return
+    # return "세션이 만료되었습니다."
+    print("세션이 만료되었습니다.")

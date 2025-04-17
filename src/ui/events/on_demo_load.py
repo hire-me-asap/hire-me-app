@@ -3,9 +3,9 @@ import gradio as gr
 from src.ui.constants import ASSISTANTS_OF_MODE, Modes
 from src.logic.app_logic import app_logic
 from src.ui.messages import convert_to_openai_style, convert_general_response_to_openai_style, convert_roadmap_to_openai_style
+from src.ui.auth import on_login_success
 
-
-def update_sidebar_profile_image(current):
+def update_sidebar_profile_image(current, request: gr.Request):
     if not app_logic.signed_in():
         return gr.update()
 
