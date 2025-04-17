@@ -8,7 +8,7 @@ from pathlib import Path
 from src.ui import demo, sign_in_or_sign_up, AUTH_MESSAGE
 from src.ui import get_session_id, sessions
 
-app = FastAPI(root_path="/")
+app = FastAPI()
 
 # CORS 미들웨어 추가
 app.add_middleware(
