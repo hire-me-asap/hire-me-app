@@ -41,6 +41,9 @@ async def session_info(session_id: str = Depends(get_session_id)):
     </html>
     """
 
+# queue() 추가 (핵심)
+demo.queue()
+
 app = gr.mount_gradio_app(
     app,
     demo,
