@@ -128,6 +128,10 @@ class AppLogic:
         """유저의 이력서 PDF 파일 URL을 User 테이블 DB에 저장합니다."""
         return self.user_logic.update_resume_file(resume_file_url)
 
+    def update_user_wanted(self, wanted_position) -> None:
+        """희망직무를 업데이트 합니다. 업데이트 된 경우, 자동으로 새로운 사용자 카드를 만듭니다."""
+        return self.user_logic.update_wanted_position(wanted_position)
+
     # ---------------------------------------------------------
     # RESUME 로직
     def generate_resume_pdf(self):
@@ -149,7 +153,6 @@ class AppLogic:
         - 이력서 지우기 버튼 눌렀을 경우, 실행
         """
         self.resume_logic.reset_resume_info()
-        
 
     def get_resume_info(self) -> dict:
         """
