@@ -36,7 +36,7 @@ class LeftSidebar:
                 <div id="site-footer">
                     <div>(C) 2025 Hire Me ASAP</div>
                     <div><a href="https://github.com/hire-me-asap" target="_blank">github.com/hire-me-asap</a></div>
-                    <div><a href="https://github.com/hire-me-asap/hire-me-app" target="_blank">개인정보 보호 정책</a></div>
+                    <div><a href="https://github.com/hire-me-asap/privacy-policy" target="_blank">개인정보 보호 정책</a></div>
                 </div>
                 """
             )
