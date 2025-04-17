@@ -24,11 +24,13 @@ def convert_to_openai_style(raw_json_message: dict) -> dict:
     # 원본 텍스트 가져오기
     raw_content = raw_json_message['content'][0]['text']['value']
     # 정규표현식으로 【...】 형식 제거
-    cleaned_content = re.sub(r'【.*?】', '', raw_content)
+    cleaned_content_1 = re.sub(r'【.*?】', '', raw_content)
+    # 정규표현식으로 '\n\n---\n\n' 형식 제거
+    cleaned_content_2 = re.sub(r'\n\n---\n\n', '\n\n', cleaned_content_1)
 
     message = {
         'role': raw_json_message['role'],
-        'content': cleaned_content
+        'content': cleaned_content_2
     }
 
     if RESUME_SEPARATOR in message['content']:
