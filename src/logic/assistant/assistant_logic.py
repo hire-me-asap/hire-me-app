@@ -4,6 +4,7 @@ import os
 from enum import Enum
 from typing import Optional, Tuple
 from sqlalchemy.orm import Session
+from src.db import implicit_context_db
 
 from src.logic.assistant.openai_requests import (
     add_dialogue_to_thread,
@@ -29,7 +30,7 @@ class AssistantType(Enum):
 
 
 class AssistantLogic:
-    def __init__(self, db: Session, user_id: Optional[str] = None):
+    def __init__(self, user_id: Optional[str] = None):
         """
         AssistantLogic 클래스 초기화 메서드.
 
@@ -38,7 +39,7 @@ class AssistantLogic:
             user_id (Optional[str]): 초기화 시 설정할 사용자 ID (기본값: None).
         """
         self._user_id: Optional[str] = user_id
-        self.db = db
+        # self.db = db
 
     def _request_assistant_response(self, assistant_id: str, message: str, thread_id: str) -> dict:
         """사용자 질문을 스레드에 추가하고, AI 도우미의 응답을 받아옵니다."""
@@ -74,8 +75,9 @@ class AssistantLogic:
 
         return response
 
+    @implicit_context_db
     def get_response_from_assistant(
-        self, assistant_type: AssistantType, user_question: str
+        self, assistant_type: AssistantType, user_question: str, db: Session = None
     ) -> dict:
         """
         유저 질문을 기반으로 특정 Assistant 타입에 맞는 응답을 반환합니다.
@@ -99,7 +101,7 @@ class AssistantLogic:
         assistant_id, thread_column_name = assistant_mapping[assistant_type]
 
         # 사용자 정보 조회
-        user = self.db.query(User).filter(User.id == self._user_id).first()
+        user = db.query(User).filter(User.id == self._user_id).first()
         personal_thread_id = getattr(user, thread_column_name)
 
         # 도우미 응답 텍스트 받아오기
@@ -111,7 +113,8 @@ class AssistantLogic:
 
         return response
 
-    def get_all_thread_dialogue(self, assistant_type: AssistantType) -> dict:
+    @implicit_context_db
+    def get_all_thread_dialogue(self, assistant_type: AssistantType, db: Session = None) -> dict:
         """
         사용자의 assistant_type에 해당하는 Thread ID를 통해 전체 대화 내역을 반환합니다.
 
@@ -122,7 +125,7 @@ class AssistantLogic:
             dict: 대화 순서를 보장한 전체 메시지 딕셔너리 (role: message)
         """
 
-        user = self.db.query(User).filter(User.id == self._user_id).first()
+        user = db.query(User).filter(User.id == self._user_id).first()
         if not user:
             raise RuntimeError("사용자를 찾을 수 없습니다.")
 
@@ -145,10 +148,11 @@ class AssistantLogic:
 
         return message
 
-    def add_dialogue_thread(self, role: str, message: str) -> None:
+    @implicit_context_db
+    def add_dialogue_thread(self, role: str, message: str, db: Session = None) -> None:
         """스레드에 대화를 넣는 함수.(사용자, 도우미, 시스템 중 하나.)"""
         # 사용자 정보 조회
-        user = self.db.query(User).filter(User.id == self._user_id).first()
+        user = db.query(User).filter(User.id == self._user_id).first()
         if not user or not user.thread_id_assistant:
             raise ValueError("유효한 사용자 또는 thread_id_assistant가 없습니다.")
 
@@ -159,7 +163,8 @@ class AssistantLogic:
             message=message
         )
 
-    def delete_user_thread_id(self):
+    @implicit_context_db
+    def delete_user_thread_id(self, db: Session = None):
         """
         사용자의 모든 스레드 ID를 삭제합니다.
 
@@ -168,7 +173,7 @@ class AssistantLogic:
             RuntimeError: 스레드 삭제 중 문제가 발생할 경우.
         """
         # 사용자 정보 조회
-        user = self.db.query(User).filter(User.id == self._user_id).first()
+        user = db.query(User).filter(User.id == self._user_id).first()
         if not user or not user.thread_id_assistant:
             raise ValueError("유효한 사용자 또는 thread_id_assistant가 없습니다.")
 
@@ -192,7 +197,7 @@ class AssistantLogic:
 
         # DB에서 모든 thread_id 필드를 None으로 초기화
         update_user(
-            db=self.db,
+            db=db,
             user_id=self._user_id,
             **{f"thread_id_{thread_type}": None for thread_type in thread_types}
         )

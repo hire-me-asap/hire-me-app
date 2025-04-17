@@ -2,8 +2,8 @@ import os
 
 from typing import Optional, Tuple, Any
 from sqlalchemy.orm import Session
-
-from src.db import Session
+from src.db import implicit_context_db
+# from src.db import Session
 from src.logic.user.user_logic import UserLogic
 from src.logic.resume.resume_logic import ResumeLogic
 from src.logic.assistant.assistant_logic import AssistantLogic, AssistantType
@@ -26,16 +26,17 @@ class AppLogic:
     def __init__(self):
         self._signed_in: bool = False
         self._user_id: Optional[str] = None
-        self.db = Session()
+        # self.db = Session()
 
         # 각 로직 클래스 초기화
-        self.user_logic = UserLogic(self.db, self._user_id)
-        self.resume_logic = ResumeLogic(self.db, self._user_id)
-        self.assistant_logic = AssistantLogic(self.db, self._user_id)
+        self.user_logic = UserLogic(self._user_id)
+        self.resume_logic = ResumeLogic(self._user_id)
+        self.assistant_logic = AssistantLogic(self._user_id)
 
     # ---------------------------------------------------------
     # 기본 로그인/회원가입 구현
-    def sign_in(self, user_id: str, password: str) -> Tuple[bool, str]:
+    @implicit_context_db
+    def sign_in(self, user_id: str, password: str, db: Session = None) -> Tuple[bool, str]:
         """
         사용자 로그인 기능을 수행합니다.
 
@@ -51,7 +52,7 @@ class AppLogic:
         """
 
         # User 테이블에서 user_id 로 사용자 조회
-        user = self.db.query(User).filter(User.id == user_id).first()
+        user = db.query(User).filter(User.id == user_id).first()
 
         if user is None:
             return False, "아이디가 존재하지 않습니다."
@@ -63,14 +64,15 @@ class AppLogic:
         self._signed_in = True
         self._user_id = user_id
 
-        self.user_logic = UserLogic(self.db, self._user_id)
-        self.resume_logic = ResumeLogic(self.db, self._user_id)
-        self.assistant_logic = AssistantLogic(self.db, self._user_id)
+        self.user_logic = UserLogic(self._user_id)
+        self.resume_logic = ResumeLogic(self._user_id)
+        self.assistant_logic = AssistantLogic(self._user_id)
 
         return True, "로그인 성공"
 
+    @implicit_context_db
     def sign_up(
-        self, user_id: str, password: str
+        self, user_id: str, password: str, db: Session = None
     ) -> Tuple[bool, str]:
         """
         사용자 회원가입 기능을 수행합니다.
@@ -85,12 +87,12 @@ class AppLogic:
                 - (False, "이미 존재하는 아이디입니다.") → 아이디 중복
         """
         # 기존 사용자 존재 여부 확인
-        existing_user = self.db.query(User).filter(User.id == user_id).first()
+        existing_user = db.query(User).filter(User.id == user_id).first()
         if existing_user:
             return False, "이미 존재하는 아이디입니다."
 
         # 회원가입 로직 수행
-        create_user(self.db, user_id=user_id, password=password)
+        create_user(db, user_id=user_id, password=password)
 
         self.sign_in(user_id, password)
         self.user_logic.update_thread_id()
@@ -131,8 +133,9 @@ class AppLogic:
         """희망직무를 업데이트 합니다. 업데이트 된 경우, 자동으로 새로운 사용자 카드를 만듭니다."""
         return self.user_logic.update_wanted_position(wanted_position)
 
-    def return_user_wanted(self, user_id):
-        existing_user = self.db.query(User).filter(User.id == user_id).first()
+    @implicit_context_db
+    def return_user_wanted(self, user_id, db: Session = None):
+        existing_user = db.query(User).filter(User.id == user_id).first()
         return existing_user.wanted_position
 
     # ---------------------------------------------------------
@@ -238,10 +241,10 @@ class AppLogic:
 
     # ---------------------------------------------------------
     # DB Session 닫기
-    def __del__(self):
-        # 인스턴스 소멸 시 세션 닫기
-        if hasattr(self, "db"):
-            self.db.close()
+    # def __del__(self):
+    #     # 인스턴스 소멸 시 세션 닫기
+    #     if hasattr(self, "db"):
+    #         self.db.close()
 
 
 app_logic = AppLogic()

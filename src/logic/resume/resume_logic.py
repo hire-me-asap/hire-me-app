@@ -1,12 +1,13 @@
 from typing import Optional
 from sqlalchemy.orm import Session
+from src.db import implicit_context_db
 
 from src.models.resume import get_resume_by_id, create_resume, update_resume, delete_resume, reset_resume
 from src.logic.resume.generate_pdf_resume import generate_pdf_resume
 
 
 class ResumeLogic:
-    def __init__(self, db: Session, user_id: Optional[str] = None):
+    def __init__(self, user_id: Optional[str] = None):
         """
         ResumeLogic 클래스 초기화 메서드.
 
@@ -16,11 +17,13 @@ class ResumeLogic:
         """
         self._signed_in: bool = user_id is not None
         self._user_id: Optional[str] = user_id
-        self.db = db
+        # self.db = db
 
+    @implicit_context_db
     def create_resume(
         self,
-        user_id: str
+        user_id: str,
+        db: Session = None
     ) -> None:
         """
         사용자의 이력 정보를 Resume 테이블에 생성합니다.
@@ -28,14 +31,14 @@ class ResumeLogic:
         Args:
             user_id (str): 생성할 사용자의 ID.
         """
-        existing_resume = get_resume_by_id(db=self.db, user_id=self._user_id)
+        existing_resume = get_resume_by_id(db=db, user_id=self._user_id)
 
         if existing_resume:
             raise ValueError("이미 존재하는 이력서가 있습니다. 새로 생성할 수 없습니다.")
 
         # 기본값으로 None 설정
         create_resume(
-            db=self.db,
+            db=db,
             user_id=user_id,
             real_name=None,
             summary=None,
@@ -48,7 +51,8 @@ class ResumeLogic:
             languages=None
         )
 
-    def get_resume_info(self) -> dict:
+    @implicit_context_db
+    def get_resume_info(self, db: Session = None) -> dict:
         """
         resume 테이블의 정보를 불러옵니다.
 
@@ -59,7 +63,7 @@ class ResumeLogic:
             ValueError: 해당 사용자의 이력서가 존재하지 않을 경우.
         """
         # 이력서 정보 조회
-        resume = get_resume_by_id(db=self.db, user_id=self._user_id)
+        resume = get_resume_by_id(db=db, user_id=self._user_id)
         
 
         # if not resume:
@@ -78,9 +82,11 @@ class ResumeLogic:
             "languages": resume.languages
         }
 
+    @implicit_context_db
     def update_resume_info(
         self,
-        resume_fields
+        resume_fields,
+        db: Session = None
     ) -> None:
         """
         사용자의 이력 정보를 Resume 테이블에 업데이트합니다.
@@ -88,7 +94,7 @@ class ResumeLogic:
         Args:
             **resume_fields: 업데이트할 이력 정보 필드들 (None 값은 무시됨)
         """
-        existing_resume = get_resume_by_id(db=self.db, user_id=self._user_id)
+        existing_resume = get_resume_by_id(db=db, user_id=self._user_id)
 
         if not existing_resume:
             create_resume(self._user_id)
@@ -98,9 +104,10 @@ class ResumeLogic:
                          v in resume_fields.items() if v is not None}
         filtered_data["user_id"] = self._user_id
 
-        update_resume(db=self.db, **filtered_data)
+        update_resume(db=db, **filtered_data)
 
-    def reset_resume_info(self):
+    @implicit_context_db
+    def reset_resume_info(self, db: Session = None):
         """
         사용자의 이력서 데이터를 초기화합니다.
 
@@ -111,12 +118,13 @@ class ResumeLogic:
             ValueError: 해당 사용자의 이력서가 존재하지 않을 경우.
         """
         try:
-            reset_resume(db=self.db, user_id=self._user_id)
+            reset_resume(db=db, user_id=self._user_id)
         except ValueError as e:
             print(f"❌ 이력서 초기화에 실패했습니다. (user_id: {self._user_id}): {e}")
             raise
 
-    def generate_pdf_from_resume_id(self) -> str:
+    @implicit_context_db
+    def generate_pdf_from_resume_id(self, db: Session = None) -> str:
         """
         사용자의 이력서 정보를 기반으로 PDF 파일을 생성합니다.
 
@@ -126,7 +134,7 @@ class ResumeLogic:
         Raises:
             ValueError: 이력서 정보가 존재하지 않을 경우 예외를 발생시킵니다.
         """
-        resume = get_resume_by_id(db=self.db, user_id=self._user_id)
+        resume = get_resume_by_id(db=db, user_id=self._user_id)
         # 저장 원하는 위치로 수정 가능.
         user_id = self._user_id
         output_path = f"static/pdf/{user_id}_resume.pdf"

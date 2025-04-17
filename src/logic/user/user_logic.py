@@ -1,5 +1,6 @@
 from typing import Optional, Tuple
 from sqlalchemy.orm import Session
+from src.db import implicit_context_db
 
 from src.logic.assistant.openai_requests import create_new_thread
 from src.logic.user.generate_id_card import generate_avatar_id_card
@@ -9,7 +10,7 @@ from src.models.user import User
 
 
 class UserLogic:
-    def __init__(self, db: Session, user_id: Optional[str] = None):
+    def __init__(self, user_id: Optional[str] = None):
         """
         UserLogic 클래스 초기화 메서드.
 
@@ -18,9 +19,10 @@ class UserLogic:
             user_id (Optional[str]): 초기화 시 설정할 사용자 ID (기본값: None).
         """
         self._user_id: Optional[str] = user_id
-        self.db = db
+        # self.db = db
 
-    def update_thread_id(self) -> None:
+    @implicit_context_db
+    def update_thread_id(self, db: Session = None) -> None:
         """
         사용자의 thread_id를 생성한 뒤, 이를 DB에 저장합니다.
 
@@ -33,9 +35,10 @@ class UserLogic:
             f"thread_id_{thread_type}": create_new_thread()
             for thread_type in thread_types
         }
-        update_user(db=self.db, user_id=self._user_id, **thread_ids)
+        update_user(db=db, user_id=self._user_id, **thread_ids)
 
-    def update_user_img(self, wanted_position: str = '미정') -> None:
+    @implicit_context_db
+    def update_user_img(self, wanted_position: str = '미정', db: Session = None) -> None:
         """
         사용자의 직무 정보를 기반으로 아바타 카드 이미지를 생성하고,
         해당 이미지 경로를 DB에 저장합니다.
@@ -46,13 +49,14 @@ class UserLogic:
 
         job = wanted_position if wanted_position else "미정"
         update_user(
-            db=self.db,
+            db=db,
             user_id=self._user_id,
             user_img=generate_avatar_id_card(seed=self._user_id, job=job),
             wanted_position=job
         )
 
-    def get_user_img(self) -> str:
+    @implicit_context_db
+    def get_user_img(self, db: Session = None) -> str:
         """
         사용자의 아바타 카드 이미지 URL을 반환합니다.
         Returns:
@@ -61,14 +65,15 @@ class UserLogic:
         Raises:
             ValueError: 해당 사용자가 존재하지 않을 경우
         """
-        user = get_user_by_id(db=self.db, user_id=self._user_id)
+        user = get_user_by_id(db=db, user_id=self._user_id)
         if user is None:
             raise ValueError("해당 사용자가 존재하지 않습니다.")
 
         return user.user_img
 
+    @implicit_context_db
     def update_wanted_position(
-        self, wanted_position: str
+        self, wanted_position: str, db: Session = None
     ) -> None:
         """
         사용자의 희망 직무를 DB에 반영하고,
@@ -78,14 +83,15 @@ class UserLogic:
             wanted_position (str): 새로 설정할 희망 직무
         """
         update_user(
-            db=self.db,
+            db=db,
             user_id=self._user_id,
             wanted_position=wanted_position,
             user_img=generate_avatar_id_card(
                 seed=self._user_id, job=wanted_position),
         )
 
-    def update_resume_file(self, resume_file_url: str) -> None:
+    @implicit_context_db
+    def update_resume_file(self, resume_file_url: str, db: Session = None) -> None:
         """
         유저의 이력서 PDF 파일 URL을 User 테이블 DB에 저장합니다.
 
@@ -98,7 +104,7 @@ class UserLogic:
         """
 
         update_user(
-            db=self.db,
+            db=db,
             user_id=self._user_id,
             resume_file=resume_file_url,
         )
