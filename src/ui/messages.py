@@ -7,8 +7,8 @@ from src.logic.app_logic import app_logic
 
 
 RESUME_SEPARATOR = '\n---resume start---\n'
-RESUME_IN_USER_MESSAGE = '\n---\n📜 *질문에 이력서가 포함되어있습니다.*'
-RESUME_IN_ASSISTANT_MESSAGE = '\n---\n📝 *답변에 이력서가 포함되어있습니다.*'
+RESUME_IN_USER_MESSAGE = '\n\n📜 *질문에 이력서가 포함되어있습니다.*'
+RESUME_IN_ASSISTANT_MESSAGE = '\n\n📝 *답변에 이력서가 포함되어있습니다.*'
 
 
 def convert_to_openai_style(raw_json_message: dict) -> dict:

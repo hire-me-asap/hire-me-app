@@ -35,6 +35,7 @@ custom_theme = Citrus(
     checkbox_label_border_color_selected='*primary_400',
     table_radius='*radius_md',
     button_medium_text_weight='400',
+    button_large_text_weight='500',
     button_primary_background_fill='*secondary_200',
     button_primary_background_fill_dark='*primary_700',
     button_primary_text_color='*button_primary_border_color',
