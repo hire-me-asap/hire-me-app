@@ -4,7 +4,7 @@ import gradio as gr
 from pathlib import Path
 
 from src.ui.theme import custom_theme
-from src.ui.events import load_histories, update_sidebar_profile_image
+from src.ui.events import load_histories, update_sidebar_profile_image, load_archive_images
 from src.ui.constants import *
 from src.ui.components import LeftSidebar, RightSidebar, Topbar, TabHost, ProfileTab
 
@@ -59,6 +59,10 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=custom_theme) as demo:
             tab_host_wrapper.chatbot_tab_wrapper.main_chatbot,
             tab_host_wrapper.chatbot_tab_wrapper.input_textarea
         ]
+    ).then(
+        load_archive_images,
+        inputs=[],
+        outputs=[right_sidebar_wrapper.archive_gallery]
     )
     # 각 컴포넌트의 이벤트 핸들러 초기화
     left_sidebar_wrapper.init_event_handlers(
@@ -89,7 +93,8 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=custom_theme) as demo:
         tab_host_wrapper.chatbot_tab_wrapper.main_chatbot
     )
     tab_host_wrapper.init_event_handlers(
-        chat_state, right_sidebar_wrapper.sidebar.citation.contents,
+        chat_state,
+        right_sidebar_wrapper.sidebar.citation.contents,
         tab_host_wrapper.profile_tab_wrapper.real_name,
         tab_host_wrapper.profile_tab_wrapper.summary,
         tab_host_wrapper.profile_tab_wrapper.skill_stack,
@@ -102,8 +107,8 @@ with gr.Blocks(css_paths=['src/ui/style.css'], theme=custom_theme) as demo:
         tab_host_wrapper.profile_tab_wrapper.work_experiences,
         tab_host_wrapper.profile_tab_wrapper.certificates,
         tab_host_wrapper.profile_tab_wrapper.awards,
-        tab_host_wrapper.profile_tab_wrapper.languages,        
+        tab_host_wrapper.profile_tab_wrapper.languages,
         tab_host_wrapper.chatbot_tab_wrapper.main_chatbot,
-        left_sidebar_wrapper.profile_image)
-    right_sidebar_wrapper.init_event_handlers(
-        )
+        left_sidebar_wrapper.profile_image,
+        right_sidebar_wrapper.archive_gallery)
+    right_sidebar_wrapper.init_event_handlers()

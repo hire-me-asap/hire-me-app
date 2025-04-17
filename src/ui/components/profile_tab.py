@@ -12,6 +12,8 @@ class ProfileTab:
     def __init__(self):
         with gr.Tab('프로필', id=1) as profile_tab:
             """ 프로필 탭 """
+
+            gr.Markdown('# 💳 프로필 관리')
             with gr.Row():
                 with gr.Column(scale=4):
                     self.userid_text = gr.Text(
@@ -22,20 +24,30 @@ class ProfileTab:
                         label='희망 직무', 
                         placeholder='희망하는 직무를 입력해보세요'
                     )
-                    self.user_info_save_btn = gr.Button('변경사항 저장하기', variant='primary', elem_classes=['profile-save-button'])
+                    with gr.Row(elem_classes='compact-container'):
+                        self.user_info_reload_btn = gr.Button('프로필 변경사항 되돌리기', elem_classes=['compact-button'])
+                        self.user_info_save_btn = gr.Button('프로필 변경사항 저장하기', variant='primary', elem_classes=['compact-button'])
 
-                with gr.Column():
+                with gr.Column(elem_classes='no-gap'):
                     self.profile_image = gr.HTML("<img id='user_profile_card' src=''>")
 
+            gr.Markdown('&#8203;')
             gr.Markdown('# 📜 이력서 관리')
-            gr.Markdown("### 🥸 개인 정보")
-            with gr.Row():
-                self.real_name = gr.Textbox(label='이름', placeholder='본명을 입력하세요')
-            with gr.Row():
-                self.summary = gr.Textbox(label='이력서 요약', placeholder='간단하게 본인을 소개해주세요')
+            
+            # ✅✅✅  변경사항 저장하기 (이력서 DB 업데이트) (update_resume_info)
+            with gr.Row(elem_classes='compact-container'):
+                self.save_button = gr.Button("이력서 변경사항 취소하기", elem_classes=['compact-button'])
+                self.save_button = gr.Button("이력서 변경사항 저장하기", variant="primary", elem_classes=['compact-button'])
 
-    
-            gr.Markdown("### 🛠 기술 스택")
+            gr.Markdown('&#8203;')
+            gr.Markdown("### 🥸 개인 정보")
+            
+            with gr.Group(elem_classes='no-gap'):
+                self.real_name = gr.Textbox(label='이름', placeholder='본명을 입력하세요')
+                self.summary = gr.Textbox(label='약력', placeholder='간략하게 본인의 이력을 소개해주세요')
+
+            gr.Markdown('&#8203;')
+            gr.Markdown("### 🛠️ 기술 스택")
             with gr.Row():
                 self.skill_stack = gr.Dropdown(
                 choices=ALL_SKILLS,
@@ -44,6 +56,7 @@ class ProfileTab:
                 label = '본인의 기술 스택을 선택해 주세요'
                 )
 
+            gr.Markdown('&#8203;')
             gr.Markdown("### 🎓 학력 정보")
             with gr.Row():
                 self.final_degree = gr.Dropdown(
@@ -58,7 +71,7 @@ class ProfileTab:
 
             self.degree_date = gr.Textbox(label='입학-졸업 YYYY.MM', placeholder='YYYY.MM - YYYY.MM')
         
-        
+            gr.Markdown('&#8203;')
             gr.Markdown("### 📘 교육 및 기타 경험")
             self.education_and_exp = gr.Dataframe(
                 type="pandas",
@@ -70,8 +83,9 @@ class ProfileTab:
                 interactive=True,                  
                 key="edu_df"
                 )
-            self.add_btn_edu = gr.Button("➕ 행 추가")
+            self.add_btn_edu = gr.Button("➕ 행 추가", size='sm')
 
+            gr.Markdown('&#8203;')
             gr.Markdown("### 💼 경력사항")
             self.work_experiences = gr.Dataframe(
                 type="pandas",
@@ -82,9 +96,10 @@ class ProfileTab:
                 interactive=True,
                 key="edu_df"
             )
-            self.add_btn_work = gr.Button("➕ 행 추가")
+            self.add_btn_work = gr.Button("➕ 행 추가", size='sm')
             #add_btn.click(fn=add_row, inputs=work_experiences, outputs=work_experiences)
 
+            gr.Markdown('&#8203;')
             gr.Markdown("### 🏅 자격증" )
             self.certificates = gr.Dataframe(
                 type="pandas",
@@ -95,9 +110,10 @@ class ProfileTab:
                 interactive=True,
                 wrap=True
             )
-            self.add_btn_cert = gr.Button("➕ 행 추가")
+            self.add_btn_cert = gr.Button("➕ 행 추가", size='sm')
             #add_btn.click(fn=add_row, inputs=certificates, outputs=certificates)
         
+            gr.Markdown('&#8203;')
             gr.Markdown("### 🏆 수상내역" )
             self.awards = gr.Dataframe(
                 type="pandas",
@@ -108,9 +124,10 @@ class ProfileTab:
                 interactive=True,
                 wrap=True
             )
-            self.add_btn_awards = gr.Button("➕ 행 추가")
+            self.add_btn_awards = gr.Button("➕ 행 추가", size='sm')
             #add_btn.click(fn=add_row, inputs=awards, outputs=awards)
 
+            gr.Markdown('&#8203;')
             gr.Markdown("### 🌍 어학" )
             self.languages = gr.Dataframe(
                 type="pandas",
@@ -121,31 +138,28 @@ class ProfileTab:
                 interactive=True,
                 wrap=True
             )
-            self.add_btn_lang = gr.Button("➕ 행 추가")
+            self.add_btn_lang = gr.Button("➕ 행 추가", size='sm')
             #add_btn.click(fn=add_row, inputs=languages, outputs=languages)
 
-        with profile_tab:
-                gr.Markdown("### 📄 이력서 PDF로 저장하고 싶으신가요?")
-                # 📤 PDF 다운로드 버튼 + 파일 컴포넌트
-                self.generate_resume_button = gr.Button("이력서 PDF 생성하기", variant="primary")
-                self.pdf_file_output = gr.File(label="📎 생성된 이력서 PDF")
+            gr.Markdown('&#8203;')
+            gr.Markdown("### 📄 이력서 PDF로 저장하고 싶으신가요?")
+            # 📤 PDF 다운로드 버튼 + 파일 컴포넌트
+            self.generate_resume_button = gr.Button("이력서 PDF 생성하기", variant="primary")
+            self.pdf_file_output = gr.File(label="📎 생성된 이력서 PDF")
 
-                # ✅✅✅  변경사항 저장하기 (이력서 DB 업데이트) (update_resume_info)
-                self.save_button = gr.Button("변경사항 저장하기", variant="primary")
-
-
-                with gr.Accordion('⚠️ 위험한 기능', open=False):
-                    gr.Markdown()
-                    
-                    gr.Markdown('프로필 페이지에 입력된 이력서를 모두 빈칸으로 되돌립니다. 이 작업은 되돌릴 수 없습니다.')                
-                    self.clear_resume_button = gr.Button('이력서 지우기', elem_classes='red-button')
-                    gr.Markdown()
-
-                    gr.Markdown('사용자의 모든 대화 기록을 지웁니다. 이 작업은 되돌릴 수 없습니다.')
-                    self.clear_history_button = gr.Button('대화 기록 지우기', elem_classes='red-button')
+            gr.Markdown('&#8203;')
+            with gr.Accordion('⚠️ 위험한 기능', open=False):
+                gr.Markdown()
                 
-                self.resume_info_temp = gr.State({})
-                self.user_input_components = gr.State({})
+                gr.Markdown('프로필 페이지에 입력된 이력서를 모두 빈칸으로 되돌립니다. 이 작업은 되돌릴 수 없습니다.')                
+                self.clear_resume_button = gr.Button('이력서 지우기', elem_classes='red-button')
+                gr.Markdown()
+
+                gr.Markdown('사용자의 모든 대화 기록을 지웁니다. 이 작업은 되돌릴 수 없습니다.')
+                self.clear_history_button = gr.Button('대화 기록 지우기', elem_classes='red-button')
+            
+        self.resume_info_temp = gr.State({})
+        self.user_input_components = gr.State({})
 
     def init_event_handlers(self, chat_state, real_name, summary, skill_stack, final_degree, major, school_name, gpa, 
                      degree_date, education_exp, work_experiences, cerificates, awards, languages, main_chatbot, sidebarprofile):

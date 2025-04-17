@@ -13,8 +13,11 @@ class TabHost:
         self.tab_host = tab_host
         self.app_logic = app_logic
 
-    def init_event_handlers(self, chat_state, citation_contents, real_name, summary, skill_stack, final_degree, major, school_name, gpa, 
-                     degree_date, education_exp, work_experiences, cerificates, awards, languages, main_chatbot, sidebarprofile):
-        self.chatbot_tab_wrapper.init_event_handlers(chat_state, citation_contents)
-        self.profile_tab_wrapper.init_event_handlers(chat_state, real_name, summary, skill_stack, final_degree, major, school_name, gpa, 
-                     degree_date, education_exp, work_experiences, cerificates, awards, languages, main_chatbot, sidebarprofile)
+    def init_event_handlers(
+        self, chat_state, citation_contents, real_name, summary, skill_stack, final_degree, major, school_name, gpa, degree_date, education_exp, work_experiences, cerificates, awards, languages, main_chatbot, sidebarprofile, archive_gallery
+    ):
+        self.chatbot_tab_wrapper.init_event_handlers(
+            chat_state, citation_contents, archive_gallery)
+        self.profile_tab_wrapper.init_event_handlers(
+            chat_state, real_name, summary, skill_stack, final_degree, major, school_name, gpa,
+            degree_date, education_exp, work_experiences, cerificates, awards, languages, main_chatbot, sidebarprofile)
