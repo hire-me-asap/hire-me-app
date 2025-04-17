@@ -2,36 +2,31 @@ from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.lib.pagesizes import A4
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 from reportlab.lib.enums import TA_LEFT
 from reportlab.lib.units import mm
+from reportlab.lib import colors
 import platform, os
 
 
-# Malgun Gothic 폰트 등록.
-# 이것도 아마 폰트 추가하거나 하는 게 있을 것 같은데 한번 찾아보세요.
-# ✅ OS에 따른 기본 한글 폰트 경로
+# NanumGothic 폰트 등록.
 def _register_korean_font():
-    system_name = platform.system()
+    base_path = os.path.abspath(os.path.dirname(__file__))
+    regular_font_path = os.path.join(base_path, "../../../NanumGothic-Regular.ttf")
+    bold_font_path = os.path.join(base_path, "../../../NanumGothic-Bold.ttf")
 
-    if system_name == "Windows":
-        font_path = r"C:\Windows\Fonts\malgun.ttf"
-        font_name = "Malgun Gothic"
-    elif system_name == "Darwin":  # MacOS
-        font_path = "/System/Library/Fonts/AppleSDGothicNeo.ttc"
-        font_name = "AppleGothic"
-    else:  # Linux or unknown
-        font_path = "/usr/share/fonts/truetype/nanum/NanumGothic.ttf"  # 예시: Ubuntu용
-        font_name = "Nanum Gothic"
+    if not os.path.exists(regular_font_path) or not os.path.exists(bold_font_path):
+        raise FileNotFoundError("❌ 폰트 파일이 존재하지 않습니다.")
 
-    # 경로 존재 여부 확인 후 등록
-    if os.path.exists(font_path):
-        pdfmetrics.registerFont(TTFont(font_name, font_path))
-        print(f"✅ 한글 폰트 '{font_name}' 등록 완료!")
-        return font_name
-    else:
-        raise FileNotFoundError(f"❌ 폰트 파일을 찾을 수 없습니다: {font_path}")
+    # 폰트 등록 (이름 다르게 설정)
+    pdfmetrics.registerFont(TTFont("NanumGothic", regular_font_path))
+    pdfmetrics.registerFont(TTFont("NanumGothic-Bold", bold_font_path))
 
+    print("✅ NanumGothic 폰트 등록 완료")
+    return {
+        "regular": "NanumGothic",
+        "bold": "NanumGothic-Bold"
+    }
 # 사용자 정보 <- 이런 식으로 들어오니까 디자인할 때 참고용으로 계속 둘게요.
 # user_info_use = {
 #     "real_name": "홍길동",
@@ -107,26 +102,28 @@ def generate_pdf_resume(output_path: str, user_info: dict):
 
     # 제목 스타일 정의
     styles.add(ParagraphStyle(name='TitleKorean',
-                              fontName=font_name,
-                              fontSize=20,
+                              fontName=font_name['bold'],
+                              fontSize=24,
                               leading=24,
                               spaceAfter=14,
                               alignment=TA_LEFT))
 
     # 소제목 스타일 정의
     styles.add(ParagraphStyle(name='SubtitleKorean',
-                              fontName=font_name,
+                              fontName=font_name['bold'],
                               fontSize=14,
                               leading=18,
                               spaceAfter=8,
-                              spaceBefore=12))
+                              spaceBefore=20))
 
     # 본문 스타일 정의
     styles.add(ParagraphStyle(name='NormalKorean',
-                              fontName=font_name,
-                              fontSize=11,
+                              fontName=font_name['regular'],
+                              fontSize=10.5,
                               leading=15,
-                              spaceAfter=4))
+                              spaceAfter=4,
+                              leftIndent=16
+                              ))
 
     story = []
 
@@ -136,55 +133,80 @@ def generate_pdf_resume(output_path: str, user_info: dict):
     # 요약 추가 (소제목 + 본문)
     story.append(Paragraph("요약", styles['SubtitleKorean']))
     story.append(Paragraph(user_info['summary'], styles['NormalKorean']))
+    story.append(Spacer(1, 8))
 
     # 기술 스택 추가 (소제목 + 본문)
     story.append(Paragraph("기술 스택", styles['SubtitleKorean']))
-    skills = ", ".join(user_info['skill_stack'])
+    story.append(Table([[""]], colWidths=[doc.width], rowHeights=1,
+        style=TableStyle([('LINEBELOW', (0, 0), (-1, -1), 0.75, colors.darkgray)])))
+    skills = "    ".join(user_info['skill_stack'])
     story.append(Paragraph(skills, styles['NormalKorean']))
+    story.append(Spacer(1, 8))
 
     # 경력 추가 (소제목 + 본문)
     if user_info['work_experiences']:
         story.append(Paragraph("경력", styles['SubtitleKorean']))
+        story.append(Table([[""]], colWidths=[doc.width], rowHeights=1,
+                style=TableStyle([('LINEBELOW', (0, 0), (-1, -1), 0.75, colors.darkgray)])))
         for exp in user_info['work_experiences']:
             story.append(Paragraph(
                 f"{exp['근무기간 (YYYY.MM - YYYY.MM)']} - {exp['회사명']} ({exp['직책']})", styles['NormalKorean']))
-            for task in exp['주요 업무']:
-                story.append(Paragraph(f"- {task}", styles['NormalKorean']))
+            task_list = exp.get('주요 업무', []) 
+            if isinstance(task_list, str):
+                task_list = [task_list]  # 문자열이면 리스트로 감싸기
+            for task in task_list:
+                story.append(Paragraph(f"· {task}", styles['NormalKorean']))
+        story.append(Spacer(1, 8))
 
     # 학력 추가 (소제목 + 본문)
     if user_info['education']:
         story.append(Paragraph("학력", styles['SubtitleKorean']))
+        story.append(Table([[""]], colWidths=[doc.width], rowHeights=1,
+                style=TableStyle([('LINEBELOW', (0, 0), (-1, -1), 0.75, colors.darkgray)])))
         for edu in user_info['education']:
             story.append(Paragraph(
                 f"{edu['degree_date']} - {edu['school_name']} ({edu['final_degree']}, {edu['major']}, GPA: {edu['gpa']})", styles['NormalKorean']))
+        story.append(Spacer(1, 8))
 
     # 교육 이수 및 기타 경험 추가 (소제목 + 본문)
     if user_info['education_and_exp']:
         story.append(Paragraph("교육 이수 및 기타 경험", styles['SubtitleKorean']))
+        story.append(Table([[""]], colWidths=[doc.width], rowHeights=1,
+                style=TableStyle([('LINEBELOW', (0, 0), (-1, -1), 0.75, colors.darkgray)])))
         for edu_exp in user_info['education_and_exp']:
             story.append(Paragraph(
                 f"{edu_exp['기간 (YYYY.MM - YYYY.MM)']} - {edu_exp['교육명']}", styles['NormalKorean']))
+        story.append(Spacer(1, 8))
 
     # 자격증 추가 (소제목 + 본문)
     if user_info['certificates']:
         story.append(Paragraph("자격증", styles['SubtitleKorean']))
+        story.append(Table([[""]], colWidths=[doc.width], rowHeights=1,
+                style=TableStyle([('LINEBELOW', (0, 0), (-1, -1), 0.75, colors.darkgray)])))
         for cert in user_info['certificates']:
             story.append(Paragraph(
                 f"{cert['취득일 (YYYY.MM.DD)']} - {cert['자격증명']}", styles['NormalKorean']))
+        story.append(Spacer(1, 8))
 
     # 수상 이력 추가 (소제목 + 본문)
     if user_info['awards']:
         story.append(Paragraph("수상 이력", styles['SubtitleKorean']))
+        story.append(Table([[""]], colWidths=[doc.width], rowHeights=1,
+                style=TableStyle([('LINEBELOW', (0, 0), (-1, -1), 0.75, colors.darkgray)])))
         for award in user_info['awards']:
             story.append(
                 Paragraph(f"{award['수상일 (YYYY.MM.DD)']} - {award['수상명']}", styles['NormalKorean']))
+        story.append(Spacer(1, 8))
 
     # 언어 능력 추가 (소제목 + 본문)
     if user_info['languages']:
         story.append(Paragraph("언어 능력", styles['SubtitleKorean']))
+        story.append(Table([[""]], colWidths=[doc.width], rowHeights=1,
+                style=TableStyle([('LINEBELOW', (0, 0), (-1, -1), 0.75, colors.darkgray)])))
         for lang in user_info['languages']:
             story.append(Paragraph(
                 f"{lang['취득일 (YYYY.MM.DD)']} - {lang['어학시험/점수']}", styles['NormalKorean']))
+        story.append(Spacer(1, 8))
 
     # PDF 빌드
     doc.build(story)
