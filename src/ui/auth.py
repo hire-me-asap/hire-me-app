@@ -17,6 +17,10 @@ AUTH_MESSAGE = (
 
 account_pattern = re.compile(r'^[A-Za-z\d_]{4,}$')
 
+def get_current_session_id():
+    import starlette_context
+    request = starlette_context.request
+    return request.cookies.get("session_id")
 
 def sign_in_or_sign_up(user_id: str, password: str) -> bool:
     if not account_pattern.fullmatch(user_id) or not account_pattern.fullmatch(password):
@@ -24,10 +28,15 @@ def sign_in_or_sign_up(user_id: str, password: str) -> bool:
 
     logged_in, message = app_logic.sign_in(user_id, password)
     if logged_in:
+        # 로그인 후, 현재 세션 ID에 인증 표시
+        current_session_id = get_current_session_id()
+        sessions[current_session_id] = {"username": user_id, "logged_in": True}
         return True
 
     if message == '아이디가 존재하지 않습니다.':
         app_logic.sign_up(user_id, password)
+        current_session_id = get_current_session_id()
+        sessions[current_session_id] = {"username": user_id, "logged_in": True}
         return True
 
     return False

@@ -8,7 +8,7 @@ from pathlib import Path
 from src.ui import demo, sign_in_or_sign_up, AUTH_MESSAGE
 from src.ui import get_session_id, sessions
 
-app = FastAPI()
+app = FastAPI(root_path="/")
 
 # CORS 미들웨어 추가
 app.add_middleware(
@@ -24,7 +24,7 @@ app.add_middleware(
 async def session_middleware(request: Request, call_next):
     session_id = get_session_id(request)
     response = await call_next(request)
-    response.set_cookie(key="session_id", value=session_id, secure=True, httponly=True, samesite="Lax")
+    response.set_cookie(key="session_id", value=session_id, secure=True, httponly=True, samesite="None")
     return response
 
 # FastAPI 엔드포인트로 세션 정보 확인
