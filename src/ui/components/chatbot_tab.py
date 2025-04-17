@@ -42,13 +42,13 @@ class ChatbotTab:
 
         self.chatbot_tab = chatbot_tab
 
-    def init_event_handlers(self, chat_state, citation_contents, archive_gallery):
+    def init_event_handlers(self, chat_state, citation_contents, archive_gallery, resume_state):
         self.main_chatbot.example_select(
             select_example, outputs=[self.input_textarea])
 
         self.input_textarea.submit(
             process_user_message,
-            inputs=[self.input_textarea, chat_state],
+            inputs=[self.input_textarea, chat_state, resume_state],
             outputs=[self.input_textarea, self.main_chatbot, chat_state],
             scroll_to_output=True,
             queue=True

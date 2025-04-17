@@ -1,3 +1,4 @@
+import json
 import gradio as gr
 
 from src.logic.app_logic import app_logic
@@ -9,7 +10,7 @@ PROGRESS_MESSAGE = {'role': 'assistant',
                     'content': '🤧💭 엣취가 답변을 생각하고 있습니다. *허리를 쭉 피세요!!!*'}
 
 
-def process_user_message(content, chat_state):
+def process_user_message(content, chat_state, resume_state):
     mode = chat_state['mode']
     content = content.strip()
     if not content:
@@ -19,22 +20,24 @@ def process_user_message(content, chat_state):
     message = {'role': 'user', 'content': content}
 
     if chat_state['use_resume']:
-        # TODO 실제 이력서 데이터가 json이나 markdown 문자열 들어가야 합니다.
         message['content'] += RESUME_IN_USER_MESSAGE
-        content += RESUME_SEPARATOR + '{}'
+        content += RESUME_SEPARATOR + json.dumps(resume_state, ensure_ascii=False)
 
     chat_state['histories'][mode].append(message)
     chat_state['histories'][mode].append(PROGRESS_MESSAGE)
 
     yield '', chat_state['histories'][chat_state['mode']], chat_state
 
-    chat_state['histories'][mode].pop()  # 허리피세요
+    popped = False
 
-    for _ in _get_assistant_response(content, mode, chat_state):
+    for _ in _get_assistant_response(content, mode, chat_state, resume_state):
+        if not popped:
+            chat_state['histories'][mode].pop()  # 허리피세요
+            popped = True
         yield '', chat_state['histories'][chat_state['mode']], chat_state
 
 
-def _get_assistant_response(content: str, mode: Modes, chat_state):
+def _get_assistant_response(content: str, mode: Modes, chat_state, resume_state):
     print(f'@_get_assistant_response({content=}, {mode=}, chat_state)')
 
     response = app_logic.get_response_from_assistant(
@@ -73,16 +76,19 @@ def _get_assistant_response(content: str, mode: Modes, chat_state):
             message = {'role': 'user', 'content': query}
 
             if chat_state['use_resume']:
-                # TODO 실제 이력서 데이터가 json이나 markdown 문자열 들어가야 합니다.
                 message['content'] += RESUME_IN_USER_MESSAGE
-                query += RESUME_SEPARATOR + '{}'
+                query += RESUME_SEPARATOR + json.dumps(resume_state, ensure_ascii=False)
 
             chat_state['histories'][mode].append(message)
             chat_state['histories'][Modes.GENERAL].append(PROGRESS_MESSAGE)
             yield
-            chat_state['histories'][Modes.GENERAL].pop()
+            popped = False
+            
 
-            for message, response in _get_assistant_response(query, mode, chat_state):
+            for message, response in _get_assistant_response(query, mode, chat_state, resume_state):
+                if not popped:
+                    chat_state['histories'][Modes.GENERAL].pop()
+                    popped = True
                 message['content'] = '\n---\n' + message['content']
                 chat_state['histories'][Modes.GENERAL].append(message)
                 app_logic.add_dialogue_thread(
