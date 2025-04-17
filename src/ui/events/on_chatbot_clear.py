@@ -14,4 +14,4 @@ def clear_history():
         },
         'use_resume': True
     }
-    return gr.update(value=[]), gr.update(value=initial_chat_state)
+    return gr.update(value=initial_chat_state['histories'][Modes.GENERAL]), gr.update(value=initial_chat_state['histories'][Modes.GENERAL])
