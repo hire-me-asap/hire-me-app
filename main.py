@@ -47,7 +47,7 @@ demo.queue()
 app = gr.mount_gradio_app(
     app,
     demo,
-    path='/',
+    path='',
     auth=sign_in_or_sign_up,
     auth_message=AUTH_MESSAGE,
     allowed_paths=[
