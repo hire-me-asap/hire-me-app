@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi import FastAPI, Request, Response, Depends
 from fastapi.responses import HTMLResponse
+from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 import gradio as gr
 from pathlib import Path
@@ -8,6 +9,15 @@ from src.ui import demo, sign_in_or_sign_up, AUTH_MESSAGE
 from src.ui import get_session_id, sessions
 
 app = FastAPI()
+
+# CORS 미들웨어 추가
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # 또는 ["https://your-frontend-url"]로 제한
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # 세션 쿠키 설정 미들웨어
 @app.middleware("http")
