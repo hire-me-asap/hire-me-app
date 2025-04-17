@@ -82,6 +82,9 @@ class UserLogic:
         Args:
             wanted_position (str): 새로 설정할 희망 직무
         """
+        if wanted_position == "" :
+            wanted_position = "미정"
+                    
         update_user(
             db=db,
             user_id=self._user_id,
