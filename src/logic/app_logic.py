@@ -212,10 +212,10 @@ class AppLogic:
         """응답이 선택됐을 때 그 응답에서 url 리스트로 나옴"""
         return self.assistant_logic.extract_citations_url(response)
 
-    def roadmap_gallery(self) -> list:
+    def get_roadmap_image_list(self) -> list[str]:
         """user_id 기반으로 roadmap 이미지 주소 전체 리스트로 불러오기"""
-
-        return ""
+        roadmap_image_files = self.assistant_logic.get_roadmap_image_list()
+        return roadmap_image_files
 
     # ---------------------------------------------------------
     # DB Session 닫기

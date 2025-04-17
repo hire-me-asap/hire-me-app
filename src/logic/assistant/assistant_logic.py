@@ -1,4 +1,5 @@
 import time
+import os
 
 from enum import Enum
 from typing import Optional, Tuple
@@ -217,3 +218,17 @@ class AssistantLogic:
             file_id) for file_id in file_id_list]
 
         return citation_url_list
+
+    def get_roadmap_image_list(self) -> list[str]:
+        """사용자의 모든 roadmap 이미지 리스트로 받아오기"""
+        roadmap_folder = os.path.join("static", "roadmap")
+        try:
+            roadmap_image_files = [
+                os.path.join(roadmap_folder, file)
+                for file in os.listdir(roadmap_folder)
+                if file.startswith(f"{self._user_id}_")
+            ]
+        except FileNotFoundError:
+            raise ValueError(f"로드맵 폴더({roadmap_folder})가 존재하지 않습니다.")
+
+        return roadmap_image_files
