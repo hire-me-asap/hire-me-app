@@ -184,4 +184,7 @@ class ProfileTab:
             outputs=self.pdf_file_output  # 파일 컴포넌트로 연결
         )
 
-        self.clear_resume_button.click(app_logic.reset_resume_info)
+        self.clear_resume_button.click(app_logic.reset_resume_info).then(app_logic.get_resume_info, outputs=[self.user_input_components]
+                ).then(json_to_user_component, inputs=[self.user_input_components], 
+                        outputs=[real_name, summary, skill_stack, final_degree, major, school_name, gpa, 
+                        degree_date, education_exp, work_experiences, cerificates, awards, languages])
