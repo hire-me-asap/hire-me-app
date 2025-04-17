@@ -3,11 +3,12 @@ from .on_demo_load import update_sidebar_profile_image, load_histories
 from .on_input_submit import process_user_message
 from .on_sidebar_expand_or_collapse import set_topbar_visibility
 from .on_tab_change_required import select_profile_tab, select_chat_tab
-from .on_add_row import add_row 
+from .on_add_row import add_row
 from .on_call_update_resume_info import call_update_resume_info
 from .on_generate_user_info import generate_user_info_json
 from .on_checkbox_change import toggle_resume_usage
 from .on_json_to_user_component import json_to_user_component
-from .on_generate_user_info_korean import generate_user_info_json_korean 
+from .on_generate_user_info_korean import generate_user_info_json_korean
 from .on_chatbot_clear import clear_history
 from .on_user_idcard_update import id_card_update
+from .on_archive_roadmap import load_archive_images

@@ -1,7 +1,7 @@
 import gradio as gr
 
 from src.ui.constants import *
-from src.ui.events import select_example, process_user_message, toggle_resume_usage
+from src.ui.events import select_example, process_user_message, toggle_resume_usage, load_archive_images
 from src.logic.app_logic import app_logic
 
 
@@ -42,7 +42,7 @@ class ChatbotTab:
 
         self.chatbot_tab = chatbot_tab
 
-    def init_event_handlers(self, chat_state, citation_contents):
+    def init_event_handlers(self, chat_state, citation_contents, archive_gallery):
         self.main_chatbot.example_select(
             select_example, outputs=[self.input_textarea])
 
@@ -52,6 +52,10 @@ class ChatbotTab:
             outputs=[self.input_textarea, self.main_chatbot, chat_state],
             scroll_to_output=True,
             queue=True
+        ).then(
+            load_archive_images,
+            inputs=[],
+            outputs=[archive_gallery]
         )
 
         # TODO: 기능 구현 후에 아래 이벤트 핸들러는 제거해주세요.

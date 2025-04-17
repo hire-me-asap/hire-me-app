@@ -21,31 +21,14 @@ class RightSidebar:
                     show_label=True
                 )
                 # 버튼 추가 (로드맵 이미지 로드)
-                self.load_button = gr.Button("로드맵 이미지 로드")
+                # self.load_button = gr.Button("로드맵 이미지 로드")
 
         self.sidebar = sidebar
         self.sidebar.citation = citation
         self.sidebar.citation.contents = contents
 
-    def load_archive_images(self):
-        """
-        아카이브 섹션에 로드맵 이미지 리스트를 로드합니다.
-        """
-        try:
-            # 이미지 리스트 가져오기
-            image_list = app_logic.get_roadmap_image_list()
-            # print(image_list)  # 디버깅용 출력
-            return image_list
-        except ValueError as e:
-            return [f"Error: {str(e)}"]
-
     def init_event_handlers(self):
         """
         RightSidebar의 이벤트 핸들러를 초기화합니다.
         """
-        # 버튼 클릭 이벤트로 갤러리 업데이트
-        self.load_button.click(
-            self.load_archive_images,  # 데이터를 로드하는 함수
-            inputs=[],  # 입력 없음
-            outputs=[self.archive_gallery]  # 갤러리 업데이트
-        )
+        pass
