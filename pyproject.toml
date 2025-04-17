@@ -6,7 +6,7 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "alembic>=1.15.2",
-    "gradio>=5.23.3",
+    "gradio>=5.25.2",
     "graphviz>=0.20.3",
     "passlib[bcrypt]>=1.7.4",
     "openai>=1.72.0",
@@ -16,4 +16,11 @@ dependencies = [
     "requests==2.32.3",
     "sqlalchemy-utils>=0.41.2",
     "pip>=25.0.1",
+    "reportlab>=4.3.1",
+    "bcrypt==4.0.1",
+]
+
+[dependency-groups]
+dev = [
+    "ipykernel>=6.29.5",
 ]

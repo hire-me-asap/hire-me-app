@@ -7,6 +7,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import sessionmaker
 from urllib.parse import quote_plus
 from dotenv import load_dotenv
+from functools import wraps
 
 # 프로젝트 루트 경로를 sys.path에 추가
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -50,6 +51,19 @@ connect_args = {
 engine = create_engine(DATABASE_URL, connect_args=connect_args, echo=Config.SQLALCHEMY_ECHO)
 Session = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
+def implicit_context_db(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        print(f"Calling db function: {func.__name__}")  # 함수 이름 출력
+        db = Session()
+        try:
+            kwargs.setdefault("db", db)
+            return func(*args, **kwargs)
+        finally:
+            print(f"Closing db function: {func.__name__}")  # 함수 이름 출력
+            db.close()
+    return wrapper
+
 # 동작하는 코드 2
 # DATABASE_URL = Config.NON_SSL_CONNECTION
 # print(DATABASE_URL)
@@ -74,6 +88,17 @@ def get_db():
         result = db.execute(text("SELECT VERSION()"))
         version = result.scalar()
         print(f"MySQL 버전: {version}")
-    
+
+import sqlalchemy.orm.session
+@implicit_context_db
+def test(db: sqlalchemy.orm.session.Session):
+    # print(type(Session)) # sqlalchemy.orm.session.sessionmaker
+    # with Session() as db: # 컨텍스트 매니저 사용. 자동으로 db.close() 호출해 줌
+    #     print(type(db)) # sqlalchemy.orm.session.Session
+    result = db.execute(text("SELECT VERSION()"))
+    version = result.scalar()
+    print(f"MySQL 버전: {version}")
+
 # 샘플 테스트 코드
 # get_db()
+# test()

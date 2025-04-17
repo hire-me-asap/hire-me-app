@@ -1,0 +1,250 @@
+import time
+import os
+
+from enum import Enum
+from typing import Optional, Tuple
+from sqlalchemy.orm import Session
+from src.db import implicit_context_db
+
+from src.logic.assistant.openai_requests import (
+    add_dialogue_to_thread,
+    run_message_to_thread,
+    is_run_done,
+    get_last_assistant_message_one,
+    get_all_assistant_message,
+    delete_thread_id,
+    get_file_id_name,
+)
+
+from src.logic.constants import constants
+from src.models.user import User, update_user
+
+
+class AssistantType(Enum):
+    JOB_RECOMMEND = "job_recommend"
+    RECRUIT_RECOMMEND = "recruit_recommend"
+    ROADMAP = "roadmap"
+    RESUME_REVIEW = "resume_review"
+    FIND_STUDY = "find_study"
+    ASSISTANT = "assistant"
+
+
+class AssistantLogic:
+    def __init__(self, user_id: Optional[str] = None):
+        """
+        AssistantLogic 클래스 초기화 메서드.
+
+        Args:
+            db (Session): SQLAlchemy 데이터베이스 세션.
+            user_id (Optional[str]): 초기화 시 설정할 사용자 ID (기본값: None).
+        """
+        self._user_id: Optional[str] = user_id
+        # self.db = db
+
+    def _request_assistant_response(self, assistant_id: str, message: str, thread_id: str) -> dict:
+        """사용자 질문을 스레드에 추가하고, AI 도우미의 응답을 받아옵니다."""
+
+        # 1. 메시지를 기반으로 도우미 실행(run)
+        run_id = run_message_to_thread(
+            thread_id=thread_id,
+            assistant_id=assistant_id,
+            role="user",
+            message=message
+        )
+        if not run_id:
+            # 문제 발생 시 사용자에게 메시지 반환
+            return {
+                "data": {
+                    "text": "죄송합니다. 다시 한 번 질문해주세요."
+                }
+            }
+
+        # 2. 도우미가 응답을 완료할 때까지 대기
+        polling_interval = 1
+        max_wait_time = 120
+        elapsed_time = 0
+        while not is_run_done(thread_id, run_id):
+            if elapsed_time >= max_wait_time:
+                raise TimeoutError(
+                    "Run did not complete within the maximum wait time.")
+            time.sleep(polling_interval)
+            elapsed_time += polling_interval
+
+        # 3. 도우미의 최종 응답 메시지 반환
+        response = get_last_assistant_message_one(thread_id)
+
+        return response
+
+    @implicit_context_db
+    def get_response_from_assistant(
+        self, assistant_type: AssistantType, user_question: str, db: Session = None
+    ) -> dict:
+        """
+        유저 질문을 기반으로 특정 Assistant 타입에 맞는 응답을 반환합니다.
+
+        Args:
+            assistant_type (AssistantType): 사용할 도우미 유형(job_recommend, recruit_recommend, roadmap, resume_review, find_study, assistant 중 하나.)
+            user_question (str): 유저의 질문 메시지
+
+        Returns:
+            dict: 특정 기능에 대한 도우미의 응답메세지
+        """
+        assistant_mapping = {
+            AssistantType.ASSISTANT: [constants.ASSISTANT_ID, "thread_id_assistant"],
+            AssistantType.JOB_RECOMMEND: [constants.ASSISTANT_ID_JOB_RECOMMEND, "thread_id_job_recommend"],
+            AssistantType.RECRUIT_RECOMMEND: [constants.ASSISTANT_ID_RECRUIT_RECOMMEND, "thread_id_recruit_recommend"],
+            AssistantType.ROADMAP: [constants.ASSISTANT_ID_ROADMAP, "thread_id_roadmap"],
+            AssistantType.RESUME_REVIEW: [constants.ASSISTANT_ID_RESUME_REVIEW, "thread_id_resume_review"],
+            AssistantType.FIND_STUDY: [constants.ASSISTANT_ID_FIND_STUDY, "thread_id_find_study"],
+        }
+
+        assistant_id, thread_column_name = assistant_mapping[assistant_type]
+
+        # 사용자 정보 조회
+        user = db.query(User).filter(User.id == self._user_id).first()
+        personal_thread_id = getattr(user, thread_column_name)
+
+        # 도우미 응답 텍스트 받아오기
+        response = self._request_assistant_response(
+            assistant_id=assistant_id,
+            message=user_question,
+            thread_id=personal_thread_id,
+        )
+
+        return response
+
+    @implicit_context_db
+    def get_all_thread_dialogue(self, assistant_type: AssistantType, db: Session = None) -> dict:
+        """
+        사용자의 assistant_type에 해당하는 Thread ID를 통해 전체 대화 내역을 반환합니다.
+
+        Parameters:
+            assistant_type (AssistantType): assistant 종류
+
+        Returns:
+            dict: 대화 순서를 보장한 전체 메시지 딕셔너리 (role: message)
+        """
+
+        user = db.query(User).filter(User.id == self._user_id).first()
+        if not user:
+            raise RuntimeError("사용자를 찾을 수 없습니다.")
+
+        thread_id_map = {
+            AssistantType.JOB_RECOMMEND: user.thread_id_job_recommend,
+            AssistantType.RECRUIT_RECOMMEND: user.thread_id_recruit_recommend,
+            AssistantType.ROADMAP: user.thread_id_roadmap,
+            AssistantType.RESUME_REVIEW: user.thread_id_resume_review,
+            AssistantType.FIND_STUDY: user.thread_id_find_study,
+            AssistantType.ASSISTANT: user.thread_id_assistant,
+        }
+
+        thread_id = thread_id_map.get(assistant_type)
+
+        if not thread_id:
+            raise RuntimeError(
+                "해당 assistant_type에 대한 thread_id가 존재하지 않습니다.", thread_id_map, thread_id)
+
+        message = get_all_assistant_message(thread_id)
+
+        return message
+
+    @implicit_context_db
+    def add_dialogue_thread(self, role: str, message: str, db: Session = None) -> None:
+        """스레드에 대화를 넣는 함수.(사용자, 도우미, 시스템 중 하나.)"""
+        # 사용자 정보 조회
+        user = db.query(User).filter(User.id == self._user_id).first()
+        if not user or not user.thread_id_assistant:
+            raise ValueError("유효한 사용자 또는 thread_id_assistant가 없습니다.")
+
+        # 스레드에 대화 추가
+        add_dialogue_to_thread(
+            personal_thread_id=user.thread_id_assistant,
+            role=role,
+            message=message
+        )
+
+    @implicit_context_db
+    def delete_user_thread_id(self, db: Session = None):
+        """
+        사용자의 모든 스레드 ID를 삭제합니다.
+
+        Raises:
+            ValueError: 유효한 사용자 또는 thread_id_assistant가 없을 경우.
+            RuntimeError: 스레드 삭제 중 문제가 발생할 경우.
+        """
+        # 사용자 정보 조회
+        user = db.query(User).filter(User.id == self._user_id).first()
+        if not user or not user.thread_id_assistant:
+            raise ValueError("유효한 사용자 또는 thread_id_assistant가 없습니다.")
+
+        # 삭제할 스레드 타입 정의
+        thread_types = ["assistant", "job_recommend",
+                        "recruit_recommend", "roadmap", "resume_review", "find_study"]
+
+        # 각 스레드 타입에 대한 thread_id 가져오기
+        thread_ids = [
+            getattr(user, f"thread_id_{thread_type}", None)
+            for thread_type in thread_types
+        ]
+
+        # 유효한 thread_id만 삭제
+        for thread_id in thread_ids:
+            if thread_id:
+                try:
+                    delete_thread_id(thread_id)
+                except RuntimeError as e:
+                    print(f"스레드 삭제 중 문제가 발생했습니다: {e}")
+
+        # DB에서 모든 thread_id 필드를 None으로 초기화
+        update_user(
+            db=db,
+            user_id=self._user_id,
+            **{f"thread_id_{thread_type}": None for thread_type in thread_types}
+        )
+
+    def get_citation_url(self, file_id: str) -> str:
+        """file_id로 불러온 filename을 정리해서 url_list로 반환하는 함수."""
+        filename = get_file_id_name(file_id)
+
+        # .txt 제거
+        if filename.endswith(".txt"):
+            filename = filename[:-4]
+
+        # '!' → ':', '@' → '/'
+        citation_url = filename.translate(str.maketrans("!@", ":/"))
+
+        return citation_url
+
+    def extract_citations_url(self, response: dict) -> list:
+        """
+        응답 데이터에서 citations(annotations) 리스트를 추출합니다.
+
+        Args:
+            response (dict): OpenAI API의 응답 데이터. response['date']까지 들어있음.
+
+        Returns:
+            list: 추출되서 변환된 링크 리스트.
+        """
+        citations_list = response['content'][0]['text']['annotations']
+        # file_id 리스트 추출
+        file_id_list = [citation['file_citation']['file_id']
+                        for citation in citations_list if 'file_citation' in citation]
+
+        # 각 file_id에 대해 get_citation_url 호출
+        citation_url_list = [self.get_citation_url(
+            file_id) for file_id in file_id_list]
+
+        return citation_url_list
+
+    def get_roadmap_image_list(self, user_id) -> list[str]:
+        """사용자의 모든 roadmap 이미지 리스트로 받아오기"""
+        roadmap_folder = "static/roadmap"
+        try:
+            image_files = [
+                f"{roadmap_folder}/{file}"
+                for file in os.listdir(roadmap_folder)
+                if file.startswith(f"{user_id}")
+            ]
+            return image_files
+        except FileNotFoundError:
+            return []

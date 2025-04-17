@@ -1,36 +1,16 @@
 import os
 
-from dotenv import load_dotenv
-from typing import Optional, TypedDict
-from openai.types import VectorStore
+from typing import Optional, Tuple, Any
 from sqlalchemy.orm import Session
+from src.db import implicit_context_db
+# from src.db import Session
+from src.logic.user.user_logic import UserLogic
+from src.logic.resume.resume_logic import ResumeLogic
+from src.logic.assistant.assistant_logic import AssistantLogic, AssistantType
+from src.logic.assistant.generate_roadmap_img import split_text_and_json
 
-from src.logic.openai_requests import (
-    upload_vector_store_files,
-    get_vector_store_files_list,
-    delete_vector_store_files,
-    get_vector_store,
-    create_new_thread,
-)
-from src.models.recruitment import get_user_by_id, update_user, create_user, delete_user
-from src.models.recruitment import User
-from src.logic.generate_id_card import generate_avatar_id_card
-
-load_dotenv()
-AZURE_OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT")
-AZURE_OPENAI_API_KEY = os.getenv("AZURE_OPENAI_API_KEY")
-
-
-class FileInfo(TypedDict):
-    """벡터 스토어에 업로드된 파일의 정보를 담는 타입입니다.
-
-    Args:
-        file_id: 벡터 스토어에 파일을 업로드할 때 지정되는 고유 식별자
-        file_name: 원본 파일의 이름
-    """
-
-    file_id: str
-    file_name: str
+from src.models.user import create_user
+from src.models.user import User
 
 
 class AppLogic:
@@ -44,132 +24,227 @@ class AppLogic:
     """
 
     def __init__(self):
-        self.signed_in: bool = False
-
+        self._signed_in: bool = False
         self._user_id: Optional[str] = None
-        self._vector_store_id: Optional[str] = None
+        # self.db = Session()
 
-    def upload_user_files(self, *files: str):
-        """파일을 사용자 전용 벡터 스토어에 업로드합니다.
+        # 각 로직 클래스 초기화
+        self.user_logic = UserLogic(self._user_id)
+        self.resume_logic = ResumeLogic(self._user_id)
+        self.assistant_logic = AssistantLogic(self._user_id)
 
-        Args:
-            *files (str): 업로드할 파일의 경로
+    # ---------------------------------------------------------
+    # 기본 로그인/회원가입 구현
+    @implicit_context_db
+    def sign_in(self, user_id: str, password: str, db: Session = None) -> Tuple[bool, str]:
         """
-        if not self.signed_in:
-            raise RuntimeError("로그인 정보가 없습니다.")
-        upload_vector_store_files(self._vector_store_id, files)
+        사용자 로그인 기능을 수행합니다.
 
-    def list_user_files(self) -> list[FileInfo]:
-        """사용자 전용 벡터 스토어에 업로드된 모든 파일의 ID 리스트를 반환합니다.
+        Parameters:
+            user_id (str): 로그인하려는 사용자의 ID입니다.
+            password (str): 로그인하려는 사용자의 비밀번호입니다.
 
         Returns:
-            list[FileInfo]: 파일 정보가 담긴 리스트입니다.
+            Tuple[bool, str]: 로그인 성공 여부와 메시지를 반환합니다.
+                - (True, "로그인 성공") → 로그인 성공
+                - (False, "아이디가 존재하지 않습니다.") → 사용자 없음
+                - (False, "비밀번호가 틀렸습니다.") → 비밀번호 불일치
         """
-        if not self.signed_in:
-            raise RuntimeError("로그인 정보가 없습니다.")
 
-        files = get_vector_store_files_list(self._vector_store_id)
-        files = [FileInfo(file_id=file.id, file_name=file.filename) for file in files]
-        return files
-
-    def remove_user_files(self, *file_ids: str) -> bool:
-        """파일을 사용자 전용 벡터 스토어에서 삭제합니다.
-
-        Args:
-            *files_ids (str): 삭제할 파일의 ID
-        """
-        if not self.signed_in:
-            raise RuntimeError("로그인 정보가 없습니다.")
-
-        delete_vector_store_files(
-            vector_store_id=self._vector_store_id, file_ids=file_ids
-        )
-
-    def sign_in(self, db: Session, user_id: str, password: str) -> bool:
         # User 테이블에서 user_id 로 사용자 조회
         user = db.query(User).filter(User.id == user_id).first()
 
         if user is None:
-            return False  # 사용자 없음 → 로그인 실패
+            return False, "아이디가 존재하지 않습니다."
 
         if not user.verify_password(password):
-            return False  # 비밀번호 불일치 → 로그인 실패
+            return False, "비밀번호가 틀렸습니다."
 
         # 로그인 성공
-        self.username = user.id
-        return True
+        self._signed_in = True
+        self._user_id = user_id
 
+        self.user_logic = UserLogic(self._user_id)
+        self.resume_logic = ResumeLogic(self._user_id)
+        self.assistant_logic = AssistantLogic(self._user_id)
+
+        return True, "로그인 성공"
+
+    @implicit_context_db
     def sign_up(
-        self, db: Session, user_id: str, password: str
-    ):  # hashing은 create에서 됨
-        existing_useruser = db.query(User).filter(User.id == user_id).first()
-        if existing_useruser:
-            return "이미 존재하는 아이디입니다."
-        else:
-            create_user(db, user_id=user_id, password=password)
-            self.update_vector_store(db, user_id=user_id)
-            self.update_thread_id(db, user_id=user_id)
-            self.update_user_img(db, user_id=user_id)
-            return True
+        self, user_id: str, password: str, db: Session = None
+    ) -> Tuple[bool, str]:
+        """
+        사용자 회원가입 기능을 수행합니다.
 
-    def update_vector_store(self, db: Session, user_id: str) -> str:
-        """DB에서 사용자 가져오고, 벡터 스토어가 없으면 새로 생성해서 DB에 업데이트
-
-        Args:
-            db (Session): DB 세션
-            user_id (str): 사용자 ID
+        Parameters:
+            user_id (str): 새로 등록할 사용자의 ID입니다.
+            password (str): 새로 등록할 사용자의 비밀번호입니다.
 
         Returns:
-            str: 벡터 스토어 ID
+            Tuple[bool, str]: 회원가입 성공 여부와 메시지를 반환합니다.
+                - (True, "회원가입에 성공했습니다.") → 회원가입 성공
+                - (False, "이미 존재하는 아이디입니다.") → 아이디 중복
         """
-        user = get_user_by_id(db, user_id)
+        # 기존 사용자 존재 여부 확인
+        existing_user = db.query(User).filter(User.id == user_id).first()
+        if existing_user:
+            return False, "이미 존재하는 아이디입니다."
 
-        if not user:
-            raise ValueError(f"User with id {user_id} not found")
+        # 회원가입 로직 수행
+        create_user(db, user_id=user_id, password=password)
 
-        if user.vector_store_id:
-            pass
-            return user.vector_store_id
-        else:
-            # Azure에서 ID 가져오기
-            vector_store_id = get_vector_store(vector_store_name=user_id)
+        self.sign_in(user_id, password)
+        self.user_logic.update_thread_id()
+        self.user_logic.update_user_img()
+        self.resume_logic.create_resume(user_id=user_id)
 
-            # DB에 업데이트
-            update_user(db=db, user_id=user_id, vector_store_id=vector_store_id)
-        return vector_store_id
+        return True, "회원가입에 성공했습니다."
 
-    # thread_id 생성 후, DB 업데이트
-    def update_thread_id(self, db: Session, user_id: str) -> None:
-        job, recruit, roadmap, resume = [
-            create_new_thread(AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_API_KEY)
-            for _ in range(4)
-        ]
+    def user_id(self):
+        """사용자 아이디를 반환합니다.
 
-        update_user(
-            db=db,
-            user_id=user_id,
-            thread_id_job_recommend=job,
-            thread_id_recruit_recommend=recruit,
-            thread_id_roadmap=roadmap,
-            thread_id_resume_review=resume,
-        )
+        Returns:
+            str: 사용자 아이디
+        """
+        if not self._signed_in:
+            raise RuntimeError('로그인 정보가 없습니다.')
+        return self._user_id
 
-    # 사용자 정보 카드 이미지 제작 후 경로 DB에 저장
-    def update_user_img(self, db: Session, user_id: str, wanted_position: str) -> None:
-        job = wanted_position if wanted_position else "미정"
-        update_user(
-            db=db,
-            user_id=user_id,
-            user_img=generate_avatar_id_card(seed=user_id, job=job),
-        )
+    def signed_in(self):
+        """로그인 여부를 반환합니다.
 
-    # 희망직무 업데이트 되었을 때 DB에 업데이트 및 이미지 주소 재설정
-    def update_wanted_position(
-        self, db: Session, user_id: str, wanted_position: str
-    ) -> None:
-        update_user(
-            db=db,
-            user_id=user_id,
-            wanted_position=wanted_position,
-            user_img=generate_avatar_id_card(seed=user_id, job=wanted_position),
-        )
+        Returns:
+            bool: 로그인 여부
+        """
+        return self._signed_in
+
+    # ---------------------------------------------------------
+    # USER 로직
+    def get_user_img(self) -> str:
+        """사용자 카드 이미지 주소를 반환합니다."""
+        return self.user_logic.get_user_img()
+
+    def update_user_resume_file(self, resume_file_url: str) -> None:
+        """유저의 이력서 PDF 파일 URL을 User 테이블 DB에 저장합니다."""
+        return self.user_logic.update_resume_file(resume_file_url)
+
+    def update_user_wanted(self, wanted_position) -> None:
+        """희망직무를 업데이트 합니다. 업데이트 된 경우, 자동으로 새로운 사용자 카드를 만듭니다."""
+        return self.user_logic.update_wanted_position(wanted_position)
+
+    @implicit_context_db
+    def return_user_wanted(self, user_id, db: Session = None):
+        existing_user = db.query(User).filter(User.id == user_id).first()
+        return existing_user.wanted_position
+
+    # ---------------------------------------------------------
+    # RESUME 로직
+    def generate_resume_pdf(self):
+        """이력서 PDF를 생성합니다."""
+        return self.resume_logic.generate_pdf_from_resume_id()
+
+    def update_resume_info(self, resume_fields: dict[str, Any]) -> None:
+        """
+        사용자 페이지의 resume 입력 정보를 Resume 테이블 DB에 저장합니다.
+
+        Args:
+            resume_fields (Dict[str, Any]): 업데이트할 이력서 정보 필드들.
+        """
+        return self.resume_logic.update_resume_info(resume_fields)
+
+    def reset_resume_info(self) -> None:
+        """
+        이력서 DB를 초기화합니다.(key값인 user_id 제외)
+        - 이력서 지우기 버튼 눌렀을 경우, 실행
+        """
+        self.resume_logic.reset_resume_info()
+
+    def get_resume_info(self) -> dict:
+        """
+        이력서 DB를 불러옵니다.
+        - 처음 사용자 페이지를 눌렀을 때 v
+        - 변경 취소하기 버튼 눌렀을 때 ? 
+        - 저장버튼 누른 뒤에도 update_resume_info 실행 후 → 불러와야 함 v
+        """
+        return self.resume_logic.get_resume_info()
+
+    # ---------------------------------------------------------
+    # ASSISTANT 로직
+    def get_response_from_assistant(self, assistant_type: AssistantType, user_question: str) -> dict:
+        """AI 도우미를 통해 사용자 질문에 응답합니다"""
+        response_message = self.assistant_logic.get_response_from_assistant(
+            assistant_type, user_question)
+        return response_message
+
+    def get_all_thread_dialogue(self, assistant_type: AssistantType) -> dict:
+        """사용자의 assistant_type에 해당하는 Thread ID를 통해 전체 대화 내역"""
+        return self.assistant_logic.get_all_thread_dialogue(assistant_type)
+
+    def add_dialogue_thread(self, role: str, message: str) -> None:
+        """스레드에 해당 역할에 대한 메세지를 추가합니다."""
+        return self.assistant_logic.add_dialogue_thread(role, message)
+
+    def delete_update_user_thread_id(self) -> None:
+        """
+        사용자의 모든 thread_id를 삭제하고 새로 생성합니다.
+
+        Raises:
+            RuntimeError: 스레드 삭제 또는 생성 중 문제가 발생할 경우.
+        """
+        try:
+            # 모든 thread_id 삭제
+            self.assistant_logic.delete_user_thread_id()
+            # 로드맵 이미지 파일 삭제
+            roadmap_image_files = self.get_roadmap_image_list()
+            for image_file in roadmap_image_files:
+                try:
+                    if os.path.exists(image_file):
+                        os.remove(image_file)
+                        print(f"로드맵 이미지 삭제: {image_file}")
+                    else:
+                        print(f"이미지 파일이 존재하지 않습니다: {image_file}")
+                except Exception as e:
+                    print(f"로드맵 이미지 삭제 중 문제가 발생했습니다: {e}")
+
+            # 새로운 thread_id 생성
+            self.user_logic.update_thread_id()
+        except Exception as e:
+            raise RuntimeError(f"thread_id 삭제 또는 생성 중 문제가 발생했습니다: {e}")
+
+    def split_roadmap_text_image(self, roadmap_response: str, message_id: str) -> Tuple[str, str]:
+        """
+        로드맵 응답 데이터를 텍스트와 이미지 경로로 분리합니다.
+
+        Args:
+            roadmap_response (str): 로드맵 기능에서 출력된 응답 데이터 (JSON 형식의 문자열).
+            message_id (str): message_id
+
+        Returns:
+            Tuple[str, str]: 
+                - 텍스트 부분 (로드맵 설명).
+                - 이미지 경로 (로드맵 이미지 파일 경로).(세로 / 가로)
+        """
+        roadmap_text, roadmap_image_path = split_text_and_json(
+            roadmap_response, user_id=self._user_id, message_id=message_id)
+        return roadmap_text, roadmap_image_path
+
+    def extract_citations_to_url(self, response: str) -> list:
+        """응답이 선택됐을 때 그 응답에서 url 리스트로 나옴"""
+        return self.assistant_logic.extract_citations_url(response)
+
+    def get_roadmap_image_list(self) -> list[str]:
+        """user_id 기반으로 roadmap 이미지 주소 전체 리스트로 불러오기"""
+        roadmap_image_files = self.assistant_logic.get_roadmap_image_list(
+            user_id=self._user_id)
+        return roadmap_image_files
+
+    # ---------------------------------------------------------
+    # DB Session 닫기
+    # def __del__(self):
+    #     # 인스턴스 소멸 시 세션 닫기
+    #     if hasattr(self, "db"):
+    #         self.db.close()
+
+
+app_logic = AppLogic()
