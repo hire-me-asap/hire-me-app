@@ -83,6 +83,8 @@ def _get_assistant_response(content: str, mode: Modes, chat_state, resume_state)
             yield
 
             for message, response in _get_assistant_response(query, mode, chat_state, resume_state):
+                if 'pop_this' in chat_state['histories'][Modes.GENERAL][-1]:
+                    chat_state['histories'][Modes.GENERAL].pop()
                 message['content'] = '\n---\n' + message['content']
                 chat_state['histories'][Modes.GENERAL].append(message)
                 app_logic.add_dialogue_thread(
