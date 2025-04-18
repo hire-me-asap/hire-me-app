@@ -52,6 +52,10 @@
         color: #9af4ff;
         text-decoration: none;
     }
+
+    .example-content {
+        color: lightgray;
+    }
 }
 
 @media (prefers-color-scheme: light) {
