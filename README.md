@@ -10,7 +10,7 @@
 
 [<img align="center" height="60px" src="https://raw.githubusercontent.com/hire-me-asap/.github/main/profile/resources/%EC%97%A3%EC%B7%A8-%ED%83%80%EC%9D%B4%ED%8B%80.png">](#)
 
-🤧 **엣취**는 IT 분야 비기너를 위한 취업 준비를 돕는 **맞춤형 구직 도우미**입니다.
+🤧 **엣취**는 IT 분야 비기너의 취업 준비를 돕는 **맞춤형 구직 도우미**입니다.
 
 🎯 사용자의 이력서를 **분석**하여 다음 기능을 제공합니다:
 - 📝 이력서 피드백
